@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #a83300;
+  --color-primary-accent: #E8541C;
+  --color-on-primary: #ffffff;
+  
+  --color-surface: #f8f9ff;
+  --color-surface-container: #e6eeff;
+  --color-on-surface: #121c2a;
+  --color-secondary: #5c5f62;
+  
+  --radius-xl: 1.5rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-sans;
+  }
+}
+
+@layer components {
+  .price-display {
+    @apply text-[22px] font-bold leading-none tracking-tight;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .sticky-filter-top {
+    @apply sticky z-30 bg-surface/80 backdrop-blur-md;
+    top: 64px; /* Desktop height */
+  }
+
+  @media (max-width: 768px) {
+    .sticky-filter-top {
+      top: 120px; /* Mobile height exactly */
+    }
+  }
+}

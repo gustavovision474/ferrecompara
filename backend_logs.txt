@@ -1,0 +1,276 @@
+Usando la configuración de inicio de /Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Properties/launchSettings.json...
+Compilando...
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(29,29): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Program.cs(31,25): warning CS8604: Possible null reference argument for parameter 'supabaseUrl' in 'Client.Client(string supabaseUrl, string? supabaseKey, SupabaseOptions? options = null)'. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(66,73): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(67,81): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(68,74): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(69,72): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(70,73): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(71,69): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/StoreService.cs(118,31): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/ProductService.cs(218,85): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/ProductService.cs(219,79): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/ProductService.cs(220,83): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/Services/ProductService.cs(221,81): warning CS8603: Possible null reference return. [/Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api/FerreCompara.Api.csproj]
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5132
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/gustavovelez/FERRECOMPARA-BACK-END/FerreCompara.Api
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 12 registros
+✅ GetMyProductosUIAsync: Retornando 12 productos a la UI.
+warn: Microsoft.AspNetCore.Server.Kestrel[22]
+      As of "05/12/2026 21:05:45 +00:00", the heartbeat has been running for "00:00:03.3375944" which is longer than "00:00:01". This could be caused by thread pool starvation.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 12 registros
+✅ GetMyProductosUIAsync: Retornando 12 productos a la UI.
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 12 registros
+✅ GetMyProductosUIAsync: Retornando 12 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+warn: Microsoft.AspNetCore.Server.Kestrel[22]
+      As of "05/12/2026 21:18:56 +00:00", the heartbeat has been running for "00:00:01.6041850" which is longer than "00:00:01". This could be caused by thread pool starvation.
+❌ Error crítico en GetMyStoreIdAsync: An error occurred while sending the request.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 12 registros
+✅ GetMyProductosUIAsync: Retornando 12 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 12 registros
+✅ GetMyProductosUIAsync: Retornando 12 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 8f7703ef-6f05-42f5-a65c-90d211586f48
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 3d76b339-fe23-40f6-ac3d-f13da7260bdd
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 3d76b339-fe23-40f6-ac3d-f13da7260bdd
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 13 registros
+✅ GetMyProductosUIAsync: Retornando 13 productos a la UI.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 3d76b339-fe23-40f6-ac3d-f13da7260bdd
+✅ Tienda ID encontrada: 1
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 3d76b339-fe23-40f6-ac3d-f13da7260bdd
+✅ Tienda ID encontrada: 1
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+❌ Falló la autenticación: IDX10503: Signature validation failed. The token's kid is: 'd24b88de-12b3-4950-befa-67275e13ac5f', but did not match any keys in TokenValidationParameters or Configuration. Keys tried: 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey, KeyId: '', InternalId: 'PZhWnZlQuWUQq-D-mIyaP0Rs7BVAO4FdabjSE4pVbtg'. , KeyId: 
+'. Number of keys in TokenValidationParameters: '1'. 
+Number of keys in Configuration: '0'. 
+Exceptions caught:
+ '[PII of type 'System.String' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'.
+token: '[PII of type 'Microsoft.IdentityModel.JsonWebTokens.JsonWebToken' is hidden. For more details, see https://aka.ms/IdentityModel/PII.]'. See https://aka.ms/IDX10503 for details.
+✅ Usuario validado por Supabase: 3d76b339-fe23-40f6-ac3d-f13da7260bdd
+✅ Tienda ID encontrada: 1
+🔍 GetMyProductosUIAsync: Inventario encontrado para tienda 1 = 14 registros
+✅ GetMyProductosUIAsync: Retornando 14 productos a la UI.

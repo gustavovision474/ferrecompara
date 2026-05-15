@@ -1,0 +1,6 @@
+{
+  "name": "FerreCompara",
+  "description": "Plataforma de comparación de precios de ferretería y materiales de construcción en tiempo real.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["Price Comparison", "Store Analytics", "Geolocated Search"]
+}

@@ -80,9 +80,7 @@ export class AuthService {
       this._user.set(session.user);
     }
 
-    // Escuchar cambios de sesión (login, logout en otra pestaña, etc.)
-    this.client.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔐 Auth event:', event);
+    this.client.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await this.cargarProfile(session.user.id);
         this._user.set(session.user);
@@ -131,8 +129,7 @@ export class AuthService {
       };
 
     } catch (err: any) {
-      console.error('❌ Error al registrar:', err);
-      const mensaje = this.traducirError(err.message);
+      const mensaje = this.traducirError(err?.message ?? '');
       this._error.set(mensaje);
       return { ok: false, mensaje };
     } finally {
@@ -164,18 +161,12 @@ export class AuthService {
       return { ok: true, mensaje: '✅ Bienvenido de vuelta' };
 
     } catch (err: any) {
-      console.error('❌ Error al iniciar sesión:', err);
-      const mensaje = this.traducirError(err.message);
+      const mensaje = this.traducirError(err?.message ?? '');
       this._error.set(mensaje);
       return { ok: false, mensaje };
     } finally {
       this._loading.set(false);
     }
-  }
-
-  // Método de compatibilidad
-  async checkSession() {
-    await this.inicializar();
   }
 
   // ============================================
@@ -197,7 +188,6 @@ export class AuthService {
   // ============================================
   private async cargarProfile(userId: string) {
     try {
-      console.log('⏳ Cargando perfil para:', userId);
       const { data, error } = await this.client
         .from('profiles')
         .select('*')
@@ -208,14 +198,11 @@ export class AuthService {
 
       if (data) {
         this._profile.set(data as Profile);
-        console.log('👤 Profile cargado:', data);
       } else {
-        console.warn('❓ No se encontró perfil, usando datos básicos');
         const basicProfile: Profile = { id: userId, email: this._user()?.email || '', rol: 'cliente', estado: 'activo' };
         this._profile.set(basicProfile);
       }
-    } catch (err: any) {
-      console.error('❌ Error al cargar profile:', err);
+    } catch {
       this._profile.set(null);
     }
   }

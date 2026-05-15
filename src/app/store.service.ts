@@ -88,9 +88,7 @@ export class StoreService {
 
   private _storeProducts = signal<Product[]>([]);
 
-  readonly storeProducts = computed(() => {
-    return this._storeProducts();
-  });
+  readonly storeProducts = this._storeProducts.asReadonly();
 
   readonly selectedProductOffers = computed(() => {
     const product = this.selectedProduct();
@@ -212,11 +210,6 @@ export class StoreService {
 
   setSortByPrice(value: boolean) {
     this._sortByPrice.set(value);
-  }
-
-  setCity(city: string) {
-    this._userCity.set(city);
-    this.cargarDatos();
   }
 
   setUserCity(city: string) {

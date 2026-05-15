@@ -45,7 +45,7 @@ export class ChatService {
     const clienteId = this.auth.profile()?.id;
     if (!clienteId) return null;
 
-    const client = this.supabase['supabaseClient'];
+    const client = this.supabase.client;
 
     // 1. Buscar si ya existe el chat
     let { data: chat, error } = await client
@@ -84,7 +84,7 @@ export class ChatService {
   async loadMessagesAndSubscribe(chatId: string) {
     this.loading.set(true);
     this.activeChatId.set(chatId);
-    const client = this.supabase['supabaseClient'];
+    const client = this.supabase.client;
 
     try {
       // 1. Cargar historial
@@ -139,7 +139,7 @@ export class ChatService {
     const senderId = this.auth.profile()?.id;
     if (!senderId || !contenido.trim()) return;
 
-    const client = this.supabase['supabaseClient'];
+    const client = this.supabase.client;
 
     // Insertamos y pedimos de vuelta la fila completa para actualización instantánea garantizada
     const { data: newMsg, error } = await client
@@ -176,7 +176,7 @@ export class ChatService {
   // PARA TIENDAS: Cargar todas las conversaciones activas y escuchar nuevos en vivo
   // ==========================================
   async loadStoreConversations(tiendaId: number) {
-    const client = this.supabase['supabaseClient'];
+    const client = this.supabase.client;
     
     // 1. Cargar historial actual
     await this.reloadConversationsQuietly(tiendaId);
@@ -199,7 +199,7 @@ export class ChatService {
 
   // Recarga silenciosa sin parpadeos visuales
   private async reloadConversationsQuietly(tiendaId: number) {
-    const client = this.supabase['supabaseClient'];
+    const client = this.supabase.client;
     
     const { data, error } = await client
       .from('chats')
@@ -246,7 +246,7 @@ export class ChatService {
     this.activeChatId.set(null);
     this.messages.set([]);
     if (this.realtimeSubscription) {
-      const client = this.supabase['supabaseClient'];
+      const client = this.supabase.client;
       client.removeChannel(this.realtimeSubscription);
       this.realtimeSubscription = null;
     }

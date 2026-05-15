@@ -114,7 +114,5 @@ export class AppComponent implements OnInit {
     this.rolSeleccionado.set(null);
   }
 
-  onLoginExitoso() {
-    console.log('✅ Login exitoso');
-  }
+  onLoginExitoso() {}
 }

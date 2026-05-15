@@ -87,10 +87,14 @@ export class SupabaseService {
       environment.supabase.url,
       environment.supabase.publishableKey
     );
-    console.log('✅ Supabase conectado');
   }
 
   getClient(): SupabaseClient {
+    return this.supabaseClient;
+  }
+
+  // Getter para que otros servicios accedan al cliente sin bracket notation
+  get client(): SupabaseClient {
     return this.supabaseClient;
   }
 
@@ -113,7 +117,6 @@ export class SupabaseService {
   }
 
   async cargarProductos(query?: string, city?: string): Promise<void> {
-    console.log('🚀 Iniciando carga de productos...', query || 'sin query', city || 'sin ciudad');
     this.cargando.set(true);
     this.error.set(null);
     try {
@@ -121,20 +124,13 @@ export class SupabaseService {
       if (query) params = params.set('q', query);
       if (city) params = params.set('city', city);
       params = params.set('_t', Date.now().toString());
-      
-      const url = `${environment.apiUrl}/Products`;
-      console.log('🔗 Petición a:', url);
-      
-      const productos = await firstValueFrom(this.http.get<Product[]>(url, { params }));
-      console.log('✅ Productos recibidos:', productos?.length || 0);
+
+      const productos = await firstValueFrom(this.http.get<Product[]>(`${environment.apiUrl}/Products`, { params }));
       this.productos.set(productos ?? []);
-    } catch (err: any) {
-      console.error('❌ Error cargando productos API:', err);
-      console.warn('⚠️ Cargando productos fallback...');
+    } catch {
       await this.cargarProductosFallback();
     } finally {
       this.cargando.set(false);
-      console.log('🏁 Carga finalizada. Total productos en signal:', this.productos().length);
     }
   }
 
@@ -183,7 +179,10 @@ export class SupabaseService {
 
   private async cargarTiendasFallback(): Promise<void> {
     try {
-      const { data, error } = await this.supabaseClient.from('tiendas').select(`*, ciudades ( nombre, provincia )`).eq('activa', true);
+      const { data, error } = await this.supabaseClient
+        .from('tiendas')
+        .select(`*, ciudades ( nombre, provincia )`)
+        .eq('activa', true);
       if (error) throw error;
       const tiendasUI: TiendaUI[] = (data as SupabaseTienda[]).map(t => ({
         id: t.id.toString(),
@@ -202,12 +201,14 @@ export class SupabaseService {
         direccion: t.direccion ?? undefined
       }));
       this.tiendas.set(tiendasUI);
-    } catch (err: any) {}
+    } catch { /* silencioso: sin datos de fallback */ }
   }
 
   private async cargarProductosFallback(): Promise<void> {
     try {
-      const { data, error } = await this.supabaseClient.from('productos').select(`*, categorias ( nombre ), inventario ( precio, stock, oferta )`);
+      const { data, error } = await this.supabaseClient
+        .from('productos')
+        .select(`*, categorias ( nombre ), inventario ( precio, stock, oferta )`);
       if (error) throw error;
       const productosUI: Product[] = (data as SupabaseProducto[]).map(p => ({
         id: p.id.toString(),
@@ -220,7 +221,7 @@ export class SupabaseService {
         category: p.categorias?.nombre || ''
       }));
       this.productos.set(productosUI);
-    } catch (err: any) {}
+    } catch { /* silencioso: sin datos de fallback */ }
   }
 
   // ─────────────────────────────────────────────

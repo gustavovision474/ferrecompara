@@ -1,0 +1,63 @@
+---
+import Container from '@/components/ui/Container.astro';
+import SectionTitle from '@/components/ui/SectionTitle.astro';
+import { services } from '@/data/services';
+
+const icons: Record<string, string> = {
+  'lucide:trophy': `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+  'lucide:trees': `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/></svg>`,
+  'lucide:home': `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  'lucide:dumbbell': `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg>`,
+};
+---
+
+<section
+  id="servicios"
+  class="py-20 md:py-32 bg-white"
+  aria-label="Nuestros servicios"
+  role="region"
+  aria-labelledby="services-heading"
+>
+  <Container>
+    <SectionTitle
+      id="services-heading"
+      eyebrow="Lo que hacemos"
+      title="Soluciones para cada espacio"
+      description="De canchas deportivas de alto rendimiento a terrazas residenciales de ensueño, te ayudamos a transformar cualquier espacio con césped de calidad internacional."
+      class="mb-16"
+    />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+      {
+        services.map((service) => (
+          <article class="group bg-white border border-ink-100 rounded-2xl p-8 hover:shadow-lg hover:-translate-y-1 hover:border-grass-200 transition-all duration-300">
+            <div class="w-14 h-14 bg-grass-100 rounded-2xl flex items-center justify-center text-grass-600 mb-6 group-hover:bg-grass-500 group-hover:text-white transition-colors duration-300">
+              <Fragment set:html={icons[service.icon] ?? icons['lucide:trophy']} />
+            </div>
+            <h3 class="text-xl font-bold text-ink-900 mb-3">{service.title}</h3>
+            <p class="text-ink-600 text-sm leading-relaxed mb-4">{service.description}</p>
+            <ul class="space-y-1.5 mb-6" aria-label={`Ejemplos de ${service.title}`}>
+              {service.examples.map((example) => (
+                <li class="flex items-center gap-2 text-xs text-ink-500">
+                  <span class="w-1.5 h-1.5 bg-grass-400 rounded-full shrink-0" aria-hidden="true" />
+                  {example}
+                </li>
+              ))}
+            </ul>
+            <a
+              href="#cotizar"
+              class="text-sm font-semibold text-grass-600 hover:text-grass-700 flex items-center gap-1 transition-colors"
+              aria-label={`Más información sobre ${service.title}`}
+            >
+              Más información
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </Container>
+</section>

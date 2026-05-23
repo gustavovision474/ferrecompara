@@ -1,0 +1,33 @@
+---
+import Container from '@/components/ui/Container.astro';
+import Badge from '@/components/ui/Badge.astro';
+import { certifications } from '@/data/certifications';
+---
+
+<section
+  class="bg-cream py-10 border-y border-ink-100"
+  aria-label="Certificaciones internacionales"
+  role="region"
+  aria-labelledby="certifications-heading"
+>
+  <Container>
+    <p
+      id="certifications-heading"
+      class="text-center text-sm font-medium text-ink-400 mb-6 uppercase tracking-widest"
+    >
+      Certificaciones internacionales que respaldan cada instalación
+    </p>
+    <div class="flex flex-wrap items-center justify-center gap-4 md:gap-8">
+      {
+        certifications.map((cert) => (
+          <div class="flex flex-col items-center gap-1.5 group">
+            <Badge variant="certification" class="text-base px-5 py-2 group-hover:bg-grass-50 transition-colors">
+              {cert.name}
+            </Badge>
+            <span class="text-xs text-ink-400">{cert.origin}</span>
+          </div>
+        ))
+      }
+    </div>
+  </Container>
+</section>

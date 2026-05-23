@@ -1,0 +1,92 @@
+---
+import { locations } from '@/data/locations';
+import { products } from '@/data/products';
+
+const siteUrl = 'https://astrograss.com.ec';
+
+const localBusinessSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'Astro Grass — Astro Global Corp',
+  description:
+    'Importación, venta e instalación profesional de césped artificial sintético y pisos de caucho en Ecuador. Certificación ISO 9001.',
+  url: siteUrl,
+  logo: `${siteUrl}/favicon.svg`,
+  image: `${siteUrl}/og-image.jpg`,
+  telephone: '+593969643366',
+  email: 'astrograssec@hotmail.com',
+  foundingDate: '2022',
+  areaServed: [
+    { '@type': 'City', name: 'Quito' },
+    { '@type': 'City', name: 'Guayaquil' },
+    { '@type': 'City', name: 'Portoviejo' },
+  ],
+  sameAs: [
+    'https://www.instagram.com/astroglobalcorp',
+    'https://www.facebook.com/AstroGrassEc',
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Catálogo de Césped Artificial',
+    itemListElement: products.map((p, i) => ({
+      '@type': 'Offer',
+      itemOffered: {
+        '@type': 'Product',
+        name: p.name,
+        description: p.description,
+        brand: { '@type': 'Brand', name: 'Astro Grass' },
+      },
+      position: i + 1,
+    })),
+  },
+  department: locations.map((loc) => ({
+    '@type': 'LocalBusiness',
+    name: `Astro Grass ${loc.city}`,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: loc.address,
+      addressLocality: loc.city,
+      addressCountry: 'EC',
+    },
+    telephone: loc.phone,
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: loc.lat,
+      longitude: loc.lng,
+    },
+    openingHours: 'Mo-Sa 08:00-18:00',
+  })),
+};
+
+const productListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Catálogo de Césped Artificial Astro Grass',
+  itemListElement: products.map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Product',
+      name: p.name,
+      description: p.description,
+      brand: { '@type': 'Brand', name: 'Astro Grass' },
+      category: p.category === 'deportivo' ? 'Césped Deportivo' : 'Césped Decorativo',
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'USD',
+        lowPrice: 9,
+        highPrice: 15,
+        priceValidUntil: '2027-12-31',
+      },
+      warranty: {
+        '@type': 'WarrantyPromise',
+        durationOfWarranty: { '@type': 'QuantitativeValue', value: 5, unitCode: 'ANN' },
+        warrantyScope: 'https://schema.org/LifetimeWarranty',
+      },
+    },
+  })),
+};
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
+<script is:inline type="application/ld+json" set:html={JSON.stringify(productListSchema)} />

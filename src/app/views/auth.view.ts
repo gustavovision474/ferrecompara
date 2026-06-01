@@ -182,7 +182,7 @@ type AuthMode = 'login' | 'register';
                 <span>Procesando...</span>
               } @else {
                 <span>{{ mode() === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>
-                <lucide-icon [name]="ArrowRightIcon" size="18" class="absolute right-4 group-hover:translate-x-1 transition-transform"></lucide-icon>
+                <lucide-icon [name]="ArrowRightIcon" size="18" class="absolute right-4 top-1/2 -translate-y-1/2 group-hover:translate-x-1 transition-transform flex items-center"></lucide-icon>
               }
             </button>
 

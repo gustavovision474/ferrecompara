@@ -1,10 +1,14 @@
 export const environment = {
-  production: false,
+  production: import.meta.env.PROD,
   supabase: {
     url: 'https://qvglqtwjohwjvwyisrbj.supabase.co',
     publishableKey: 'sb_publishable_glKNUZbVYDLsIpbFVvjjMg_A7cylBiT'
   },
   get apiUrl() {
+    if (import.meta.env.PROD) {
+      return 'https://lazy-rattlesnake-24.loca.lt/api';
+    }
     return `http://${window.location.hostname}:5132/api`;
   }
 };
+

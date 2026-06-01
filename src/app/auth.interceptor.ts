@@ -15,6 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     headers: req.headers
       .set('bypass-tunnel-reminder', 'true')
       .set('ngrok-skip-browser-warning', 'true')
+      .set('serveo-skip-browser-warning', 'true')
   });
 
   const supabaseService = inject(SupabaseService);

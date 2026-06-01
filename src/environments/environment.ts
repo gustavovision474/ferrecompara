@@ -6,7 +6,7 @@ export const environment = {
   },
   get apiUrl() {
     if (import.meta.env.PROD) {
-      return 'https://2b46e984fecc80.lhr.life/api';
+      return 'https://d424682afe24bd8c-181-199-46-139.serveousercontent.com/api';
     }
     return `http://${window.location.hostname}:5132/api`;
   }

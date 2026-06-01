@@ -1666,10 +1666,23 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
     this.categorias.set(cats);
   }
 
+  async cargarMisProductosSilencioso() {
+    try {
+      const productos = await this.supabase.cargarMisProductosApi();
+      this.misProductos.set(productos);
+    } catch (e) {
+      console.error('Error cargando catálogo en segundo plano', e);
+    }
+  }
+
   async abrirCatalogo() {
     window.scrollTo(0, 0);
     this.activeTab.set('catalogo');
-    await this.cargarMisProductos();
+    if (this.misProductos().length === 0) {
+      await this.cargarMisProductos();
+    } else {
+      this.cargarMisProductosSilencioso();
+    }
   }
 
   abrirFormularioNuevo() {
@@ -2314,30 +2327,45 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   cargandoPedidos = signal(false);
   actualizandoPedido = signal<string | null>(null);
 
+  async cargarPedidosSilencioso() {
+    const shop = this.auth.profile();
+    if (!shop || !shop.tienda_id) return;
+    try {
+      const res = await this.supabase.obtenerPedidosTienda(shop.tienda_id);
+      this.pedidos.set(res);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async abrirPedidos() {
     window.scrollTo(0, 0);
     this.activeTab.set('pedidos');
     const shop = this.auth.profile();
     if (!shop || !shop.tienda_id) return;
     
-    this.cargandoPedidos.set(true);
-    this.cdr.detectChanges();
-    try {
-      const res = await this.supabase.obtenerPedidosTienda(shop.tienda_id);
-      this.pedidos.set(res);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      this.cargandoPedidos.set(false);
+    if (this.pedidos().length === 0) {
+      this.cargandoPedidos.set(true);
       this.cdr.detectChanges();
-      // Force browser to fully repaint the DOM after async data injection
-      requestAnimationFrame(() => {
+      try {
+        const res = await this.supabase.obtenerPedidosTienda(shop.tienda_id);
+        this.pedidos.set(res);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.cargandoPedidos.set(false);
+        this.cdr.detectChanges();
+        // Force browser to fully repaint the DOM after async data injection
         requestAnimationFrame(() => {
-          this.cdr.detectChanges();
-          // Trigger layout recalculation
-          document.body.style.zoom = '1';
+          requestAnimationFrame(() => {
+            this.cdr.detectChanges();
+            // Trigger layout recalculation
+            document.body.style.zoom = '1';
+          });
         });
-      });
+      }
+    } else {
+      this.cargarPedidosSilencioso();
     }
   }
 
@@ -2489,13 +2517,15 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
     const shop = this.auth.profile();
     if (!shop || !shop.tienda_id) return;
     try {
-      const cartera = await this.supabase.obtenerCarteraCredito(shop.tienda_id);
+      const [cartera, sols, config] = await Promise.all([
+        this.supabase.obtenerCarteraCredito(shop.tienda_id),
+        this.supabase.obtenerSolicitudesTienda(shop.tienda_id),
+        this.supabase.obtenerConfigCredito(shop.tienda_id)
+      ]);
+
       this.carteraCredito.set(cartera);
-      
-      const sols = await this.supabase.obtenerSolicitudesTienda(shop.tienda_id);
       this.todasSolicitudes.set(sols);
 
-      const config = await this.supabase.obtenerConfigCredito(shop.tienda_id);
       if (config) {
         this.configCreditoEdit = { 
           tasa_interes_mensual: config.tasa_interes_mensual, 

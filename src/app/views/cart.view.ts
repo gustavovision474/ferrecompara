@@ -203,7 +203,7 @@ export class CartViewComponent {
       .map(i => `• ${i.product.name} x${i.quantity} = $${(i.product.minPrice * i.quantity).toFixed(2)}`)
       .join('\n');
     const msg = encodeURIComponent(
-      `Hola, vi sus productos en FerreCompara y quiero cotizar:\n\n${lista}\n\nTotal: $${this.cart.totalPrice().toFixed(2)}`
+      `Hola, vi sus productos en FerreExpress y quiero cotizar:\n\n${lista}\n\nTotal: $${this.cart.totalPrice().toFixed(2)}`
     );
     return `https://wa.me/${phone}?text=${msg}`;
   }
@@ -212,10 +212,10 @@ export class CartViewComponent {
     const lista = this.cart.items()
       .map(i => `• ${i.product.name} (${i.storeName}) x${i.quantity} = $${(i.product.minPrice * i.quantity).toFixed(2)}`)
       .join('\n');
-    const texto = `🔨 Mi lista de materiales - FerreCompara\n\n${lista}\n\n💰 Total: $${this.cart.totalPrice().toFixed(2)}`;
+    const texto = `🔨 Mi lista de materiales - FerreExpress\n\n${lista}\n\n💰 Total: $${this.cart.totalPrice().toFixed(2)}`;
 
     if (navigator.share) {
-      navigator.share({ title: 'Mi carrito FerreCompara', text: texto });
+      navigator.share({ title: 'Mi carrito FerreExpress', text: texto });
     } else if (navigator.clipboard) {
       navigator.clipboard.writeText(texto);
       alert('Lista copiada al portapapeles ✓');

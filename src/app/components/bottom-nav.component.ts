@@ -20,7 +20,7 @@ import { CartService } from '../cart.service';
               <span class="text-white text-[10px] font-black leading-none">{{ cart.totalItems() > 9 ? '9+' : cart.totalItems() }}</span>
             </div>
           }
-          <lucide-icon [name]="tab.icon" size="24" [stroke]="store.activeTab() === tab.id ? '#E8541C' : 'currentColor'"></lucide-icon>
+          <lucide-icon [name]="tab.icon" size="24" [color]="store.activeTab() === tab.id ? '#E8541C' : 'currentColor'"></lucide-icon>
           <span class="text-[11px] font-bold uppercase tracking-wider mt-1">{{ tab.label }}</span>
         </button>
       }

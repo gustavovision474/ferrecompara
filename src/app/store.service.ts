@@ -15,12 +15,16 @@ export class StoreService {
   private _activeTab = signal<'home' | 'search' | 'experts' | 'favorites' | 'profile' | 'stores' | 'cart'>('home');
   private _selectedProductId = signal<string | null>(null);
   private _selectedStoreId = signal<string | null>(null);
-  private _userCity = signal<string>('Guayaquil');
+  private _userCity = signal<string>(localStorage.getItem('ferrecompara_ciudad') || 'Guayaquil');
   private _isSidebarOpen = signal<boolean>(false);
   
   // Signals de estado local (Sin Auth)
   isAuthenticated = signal<boolean>(false);
   userRole = signal<'cliente' | 'tienda'>('cliente');
+  
+  constructor() {
+    // Si necesitas suscribirte o hacer algo on init
+  }
   
   // Filters
   private _sortByPrice = signal<boolean>(false);
@@ -34,6 +38,7 @@ export class StoreService {
   readonly favorites = computed(() => Array.from(this._favorites()));
   readonly searchQuery = this._searchQuery.asReadonly();
   readonly activeTab = this._activeTab.asReadonly();
+  readonly selectedStoreId = this._selectedStoreId.asReadonly();
   readonly userCity = this._userCity.asReadonly();
   readonly isSidebarOpen = this._isSidebarOpen.asReadonly();
   readonly sortByPrice = this._sortByPrice.asReadonly();
@@ -88,7 +93,9 @@ export class StoreService {
 
   private _storeProducts = signal<Product[]>([]);
 
-  readonly storeProducts = this._storeProducts.asReadonly();
+  readonly storeProducts = computed(() => {
+    return this._storeProducts();
+  });
 
   readonly selectedProductOffers = computed(() => {
     const product = this.selectedProduct();
@@ -118,10 +125,10 @@ export class StoreService {
 
     if (tiendaDestacada) {
       return [{
-        store: tiendaDestacada.name,
-        logo: tiendaDestacada.name.charAt(0),
+        store: 'Distribuidor Autorizado', // Nombre genérico para evitar confusión con el precio global
+        logo: 'D',
         verified: true,
-        distance: tiendaDestacada.address || tiendaDestacada.city,
+        distance: tiendaDestacada.city,
         price: product.minPrice,
         minPrice: product.minPrice,
         phone: tiendaDestacada.phone,
@@ -129,12 +136,12 @@ export class StoreService {
         isCurrentStore: false,
         latitud: tiendaDestacada.latitud,
         longitud: tiendaDestacada.longitud,
-        direccion: tiendaDestacada.address
+        direccion: 'Disponible al confirmar'
       }];
     }
 
     return [{
-      store: 'Tienda Local',
+      store: 'Distribuidor Autorizado',
       logo: 'F',
       verified: true,
       distance: this._userCity(),
@@ -182,10 +189,17 @@ export class StoreService {
     });
   }
 
-  selectProduct(productId: string | null) {
+  realProductOffers = signal<any[]>([]);
+
+  async selectProduct(productId: string | null) {
     this._selectedProductId.set(productId);
     if (productId) {
       this._activeTab.set('search');
+      this.realProductOffers.set([]); // Loading state o limpieza
+      const offers = await this.supabase.obtenerTiendasPorProducto(productId);
+      this.realProductOffers.set(offers);
+    } else {
+      this.realProductOffers.set([]);
     }
   }
 
@@ -212,12 +226,24 @@ export class StoreService {
     this._sortByPrice.set(value);
   }
 
+  setCity(city: string) {
+    this._userCity.set(city);
+    localStorage.setItem('ferrecompara_ciudad', city);
+    this.cargarDatos();
+  }
+
   setUserCity(city: string) {
     this._userCity.set(city);
+    localStorage.setItem('ferrecompara_ciudad', city);
     this.cargarDatos();
   }
 
   isFavorite(productId: string): boolean {
     return this._favorites().has(productId);
+  }
+
+  clearFilters() {
+    this._searchQuery.set('');
+    this._sortByPrice.set(false);
   }
 }

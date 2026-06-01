@@ -44,10 +44,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button (click)="abrirPerfil()" class="w-10 h-10 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-[#E8541C] transition-colors" title="Perfil de Tienda">
-            <lucide-icon [name]="SettingsIcon" size="18"></lucide-icon>
-          </button>
-          <button (click)="onLogout()" class="w-10 h-10 bg-gray-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors" title="Cerrar Sesión">
+          <button (click)="onLogout()" class="w-10 h-10 bg-gray-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors">
             <lucide-icon [name]="LogoutIcon" size="18"></lucide-icon>
           </button>
         </div>
@@ -164,7 +161,6 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             </div>
           </button>
 
-
           <button 
             (click)="abrirCreditos()"
             class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
@@ -203,22 +199,21 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
           <button 
             (click)="abrirPerfil()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-blue-500 transition-all shadow-sm active:scale-[0.98]"
           >
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="SettingsIcon" size="24"></lucide-icon>
+              <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="EditIcon" size="24"></lucide-icon>
               </div>
               <div class="text-left">
                 <h3 class="font-bold text-sm text-gray-900">Perfil de Tienda</h3>
-                <p class="text-[10px] text-gray-400">Configura horarios, dirección y logo de tu negocio</p>
+                <p class="text-[10px] text-gray-400">Actualizar logo y horarios</p>
               </div>
             </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
               <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
             </div>
           </button>
-
         </div>
       </div>
 
@@ -889,7 +884,6 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           </div>
         </div>
       </div>
-      </div> <!-- CIERRE FALTANTE DE PEDIDOS -->
 
       <!-- VISTA: REVISIÓN DE CATÁLOGO -->
       <div *ngIf="activeTab() === 'revision-catalogo' && previewCatalogo()" class="pb-32">
@@ -1001,6 +995,136 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
         </div>
       </div>
 
+      <!-- VISTA: PERFIL DE TIENDA -->
+      @if (activeTab() === 'perfil') {
+      <div style="background: red; padding: 20px; color: white;">ESTOY EN EL PERFIL DE LA TIENDA</div>
+      <div>
+        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10">
+          <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+            <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+          </button>
+          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Perfil de Tienda</h2>
+          <div class="w-10"></div>
+        </div>
+
+
+
+        <div class="p-6">
+          <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
+            <div class="flex flex-col items-center gap-3">
+              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Logo de la Ferretería</p>
+              <div class="relative group cursor-pointer" (click)="logoInput.click()">
+                <div class="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-full flex flex-col items-center justify-center overflow-hidden group-hover:border-blue-500 transition-colors">
+                  <img *ngIf="tiendaLogoPreview" [src]="tiendaLogoPreview" class="w-full h-full object-cover" />
+                  <lucide-icon *ngIf="!tiendaLogoPreview" [name]="CameraIcon" size="28" class="text-gray-300 group-hover:text-blue-500 transition-colors"></lucide-icon>
+                </div>
+                <input #logoInput type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Comercial</label>
+                <input type="text" [(ngModel)]="perfilTiendaForm.nombre" placeholder="Nombre de tu ferretería" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+              </div>
+              
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección Física</label>
+                <input type="text" [(ngModel)]="perfilTiendaForm.direccion" placeholder="Calle principal y transversal" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Ciudad</label>
+                <select [(ngModel)]="perfilTiendaForm.ciudad" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                  <option value="">-- Selecciona la ciudad --</option>
+                  <option value="Portoviejo">Portoviejo</option>
+                  <option value="Manta">Manta</option>
+                  <option value="Guayaquil">Guayaquil</option>
+                  <option value="Quito">Quito</option>
+                  <option value="Cuenca">Cuenca</option>
+                  <option value="Santo Domingo">Santo Domingo</option>
+                  <option value="Machala">Machala</option>
+                  <option value="Duran">Durán</option>
+                  <option value="Daule">Daule</option>
+                  <option value="Samborondon">Samborondón</option>
+                  <option value="Ambato">Ambato</option>
+                  <option value="Riobamba">Riobamba</option>
+                  <option value="Loja">Loja</option>
+                  <option value="Ibarra">Ibarra</option>
+                  <option value="Esmeraldas">Esmeraldas</option>
+                  <option value="Quevedo">Quevedo</option>
+                  <option value="Babahoyo">Babahoyo</option>
+                  <option value="Milagro">Milagro</option>
+                  <option value="Santa Elena">Santa Elena</option>
+                  <option value="La Libertad">La Libertad</option>
+                  <option value="Salinas">Salinas</option>
+                  <option value="Tulcan">Tulcán</option>
+                  <option value="Latacunga">Latacunga</option>
+                  <option value="Azogues">Azogues</option>
+                  <option value="Puyo">Puyo</option>
+                  <option value="Tena">Tena</option>
+                  <option value="Macas">Macas</option>
+                  <option value="Zamora">Zamora</option>
+                  <option value="Nueva Loja">Nueva Loja</option>
+                  <option value="Puerto Baquerizo Moreno">Puerto Baquerizo Moreno</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono / WhatsApp</label>
+                <input type="tel" [(ngModel)]="perfilTiendaForm.telefono" placeholder="099..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+              </div>
+
+              <!-- HORARIOS DE ATENCIÓN INTERACTIVOS -->
+              <div class="pt-4 border-t border-gray-100">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Horarios de Atención</label>
+                <div class="space-y-2.5">
+                  <div *ngFor="let h of horarios" class="flex items-center justify-between gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 transition-colors hover:bg-gray-100/50">
+                    <div class="flex items-center gap-2 w-28 shrink-0">
+                      <input 
+                        type="checkbox" 
+                        [id]="'dia_' + h.diaSemana"
+                        [checked]="!h.estaCerrado"
+                        (change)="h.estaCerrado = !$any($event.target).checked"
+                        class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <label [for]="'dia_' + h.diaSemana" class="text-xs font-bold text-gray-900 select-none cursor-pointer">{{ h.nombre }}</label>
+                    </div>
+
+                    <div *ngIf="!h.estaCerrado" class="flex items-center gap-1 sm:gap-2 flex-1 justify-end min-w-0 animate-in fade-in duration-200">
+                      <input 
+                        type="time" 
+                        [(ngModel)]="h.horaApertura" 
+                        class="bg-white border border-gray-200 rounded-lg px-1 sm:px-2 py-1 text-xs font-bold text-gray-900 outline-none flex-1 min-w-0 max-w-[110px] text-center focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span class="text-xs font-bold text-gray-400 shrink-0">a</span>
+                      <input 
+                        type="time" 
+                        [(ngModel)]="h.horaCierre" 
+                        class="bg-white border border-gray-200 rounded-lg px-1 sm:px-2 py-1 text-xs font-bold text-gray-900 outline-none flex-1 min-w-0 max-w-[110px] text-center focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div *ngIf="h.estaCerrado" class="flex-1 text-right pr-2 animate-in fade-in duration-200">
+                      <span class="text-[10px] font-black text-red-500 uppercase tracking-wider bg-red-50 px-2.5 py-1 rounded-md border border-red-100">Cerrado</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                (click)="guardarPerfilTienda()" 
+                [disabled]="guardandoPerfil()"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-100 active:scale-95 transition-all flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
+              >
+                <div *ngIf="guardandoPerfil()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {{ guardandoPerfil() ? 'Guardando...' : 'Guardar Cambios' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
 
       <!-- MODAL DE CONFIRMACIÓN -->
       <div *ngIf="showConfirmModal()" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -1038,440 +1162,179 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
         </div>
       </div>
 
-      <!-- VISTA: GESTIÓN DE CRÉDITOS -->
-      <div *ngIf="activeTab() === 'creditos'">
-        <div class="min-h-screen bg-[#F8FAFC] pb-32 animate-in fade-in duration-500">
-          
-          <!-- Header Moderno -->
-          <div class="px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between bg-white/70 backdrop-blur-2xl sticky top-[81px] z-20 border-b border-gray-100/50 shadow-sm">
-            <div class="flex items-center gap-4">
-              <button (click)="volverAlDashboard()" class="w-12 h-12 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-[#E8541C] hover:border-[#E8541C] hover:shadow-lg transition-all active:scale-95 group">
-                <lucide-icon [name]="ArrowLeftIcon" size="22" class="group-hover:-translate-x-1 transition-transform"></lucide-icon>
-              </button>
-              <div>
-                <h2 class="text-xl font-black text-gray-900 tracking-tight">Centro de Créditos</h2>
-                <p class="text-xs font-medium text-gray-500 mt-1">Supervisa y administra el financiamiento de tus clientes</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-8 max-w-6xl mx-auto space-y-10">
-            
-            <!-- Dashboard Cards Ultra Premium -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-              
-              <!-- Card 1: Cartera Activa -->
-              <div class="bg-gradient-to-br from-gray-900 via-gray-800 to-black p-8 rounded-[32px] shadow-2xl relative overflow-hidden group">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-orange-500/10 transition-colors duration-700"></div>
-                <div class="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
-                
-                <div class="relative z-10">
-                  <div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-orange-400 mb-6 border border-white/5 shadow-inner">
-                    <lucide-icon [name]="DollarSignIcon" size="24"></lucide-icon>
-                  </div>
-                  <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cartera Activa</h3>
-                  <p class="text-5xl font-black text-white tracking-tighter">{{ (carteraCredito()?.totalPrestado || 0) | currency }}</p>
-                  
-                  <div class="mt-8 flex items-center gap-3">
-                    <div class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold border border-emerald-500/20 flex items-center gap-1.5">
-                      <lucide-icon [name]="TrendingUpIcon" size="14"></lucide-icon> Rendimiento Óptimo
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card 2: Ingresos del Mes -->
-              <div class="bg-white p-8 rounded-[32px] shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-                <div class="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-bl-full -z-10 group-hover:bg-blue-100/50 transition-colors duration-500"></div>
-                
-                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6">
-                  <lucide-icon [name]="FileTextIcon" size="24"></lucide-icon>
-                </div>
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cobros del Mes</h3>
-                <p class="text-4xl font-black text-gray-900 tracking-tighter">{{ (carteraCredito()?.cobradoMes || 0) | currency }}</p>
-                
-                <div class="mt-8">
-                  <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">
-                    <span>Progreso</span>
-                    <span class="text-blue-500">75%</span>
-                  </div>
-                  <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                    <div class="bg-blue-500 h-full rounded-full w-[75%] relative">
-                      <div class="absolute inset-0 bg-white/30 w-full h-full animate-[shimmer_2s_infinite]"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card 3: Alertas / Vencidos -->
-              <div class="bg-white p-8 rounded-[32px] shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-                <div class="absolute top-0 right-0 w-48 h-48 bg-red-50/50 rounded-bl-full -z-10 group-hover:bg-red-100/50 transition-colors duration-500"></div>
-                
-                <div class="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6">
-                  <lucide-icon [name]="XCircleIcon" size="24"></lucide-icon>
-                </div>
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Riesgo / Vencido</h3>
-                <p class="text-4xl font-black text-red-500 tracking-tighter">{{ (carteraCredito()?.carteraVencida || 0) | currency }}</p>
-                
-                <div class="mt-8">
-                  <div class="w-full bg-red-50 border border-red-100 rounded-xl p-3 flex items-center justify-between">
-                    <span class="text-xs font-bold text-red-600 flex items-center gap-2"><lucide-icon [name]="CheckCircleIcon" size="14"></lucide-icon> Clientes en Mora</span>
-                    <span class="text-sm font-black text-red-700 bg-red-200/50 px-2.5 py-1 rounded-lg">{{ carteraCredito()?.clientesMora || 0 }}</span>
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-
-            <!-- Listados y Configuracion -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
-              
-              <!-- Columna Central: Listas -->
-              <div class="lg:col-span-2 space-y-8">
-                
-                <!-- Solicitudes Pendientes (Aesthetic) -->
-                <div class="bg-white rounded-[32px] shadow-xl shadow-gray-200/40 border border-gray-100 overflow-hidden relative">
-                  <!-- Decorative header bg -->
-                  <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-orange-50/50 to-transparent pointer-events-none"></div>
-                  
-                  <div class="relative z-10 px-8 py-6 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 bg-orange-100 text-[#E8541C] rounded-2xl flex items-center justify-center shadow-inner">
-                        <lucide-icon [name]="SearchIcon" size="20"></lucide-icon>
-                      </div>
-                      <div>
-                        <h3 class="text-sm font-black text-gray-900 tracking-tight">Solicitudes Pendientes</h3>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Requieren tu atención</p>
-                      </div>
-                    </div>
-                    <div class="px-4 py-2 bg-orange-50 text-[#E8541C] rounded-xl font-black text-sm border border-orange-100 shadow-sm">
-                      {{ solicitudesPendientes().length }}
-                    </div>
-                  </div>
-
-                  <div class="p-8">
-                    <!-- Estado Vacío -->
-                    <div *ngIf="solicitudesPendientes().length === 0" class="py-16 flex flex-col items-center justify-center text-center">
-                      <div class="w-24 h-24 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border border-gray-100">
-                        <lucide-icon [name]="CheckCircleIcon" size="40" class="text-gray-300"></lucide-icon>
-                      </div>
-                      <h4 class="text-lg font-black text-gray-900">Bandeja Limpia</h4>
-                      <p class="text-sm text-gray-500 font-medium mt-2 max-w-xs">No tienes solicitudes pendientes de aprobación en este momento.</p>
-                    </div>
-
-                    <!-- Lista de Solicitudes -->
-                    <div class="space-y-4">
-                      <div *ngFor="let sol of solicitudesPendientes()" class="group bg-white border-2 border-gray-50 rounded-3xl p-6 hover:border-orange-100 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300">
-                        <div class="flex flex-col sm:flex-row gap-6">
-                          <!-- Perfil del Solicitante -->
-                          <div class="flex items-center gap-5 sm:w-1/2">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 overflow-hidden shadow-inner flex-shrink-0 relative">
-                              <img *ngIf="sol.perfiles?.avatar_url" [src]="sol.perfiles.avatar_url" class="w-full h-full object-cover" />
-                              <div *ngIf="!sol.perfiles?.avatar_url" class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-gray-400 font-black text-2xl">{{ sol.perfiles?.full_name?.charAt(0) || 'U' }}</span>
-                              </div>
-                            </div>
-                            <div>
-                              <h4 class="text-base font-black text-gray-900 leading-tight group-hover:text-[#E8541C] transition-colors">{{ sol.perfiles?.full_name || 'Usuario Anónimo' }}</h4>
-                              <p class="text-xs font-bold text-gray-400 mt-1 flex items-center gap-1"><lucide-icon [name]="MapPinIcon" size="12"></lucide-icon> {{ sol.perfiles?.ciudad || 'Ciudad no especificada' }}</p>
-                              
-                              <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-lg text-emerald-700 text-[10px] font-black tracking-widest uppercase border border-emerald-100">
-                                Ingresos: {{ sol.ingresos_mensuales | currency }}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <!-- Detalles y Acciones -->
-                          <div class="flex flex-col justify-between sm:w-1/2 border-t sm:border-t-0 sm:border-l border-gray-100 pt-5 sm:pt-0 sm:pl-6">
-                            <div class="mb-4">
-                              <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Monto Solicitado</p>
-                              <div class="flex items-end gap-2">
-                                <span class="text-2xl font-black text-gray-900 tracking-tighter leading-none">{{ sol.monto_solicitado | currency }}</span>
-                                <span class="text-sm font-bold text-gray-500 mb-0.5">/ {{ sol.plazo_meses }} m</span>
-                              </div>
-                            </div>
-                            
-                            <div class="flex gap-3 mt-auto">
-                              <button (click)="resolverSolicitud(sol.id, 'rechazada')" class="flex-1 bg-white text-gray-500 border border-gray-200 rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm active:scale-95">
-                                Rechazar
-                              </button>
-                              <button (click)="abrirModalAprobar(sol)" class="flex-1 bg-[#E8541C] text-white border border-[#E8541C] rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-orange-600 hover:border-orange-600 transition-all shadow-lg shadow-orange-500/30 active:scale-95">
-                                Aprobar
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Columna Derecha: Controles -->
-              <div class="lg:col-span-1 space-y-8">
-                
-                <!-- Panel de Configuración -->
-                <div class="bg-gray-900 rounded-[32px] shadow-2xl overflow-hidden relative border border-gray-800">
-                  <div class="absolute top-0 right-0 w-32 h-32 bg-[#E8541C]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                  
-                  <div class="px-8 py-6 border-b border-gray-800/50">
-                    <h3 class="text-sm font-black text-white tracking-tight flex items-center gap-2">
-                      <lucide-icon [name]="SettingsIcon" size="18" class="text-gray-400"></lucide-icon> Parámetros
-                    </h3>
-                  </div>
-                  
-                  <div class="p-8 space-y-6">
-                    <div>
-                      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Tasa Mensual Sugerida</label>
-                      <div class="relative group">
-                        <input type="number" [(ngModel)]="configCreditoEdit.tasa_interes_mensual" class="w-full bg-gray-800/50 border border-gray-700 rounded-2xl pl-5 pr-12 py-4 text-sm font-black text-white focus:ring-2 focus:ring-[#E8541C] focus:border-[#E8541C] outline-none transition-all shadow-inner group-hover:bg-gray-800" />
-                        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-black">%</div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Tope por Cliente</label>
-                      <div class="relative group">
-                        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-black">$</div>
-                        <input type="number" [(ngModel)]="configCreditoEdit.monto_maximo_credito" class="w-full bg-gray-800/50 border border-gray-700 rounded-2xl pl-9 pr-5 py-4 text-sm font-black text-white focus:ring-2 focus:ring-[#E8541C] focus:border-[#E8541C] outline-none transition-all shadow-inner group-hover:bg-gray-800" />
-                      </div>
-                    </div>
-
-                    <button 
-                      (click)="guardarConfigCredito()" 
-                      [disabled]="guardandoConfigCredito()" 
-                      class="w-full bg-white text-gray-900 py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:bg-gray-100 transition-all disabled:opacity-50 active:scale-95 mt-4"
-                    >
-                      <span *ngIf="guardandoConfigCredito()" class="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin"></span>
-                      <lucide-icon *ngIf="!guardandoConfigCredito()" [name]="SaveIcon" size="16"></lucide-icon>
-                      Actualizar
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Resumen Historial -->
-                <div class="bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-gray-200/40 p-8">
-                  <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest mb-6 flex items-center justify-between">
-                    Historial Reciente
-                    <span class="text-gray-400"><lucide-icon [name]="ListIcon" size="16"></lucide-icon></span>
-                  </h3>
-                  
-                  <div *ngIf="solicitudesHistorial().length === 0" class="text-center py-6">
-                    <p class="text-xs font-bold text-gray-400">Sin historial aún</p>
-                  </div>
-
-                  <div class="space-y-4">
-                    <div *ngFor="let sol of solicitudesHistorial().slice(0, 5)" class="flex items-center justify-between group">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                          <img *ngIf="sol.perfiles?.avatar_url" [src]="sol.perfiles.avatar_url" class="w-full h-full object-cover opacity-80" />
-                          <span *ngIf="!sol.perfiles?.avatar_url" class="text-gray-400 font-bold text-xs">{{ sol.perfiles?.full_name?.charAt(0) || 'U' }}</span>
-                        </div>
-                        <div class="min-w-0">
-                          <h4 class="text-xs font-black text-gray-900 truncate max-w-[100px]">{{ sol.perfiles?.full_name || 'Cliente' }}</h4>
-                          <p class="text-[9px] font-bold text-gray-400 uppercase mt-0.5">{{ sol.fecha_solicitud | date:'dd/MM' }}</p>
-                        </div>
-                      </div>
-                      <div class="flex flex-col items-end">
-                        <span class="text-[11px] font-black text-gray-900">{{ sol.monto_solicitado | currency:'USD':'symbol':'1.0-0' }}</span>
-                        <span [ngClass]="{'text-emerald-500': sol.estado === 'aprobada', 'text-red-500': sol.estado === 'rechazada'}" class="text-[9px] font-black uppercase tracking-widest mt-0.5">
-                          {{ sol.estado }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-
-      <!-- VISTA: PERFIL DE TIENDA -->
-      <div *ngIf="activeTab() === 'perfil'" class="pb-32 animate-in fade-in slide-in-from-bottom-4 duration-300">
-        <!-- Header sticky -->
-        <div class="px-6 py-4 flex items-center justify-between bg-gray-50/80 backdrop-blur-md sticky top-[81px] z-10 border-b border-gray-100">
-          <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm active:scale-90">
-            <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
-          </button>
-          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Perfil de la Tienda</h2>
-          <div class="w-10"></div> <!-- Spacer to center title -->
-        </div>
-
-        <div class="p-6 max-w-xl mx-auto space-y-8">
-          
-          <!-- Loader de carga de datos -->
-          <div *ngIf="cargandoPerfil()" class="py-16 text-center">
-            <div class="w-12 h-12 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Cargando datos del negocio...</p>
-          </div>
-
-          <div *ngIf="!cargandoPerfil()" class="space-y-6">
-            
-            <!-- TARJETA: LOGO / PORTADA -->
-            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
-              <div class="absolute inset-0 bg-gradient-to-tr from-orange-50/40 via-transparent to-transparent pointer-events-none"></div>
-              
-              <!-- Círculo de vista previa del logo -->
-              <div class="relative w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden group mb-4 bg-gray-50 flex items-center justify-center">
-                <img *ngIf="tiendaLogoPreview" [src]="tiendaLogoPreview" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                <div *ngIf="!tiendaLogoPreview" class="text-gray-300">
-                  <lucide-icon [name]="PackageIcon" size="48"></lucide-icon>
-                </div>
-                <!-- Overlay de subida al hacer hover -->
-                <label class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                  <lucide-icon [name]="CameraIcon" size="20" class="mb-1"></lucide-icon>
-                  <span class="text-[9px] font-bold uppercase tracking-wider">Cambiar</span>
-                  <input type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
-                </label>
-              </div>
-
-              <h3 class="font-black text-gray-900 text-sm tracking-wide">Logo de la Ferretería</h3>
-              <p class="text-[10px] text-gray-400 mt-1">Sube una imagen cuadrada de buena calidad</p>
-            </div>
-
-            <!-- TARJETA: DATOS GENERALES -->
-            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-              <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-2">
-                <lucide-icon [name]="SettingsIcon" size="16" class="text-[#E8541C]"></lucide-icon> Datos del Negocio
-              </h3>
-
-              <div class="grid grid-cols-1 gap-4">
-                <div>
-                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Nombre Comercial</label>
-                  <div class="relative">
-                    <input type="text" [(ngModel)]="perfilTiendaForm.nombre" placeholder="Ej. Ferretería Zambrano" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
-                    <lucide-icon [name]="PackageIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Teléfono de Contacto</label>
-                  <div class="relative">
-                    <input type="text" [(ngModel)]="perfilTiendaForm.telefono" placeholder="Ej. +593 999999999" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
-                    <lucide-icon [name]="ChatIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Ciudad</label>
-                    <div class="relative">
-                      <input type="text" [(ngModel)]="perfilTiendaForm.ciudad" placeholder="Ej. Portoviejo" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
-                      <lucide-icon [name]="MapPinIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Dirección Completa</label>
-                    <div class="relative">
-                      <input type="text" [(ngModel)]="perfilTiendaForm.direccion" placeholder="Ej. Av. Universitaria y Calle 3" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
-                      <lucide-icon [name]="MapPinIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- TARJETA: HORARIOS DE ATENCIÓN -->
-            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
-              <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                  <lucide-icon [name]="WrenchIcon" size="16" class="text-emerald-500"></lucide-icon> Horario Comercial
-                </h3>
-                <span class="text-[9px] font-black text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded-full">Zona Horaria Local</span>
-              </div>
-
-              <div class="divide-y divide-gray-100">
-                <div *ngFor="let dia of horarios" class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                  <!-- Nombre del día y botón Abierto/Cerrado -->
-                  <div class="flex items-center justify-between sm:justify-start gap-4">
-                    <span class="text-xs font-black text-gray-900 w-20">{{ dia.nombre }}</span>
-                    <button 
-                      type="button"
-                      (click)="dia.estaCerrado = !dia.estaCerrado"
-                      [class]="dia.estaCerrado 
-                        ? 'bg-red-50 text-red-500 border-red-200' 
-                        : 'bg-emerald-50 text-emerald-600 border-emerald-200'"
-                      class="px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all min-w-[70px] text-center"
-                    >
-                      {{ dia.estaCerrado ? 'Cerrado' : 'Abierto' }}
-                    </button>
-                  </div>
-
-                  <!-- Selectores de tiempo -->
-                  <div class="flex items-center gap-2 self-start sm:self-auto pl-2 sm:pl-0" [class.opacity-40]="dia.estaCerrado">
-                    <input 
-                      type="time" 
-                      [(ngModel)]="dia.horaApertura"
-                      [disabled]="dia.estaCerrado"
-                      class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5 text-xs font-bold text-gray-900 outline-none focus:border-[#E8541C] w-[90px] text-center" 
-                    />
-                    <span class="text-[10px] text-gray-400 font-bold">a</span>
-                    <input 
-                      type="time" 
-                      [(ngModel)]="dia.horaCierre"
-                      [disabled]="dia.estaCerrado"
-                      class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5 text-xs font-bold text-gray-900 outline-none focus:border-[#E8541C] w-[90px] text-center" 
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- BOTÓN GUARDAR -->
-            <button 
-              (click)="guardarPerfilTienda()"
-              [disabled]="guardandoPerfil()"
-              class="w-full bg-[#E8541C] text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:bg-orange-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <lucide-icon *ngIf="!guardandoPerfil()" [name]="SaveIcon" size="16"></lucide-icon>
-              <div *ngIf="guardandoPerfil()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              {{ guardandoPerfil() ? 'Guardando Cambios...' : 'Guardar Perfil' }}
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-
-
-      <!-- MODAL APROBAR CRÉDITO -->
-      <div *ngIf="modalAprobarCreditoData" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-        <div class="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100">
-          <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-            <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
-              <lucide-icon [name]="CheckCircleIcon" size="18" class="text-emerald-500"></lucide-icon> Aprobar Crédito
-            </h3>
-            <button (click)="modalAprobarCreditoData = null" class="text-gray-400 hover:text-gray-900 transition-colors bg-gray-100 hover:bg-gray-200 rounded-full p-1"><lucide-icon [name]="XIcon" size="16"></lucide-icon></button>
-          </div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Monto Aprobado ($)</label>
-              <input type="number" [(ngModel)]="modalAprobarCreditoData.monto_aprobado" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all shadow-inner" />
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Tasa de Interés Mensual (%)</label>
-              <input type="number" [(ngModel)]="modalAprobarCreditoData.tasa_interes" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all shadow-inner" />
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Comentarios / Condiciones</label>
-              <textarea [(ngModel)]="modalAprobarCreditoData.comentarios_tienda" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all shadow-inner"></textarea>
-            </div>
-          </div>
-          <button (click)="confirmarAprobacion()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition-colors active:scale-[0.98]">
-            Confirmar Aprobación
-          </button>
-        </div>
-      </div>
-
       <!-- TOAST SUCCESS -->
       <div *ngIf="successToast().show" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom duration-300">
         <span class="text-xs font-bold">{{ successToast().msg }}</span>
       </div>
+
+      <div style="background: cyan; padding: 20px; font-size: 20px; text-align: center; border: 5px solid blue;">
+        DEBUG: TEST DIV SIEMPRE VISIBLE. ACTIVE TAB ES: {{ activeTab() }}
+      </div>
+
+      <!-- VISTA: CRÉDITOS -->
+      @if (activeTab() === 'creditos') {
+      <div style="background: blue; padding: 20px; color: white;">ESTOY EN CREDITOS</div>
+      <div class="pb-32">
+        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10 border-b border-gray-100">
+          <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+            <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+          </button>
+          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Panel de Crédito</h2>
+          <div class="w-10"></div>
+        </div>
+
+
+
+        <div class="p-6 space-y-6">
+          <p class="text-[11px] font-medium text-gray-500 mb-2 leading-relaxed">Monitorea y configura las líneas de crédito para tus clientes industriales.</p>
+
+          <!-- Métricas de Cartera -->
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2">
+            <h3 class="text-[10px] font-black text-gray-900 flex items-center gap-2"><lucide-icon [name]="DollarSignIcon" size="14" class="text-[#E8541C]"></lucide-icon> Cartera de Crédito</h3>
+            <div class="pt-2">
+              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Prestado</p>
+              <p class="text-3xl font-black text-[#E8541C] tracking-tight mt-1">{{ carteraCredito()?.totalPrestado | currency }}</p>
+              <p class="text-[10px] font-bold text-emerald-500 flex items-center gap-1 mt-1"><lucide-icon [name]="TrendingUpIcon" size="12"></lucide-icon> 12% vs mes anterior</p>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cobrado (Mes)</p>
+            <p class="text-2xl font-black text-gray-900 tracking-tight mt-1">{{ carteraCredito()?.cobradoMes | currency }}</p>
+            <div class="w-full bg-gray-100 h-2 rounded-full mt-3 overflow-hidden">
+              <div class="bg-blue-600 h-full rounded-full" style="width: 65%;"></div>
+            </div>
+            <p class="text-[10px] font-bold text-gray-500 mt-2">65% de la meta mensual</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-2">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Cartera Vencida</p>
+            <p class="text-2xl font-black text-red-600 tracking-tight mt-1">{{ carteraCredito()?.carteraVencida | currency }}</p>
+            <p class="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-1">⚠️ {{ carteraCredito()?.clientesMora }} clientes en mora</p>
+          </div>
+
+          <!-- Solicitudes Pendientes -->
+          <div>
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Solicitudes Pendientes ({{ solicitudesPendientes().length }})</h3>
+            <div class="space-y-3">
+              <div *ngIf="solicitudesPendientes().length === 0" class="bg-gray-50 p-6 rounded-3xl border border-gray-100 text-center">
+                <p class="text-xs font-bold text-gray-400">No hay solicitudes pendientes.</p>
+              </div>
+              <div *ngFor="let sol of solicitudesPendientes()" class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gray-100 rounded-full overflow-hidden">
+                    <img *ngIf="sol.perfiles?.avatar_url" [src]="sol.perfiles.avatar_url" class="w-full h-full object-cover">
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-xs font-bold text-gray-900">{{ sol.perfiles?.full_name || 'Cliente' }}</h4>
+                    <p class="text-[10px] font-medium text-gray-500 mt-0.5">Solicita: <span class="font-bold text-gray-900">{{ sol.monto_solicitado | currency }}</span> a {{ sol.plazo_meses }} meses</p>
+                    <div class="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                      <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Datos Adicionales</p>
+                      <div class="flex flex-col gap-0.5">
+                        <p class="text-[10px] text-gray-600 font-medium"><span class="font-bold text-gray-900">Teléfono:</span> {{ sol.perfiles?.telefono || 'No registrado' }}</p>
+                        <p class="text-[10px] text-gray-600 font-medium"><span class="font-bold text-gray-900">Ubicación:</span> {{ sol.perfiles?.ciudad || 'No registrada' }}</p>
+                        <p class="text-[10px] text-gray-600 font-medium"><span class="font-bold text-gray-900">Ingresos (Mes):</span> <span class="text-emerald-600 font-black">{{ sol.ingresos_mensuales | currency }}</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 pt-2">
+                  <button (click)="resolverSolicitud(sol.id, 'rechazada')" class="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-1"><lucide-icon [name]="XCircleIcon" size="14"></lucide-icon> Rechazar</button>
+                  <button (click)="abrirModalAprobar(sol)" class="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-1 shadow-md shadow-emerald-200"><lucide-icon [name]="CheckCircleIcon" size="14"></lucide-icon> Aprobar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Historial de Solicitudes -->
+          <div *ngIf="solicitudesHistorial().length > 0" class="mt-6">
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Historial</h3>
+            <div class="space-y-3">
+              <div *ngFor="let sol of solicitudesHistorial()" class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3 opacity-75">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gray-100 rounded-full overflow-hidden shrink-0">
+                    <img *ngIf="sol.perfiles?.avatar_url" [src]="sol.perfiles.avatar_url" class="w-full h-full object-cover">
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-gray-900">{{ sol.perfiles?.full_name || 'Cliente' }}</h4>
+                    <p class="text-[10px] font-medium text-gray-500 mt-0.5">{{ sol.monto_solicitado | currency }} a {{ sol.plazo_meses }} meses</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span 
+                    [ngClass]="{
+                      'bg-emerald-50 text-emerald-600 border-emerald-200': sol.estado === 'aprobada',
+                      'bg-red-50 text-red-600 border-red-200': sol.estado === 'rechazada'
+                    }"
+                    class="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border"
+                  >
+                    {{ sol.estado }}
+                  </span>
+                  <p class="text-[9px] text-gray-400 font-medium mt-1">{{ sol.fecha_solicitud | date:'shortDate' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configurar Crédito -->
+          <div>
+            <h3 class="text-[10px] font-black text-gray-900 flex items-center gap-2 mb-3 ml-1"><lucide-icon [name]="SettingsIcon" size="14" class="text-gray-500"></lucide-icon> Configurar Crédito</h3>
+            <div class="bg-gray-800 p-5 rounded-3xl space-y-4">
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Tasa de Interés Mensual (%)</label>
+                <div class="relative">
+                  <input type="number" [(ngModel)]="configCreditoEdit.tasa_interes_mensual" class="w-full bg-gray-700/50 border border-gray-600 rounded-xl px-4 py-3 text-xs font-bold text-white focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+                  <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">%</div>
+                </div>
+                <p class="text-[8px] font-medium text-gray-500 mt-1 ml-1">Tasa promedio del mercado: 2.8%</p>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-gray-400 mb-1 ml-1">Línea de Crédito Máxima</label>
+                <div class="relative">
+                  <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">$</div>
+                  <input type="number" [(ngModel)]="configCreditoEdit.monto_maximo_credito" class="w-full bg-gray-700/50 border border-gray-600 rounded-xl pl-8 pr-4 py-3 text-xs font-bold text-white focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+                </div>
+              </div>
+              <button (click)="guardarConfigCredito()" [disabled]="guardandoConfigCredito()" class="w-full bg-[#E8541C] text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-orange-900/50">
+                <span *ngIf="guardandoConfigCredito()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Guardar Configuración
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      }
+
+      <!-- MODAL APROBAR CRÉDITO -->
+      <div *ngIf="modalAprobarCredito()" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-sm space-y-5 shadow-2xl">
+          <div class="flex justify-between items-center">
+            <h3 class="font-black text-gray-900 text-sm uppercase">Aprobar Crédito</h3>
+            <button (click)="modalAprobarCredito.set(null)" class="text-gray-400 hover:text-gray-900 transition-colors"><lucide-icon [name]="XIcon" size="20"></lucide-icon></button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Monto a Aprobar ($)</label>
+              <input type="number" [(ngModel)]="modalAprobarCredito()!.monto_aprobado" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Tasa de Interés (%)</label>
+              <input type="number" [(ngModel)]="modalAprobarCredito()!.tasa_interes" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Plazo (Meses)</label>
+              <input type="number" [(ngModel)]="modalAprobarCredito()!.plazo" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+            </div>
+          </div>
+          <button (click)="confirmarAprobacion()" [disabled]="aprobandoCredito()" class="w-full bg-emerald-500 text-white py-3.5 rounded-xl font-black uppercase text-xs shadow-lg shadow-emerald-200 flex items-center justify-center gap-2">
+            <span *ngIf="aprobandoCredito()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            Aprobar Ahora
+          </button>
+        </div>
+      </div>
+
+    </div>
     </div>
   `
 })
@@ -1523,7 +1386,7 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   configCreditoEdit = { tasa_interes_mensual: 2.5, monto_maximo_credito: 5000, plazo_maximo_meses: 12 };
   guardandoConfigCredito = signal(false);
   todasSolicitudes = signal<any[]>([]);
-  modalAprobarCreditoData: any = null;
+  modalAprobarCredito = signal<any>(null);
   aprobandoCredito = signal(false);
 
   misExpertos = signal<any[]>([]);
@@ -1534,13 +1397,13 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   selectedExpertoFile = signal<File | null>(null);
   expertoFotoPreview = signal<string | null>(null);
 
-  solicitudesPendientes = computed(() => {
+  solicitudesPendientes() {
     return this.todasSolicitudes().filter(s => s.estado === 'pendiente');
-  });
+  }
 
-  solicitudesHistorial = computed(() => {
+  solicitudesHistorial() {
     return this.todasSolicitudes().filter(s => s.estado !== 'pendiente');
-  });
+  }
 
   // Inicialización completa de los 7 días de la semana listos para Supabase
   horarios = [
@@ -1593,17 +1456,17 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.realtimeChannel) {
-      this.supabase.getClient().removeChannel(this.realtimeChannel);
+      this.supabase.supabaseClient.removeChannel(this.realtimeChannel);
     }
   }
 
   suscribirseAPedidos() {
-    this.realtimeChannel = this.supabase.getClient()
+    this.realtimeChannel = this.supabase.supabaseClient
       .channel('tienda-pedidos-cambios')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'pedidos' },
-        (payload: any) => {
+        (payload) => {
           const shop = this.auth.profile();
           if (shop && shop.tienda_id) {
             // Recarga silenciosa (sin mostrar el spinner de cargando)
@@ -2539,25 +2402,24 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   }
 
   abrirModalAprobar(solicitud: any) {
-    this.modalAprobarCreditoData = {
+    this.modalAprobarCredito.set({
       id: solicitud.id,
       tienda_id: solicitud.tienda_id,
       cliente_id: solicitud.cliente_id,
       monto_aprobado: solicitud.monto_solicitado,
       tasa_interes: this.configCreditoEdit.tasa_interes_mensual,
-      plazo: solicitud.plazo_meses,
-      comentarios_tienda: ''
-    };
+      plazo: solicitud.plazo_meses
+    });
   }
 
   async confirmarAprobacion() {
-    const data = this.modalAprobarCreditoData;
+    const data = this.modalAprobarCredito();
     if (!data) return;
     this.aprobandoCredito.set(true);
     try {
       await this.supabase.resolverSolicitud(data.id, 'aprobada', data.monto_aprobado, data.tasa_interes, data.plazo, data.tienda_id, data.cliente_id);
       this.mostrarToast('Crédito aprobado exitosamente');
-      this.modalAprobarCreditoData = null;
+      this.modalAprobarCredito.set(null);
       this.cargarDatosCredito();
     } catch (e) {
       console.error(e);

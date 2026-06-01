@@ -10,4 +10,7 @@ if (window.location.hash && window.location.hash.includes('error=')) {
 }
 
 bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+  .catch((err) => {
+    alert('Bootstrap Error: ' + err.message);
+    console.error(err);
+  });

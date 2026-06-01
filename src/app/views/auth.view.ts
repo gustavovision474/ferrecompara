@@ -12,22 +12,21 @@ type AuthMode = 'login' | 'register';
   imports: [CommonModule, FormsModule, LucideAngularModule],
   template: `
     <div class="min-h-screen bg-gray-50 flex flex-col justify-center px-6 py-12 lg:px-8 relative overflow-hidden">
+      <!-- Back button (Global top-left) -->
+      <button
+        type="button"
+        (click)="atras.emit()"
+        class="absolute top-6 left-6 z-50 flex items-center gap-2 text-xs font-black text-gray-500 hover:text-gray-900 uppercase tracking-wide transition-colors"
+      >
+        <lucide-icon [name]="ArrowLeftIcon" size="16"></lucide-icon>
+        Volver
+      </button>
+
       <!-- Decorative blobs -->
       <div class="absolute -top-40 -right-40 w-96 h-96 bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
       <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
       <div class="sm:mx-auto sm:w-full sm:max-w-sm relative z-10">
-
-        <!-- Back button -->
-        <button
-          type="button"
-          (click)="atras.emit()"
-          class="absolute top-0 left-0 -mt-2 flex items-center gap-2 text-xs font-black text-gray-500 hover:text-gray-900 uppercase tracking-wide transition-colors"
-        >
-          <lucide-icon [name]="ArrowLeftIcon" size="16"></lucide-icon>
-          Volver
-        </button>
-
         <!-- Logo -->
         <div class="flex justify-center mb-6 mt-8">
           <div [class]="'w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg rotate-3 ' + (rol() === 'cliente' ? 'bg-[#E8541C] shadow-orange-200' : 'bg-gray-900 shadow-gray-300')">

@@ -9,7 +9,7 @@ export interface CartItem {
   addedAt: Date;
 }
 
-const CART_STORAGE_KEY = 'ferreexpress_cart';
+const CART_STORAGE_KEY = 'ferrecompara_cart';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {

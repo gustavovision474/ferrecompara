@@ -9,7 +9,7 @@ import { CartService } from '../cart.service';
   imports: [CommonModule, LucideAngularModule],
   template: `
     @if (store.selectedProduct(); as product) {
-      <div class="bg-white min-h-screen pb-32 animate-in slide-in-from-right duration-500">
+      <div class="bg-white min-h-screen pb-56 animate-in slide-in-from-right duration-500">
         <!-- Sticky Top Bar -->
         <div class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100 px-4 h-16 flex items-center justify-between">
           <button (click)="store.selectProduct(null)" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
@@ -50,67 +50,9 @@ import { CartService } from '../cart.service';
 
         </div>
 
-        <!-- Comparison Table -->
-        <div class="mt-12 px-6">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-black text-gray-900">Comparación de Precios</h2>
-            <div class="bg-green-50 text-green-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">
-              5 tiendas disponibles
-            </div>
-          </div>
-
-          <div class="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-xl shadow-gray-100/50">
-            <table class="w-full text-left">
-              <thead class="bg-gray-50/50 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                <tr>
-                  <th class="px-6 py-4">Distribuidor</th>
-                  <th class="px-4 py-4 text-center">Precio Unit.</th>
-                  <th class="px-6 py-4 text-right">Stock</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-50">
-                @for (offer of store.selectedProductOffers(); track offer.store) {
-                  <tr class="hover:bg-gray-50/50 transition-colors">
-                    <td class="px-6 py-5">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center font-black text-gray-400 shadow-sm">{{ offer.logo }}</div>
-                        <div>
-                          <p class="text-sm font-black text-gray-900 leading-none">{{ offer.store }}</p>
-                          @if (offer.verified) {
-                            <div class="flex items-center gap-1 mt-1">
-                              <lucide-icon [name]="VerifiedIcon" size="10" class="text-green-500 fill-current"></lucide-icon>
-                              <span class="text-[9px] font-bold text-green-600">Verificada</span>
-                            </div>
-                          } @else {
-                            <p class="text-[9px] font-bold text-gray-400 mt-1">{{ offer.distance }}</p>
-                          }
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-4 py-5 text-center">
-                      <p class="text-lg font-black text-gray-900 leading-none">
-                        \${{ offer.minPrice.toFixed(2) }}
-                      </p>
-                      @if (offer.minPrice === product.minPrice) {
-                        <span class="text-[8px] font-black text-orange-500 bg-orange-50 px-1 rounded uppercase">Mejor precio</span>
-                      }
-                    </td>
-                    <td class="px-6 py-5 text-right">
-                      <div class="flex items-center justify-end gap-1.5">
-                        <div class="w-2 h-2 rounded-full bg-green-400"></div>
-                        <span class="text-[10px] font-black text-gray-500">Disponible</span>
-                      </div>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
         <!-- Mini Map Section -->
         <div class="mt-12 px-6">
-          <h2 class="text-2xl font-black text-gray-900 mb-6">Ubicaciones Disponibles</h2>
+          <h2 class="text-2xl font-black text-gray-900 mb-6">Ubicación de la tienda</h2>
           <div class="bg-gray-100 rounded-[40px] h-64 overflow-hidden relative group">
             <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover opacity-60 grayscale group-hover:scale-105 transition-transform duration-700" />
             
@@ -193,8 +135,18 @@ export class ProductDetailViewComponent {
   readonly CheckIcon = Check;
 
   getPrimaryOffer(): any {
-    const offers = this.store.selectedProductOffers();
-    return offers.length > 0 ? offers[0] : null;
+    const offers = this.store.realProductOffers();
+    if (offers.length === 0) return null;
+    
+    // Si el usuario entró desde una tienda específica, priorizar esa tienda
+    const selectedStoreId = this.store.selectedStoreId();
+    if (selectedStoreId) {
+      // Necesitamos asegurar que el id de la tienda viene en la oferta para poder comparar
+      const currentStoreOffer = offers.find(o => o.storeId == selectedStoreId);
+      if (currentStoreOffer) return currentStoreOffer;
+    }
+    
+    return offers[0];
   }
 
   agregarAlCarrito(product: any) {

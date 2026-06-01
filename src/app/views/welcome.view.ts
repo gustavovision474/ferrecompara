@@ -17,12 +17,12 @@ import type { UserRole } from '../auth.service';
 
         <!-- Logo -->
         <div class="flex flex-col items-center justify-center mb-6">
-          <img src="assets/images/ferrecompara-logo.png" alt="FerreCompara Logo" class="h-28 object-contain drop-shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.nextElementSibling.style.display='block';">
+          <img src="assets/images/ferrecompara-logo.png" alt="FerreExpress Logo" class="h-28 object-contain drop-shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.nextElementSibling.style.display='block';">
           <div class="w-16 h-16 bg-[#E8541C] rounded-2xl hidden items-center justify-center shadow-lg shadow-orange-200 rotate-3">
             <lucide-icon [name]="WrenchIcon" size="32" class="text-white -rotate-3"></lucide-icon>
           </div>
           <h2 class="hidden text-center text-3xl font-black tracking-tight text-gray-900 uppercase mt-4">
-            FerreCompara
+            FerreExpress
           </h2>
         </div>
         <p class="mt-2 text-center text-sm text-gray-500 font-medium">

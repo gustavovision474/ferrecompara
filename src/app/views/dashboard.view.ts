@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, User, Settings, Package, CreditCard, Bell, Shield, LogOut, ChevronRight, MapPin, ArrowLeft, Construction, Lock, Save, CheckCircle, Camera } from 'lucide-angular';
+import { LucideAngularModule, User, Settings, Package, CreditCard, Bell, Shield, LogOut, ChevronRight, MapPin, ArrowLeft, Construction, Lock, Save, CheckCircle, Camera, XCircle, MessageCircle } from 'lucide-angular';
 import { AuthService } from '../auth.service';
 import { StoreService } from '../store.service';
 import { SupabaseService } from '../supabase.service';
@@ -12,12 +12,17 @@ import { SupabaseService } from '../supabase.service';
   imports: [CommonModule, LucideAngularModule, FormsModule],
   template: `
     <div class="pb-24 bg-gray-50 min-h-screen relative">
+      <!-- GLOBAL FULLSCREEN LOADER -->
+      <div *ngIf="cargandoGlobal()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Cargando...</p>
+      </div>
       @if (activeView() === 'main') {
         <div class="animate-in slide-in-from-bottom duration-500">
           <!-- Profile Header -->
-          <section class="px-6 pt-10 pb-8 bg-white border-b border-gray-100 shadow-sm">
+          <section class="px-6 pt-6 pb-10 bg-white border-b border-gray-100 shadow-sm">
             <div class="flex items-center gap-5">
-              <div class="relative">
+              <div class="relative shrink-0">
                 <img 
                   [src]="auth.profile()?.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'" 
                   class="w-20 h-20 rounded-3xl object-cover ring-4 ring-orange-50 shadow-lg" 
@@ -29,32 +34,28 @@ import { SupabaseService } from '../supabase.service';
                   <lucide-icon [name]="SettingsIcon" size="14"></lucide-icon>
                 </button>
               </div>
-              <div>
-                <h1 class="text-2xl font-black text-gray-900 leading-tight">
+              <div class="min-w-0">
+                <h1 class="text-2xl font-black text-gray-900 leading-tight truncate">
                   {{ auth.profile()?.nombre_completo || 'Usuario' }}
                 </h1>
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Cliente Gold</p>
-                <div class="flex items-center gap-1.5 mt-2 text-emerald-600">
-                  <lucide-icon [name]="PinIcon" size="12"></lucide-icon>
-                  <span class="text-[10px] font-bold uppercase">Guayaquil, Ecuador</span>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1 truncate">Cliente</p>
+                <div class="flex items-center gap-1.5 mt-2 text-emerald-600 truncate">
+                  <lucide-icon [name]="PinIcon" size="12" class="shrink-0"></lucide-icon>
+                  <span class="text-[10px] font-bold uppercase truncate">{{ auth.profile()?.ciudad || 'Ecuador' }}</span>
                 </div>
               </div>
             </div>
           </section>
 
           <!-- User Stats -->
-          <section class="px-6 -mt-6 grid grid-cols-3 gap-3 relative z-10">
-            <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-md text-center">
-              <p class="text-lg font-black text-gray-900 leading-none">12</p>
-              <p class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Órdenes</p>
+          <section class="px-6 -mt-6 grid grid-cols-2 gap-3 relative z-10">
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-md text-center">
+              <p class="text-xl font-black text-gray-900 leading-none">{{ pedidosData().length || 0 }}</p>
+              <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-1.5">Órdenes</p>
             </div>
-            <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-md text-center">
-              <p class="text-lg font-black text-gray-900 leading-none">5</p>
-              <p class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Favoritos</p>
-            </div>
-            <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-md text-center">
-              <p class="text-lg font-black text-gray-900 leading-none">$45</p>
-              <p class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter mt-1">Ahorrado</p>
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-md text-center">
+              <p class="text-xl font-black text-gray-900 leading-none">{{ store.favorites().length || 0 }}</p>
+              <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-1.5">Favoritos</p>
             </div>
           </section>
 
@@ -64,7 +65,7 @@ import { SupabaseService } from '../supabase.service';
             
             @for (item of menuItems; track item.label) {
               <button 
-                (click)="activeView.set(item.label)"
+                (click)="seleccionarMenu(item.label)"
                 class="w-full bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between group active:scale-[0.98] transition-all hover:border-gray-300 shadow-sm"
               >
                 <div class="flex items-center gap-4">
@@ -245,6 +246,293 @@ import { SupabaseService } from '../supabase.service';
                   </div>
                 </div>
               </div>
+            } @else if (activeView() === 'Mis Créditos') {
+              <div class="space-y-6">
+                <!-- Estado de Solicitudes -->
+                <div>
+                  <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Mis Solicitudes</h3>
+                  
+                  <div *ngIf="cargandoCreditos()" class="flex justify-center py-8">
+                    <div class="w-6 h-6 border-2 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+
+                  <div *ngIf="!cargandoCreditos() && creditosData().solicitudes.length === 0" class="bg-white p-6 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <p class="text-xs font-bold text-gray-400">No has solicitado ningún crédito.</p>
+                  </div>
+
+                  <div *ngIf="!cargandoCreditos()" class="space-y-3">
+                    <div *ngFor="let sol of creditosData().solicitudes" class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm flex items-center justify-between gap-3">
+                      <div>
+                        <h4 class="text-xs font-black text-gray-900">{{ sol.nombre_tienda }}</h4>
+                        <p class="text-[10px] font-medium text-gray-500 mt-0.5">{{ sol.monto_solicitado | currency }} a {{ sol.plazo_meses }} meses</p>
+                      </div>
+                      <div class="text-right shrink-0">
+                        <span 
+                          [ngClass]="{
+                            'bg-yellow-50 text-yellow-600 border-yellow-200': sol.estado === 'pendiente',
+                            'bg-emerald-50 text-emerald-600 border-emerald-200': sol.estado === 'aprobada',
+                            'bg-red-50 text-red-600 border-red-200': sol.estado === 'rechazada'
+                          }"
+                          class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border"
+                        >
+                          {{ sol.estado }}
+                        </span>
+                        <p class="text-[9px] text-gray-400 font-medium mt-1">{{ sol.fecha_solicitud | date:'shortDate' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Créditos Activos -->
+                <div>
+                  <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Créditos Activos</h3>
+                  
+                  <div *ngIf="!cargandoCreditos() && creditosData().activos.length === 0" class="bg-white p-6 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <p class="text-xs font-bold text-gray-400">No tienes créditos activos.</p>
+                  </div>
+
+                  <div *ngIf="!cargandoCreditos()" class="space-y-3">
+                    <div *ngFor="let cred of creditosData().activos" class="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl shadow-sm">
+                      <div class="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 class="text-sm font-black text-emerald-900 uppercase">{{ cred.nombre_tienda }}</h4>
+                          <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Línea Aprobada</p>
+                        </div>
+                        <lucide-icon [name]="CheckCircleIcon" size="20" class="text-emerald-500"></lucide-icon>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-emerald-200/50">
+                        <div>
+                          <p class="text-[9px] font-bold text-emerald-600/70 uppercase">Monto Total</p>
+                          <p class="text-xs font-black text-emerald-900">{{ cred.monto_aprobado | currency }}</p>
+                        </div>
+                        <div class="text-right">
+                          <p class="text-[9px] font-bold text-emerald-600/70 uppercase">Saldo Pendiente</p>
+                          <p class="text-xs font-black text-red-600">{{ cred.saldo_pendiente | currency }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            } @else if (activeView() === 'Mis Pedidos') {
+              <div class="space-y-6">
+                <div>
+                  <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Mis Compras</h3>
+                  
+                  <div *ngIf="cargandoPedidos()" class="flex justify-center py-8">
+                    <div class="w-6 h-6 border-2 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+
+                  <div *ngIf="!cargandoPedidos() && pedidosData().length === 0" class="bg-white p-6 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <p class="text-xs font-bold text-gray-400">Aún no has realizado pedidos.</p>
+                  </div>
+
+                  <div *ngIf="!cargandoPedidos()" class="space-y-4">
+                    <div *ngFor="let pedido of pedidosData()" class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                      <div class="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 class="text-xs font-black text-gray-900">{{ pedido.tiendas?.nombre || 'Ferretería' }}</h4>
+                          <p class="text-[10px] font-medium text-gray-500 mt-0.5">{{ pedido.fecha_pedido | date:'short' }}</p>
+                        </div>
+                        <div class="text-right">
+                          <span 
+                            [ngClass]="{
+                              'bg-yellow-50 text-yellow-600 border-yellow-200': pedido.estado === 'pendiente',
+                              'bg-blue-50 text-blue-600 border-blue-200': pedido.estado === 'aprobado' || pedido.estado === 'confirmado',
+                              'bg-emerald-50 text-emerald-600 border-emerald-200': pedido.estado === 'entregado',
+                              'bg-red-50 text-red-600 border-red-200': pedido.estado === 'rechazado'
+                            }"
+                            class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border"
+                          >
+                            {{ pedido.estado }}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div class="space-y-2 mb-3 bg-gray-50 rounded-xl p-3">
+                        <div *ngFor="let item of pedido.pedidos_items" class="flex justify-between items-center text-[11px]">
+                          <span class="text-gray-700 font-medium">{{ item.cantidad }}x {{ item.nombre_producto }}</span>
+                          <span class="text-gray-900 font-bold">{{ item.precio_unitario * item.cantidad | currency }}</span>
+                        </div>
+                        <div *ngIf="pedido.direccion" class="flex justify-between items-center text-[11px] pt-2 border-t border-gray-200 mt-2">
+                          <span class="text-[#E8541C] font-bold flex items-center gap-1"><lucide-icon [name]="PinIcon" size="10"></lucide-icon> Envío a Domicilio</span>
+                          <span class="text-gray-900 font-bold">
+                            {{ getCostoEnvio(pedido) > 0 ? (getCostoEnvio(pedido) | currency) : (pedido.estado === 'pendiente' ? 'Por cotizar' : 'Gratis') }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Total {{ pedido.estado === 'pendiente' ? 'Materiales' : 'Final' }}</span>
+                        <span class="text-lg font-black text-[#E8541C]">{{ pedido.total | currency }}</span>
+                      </div>
+                      
+                      <!-- Dirección de entrega -->
+                      <div *ngIf="pedido.direccion" class="mt-3 bg-orange-50 border border-orange-100 p-2.5 rounded-xl flex items-start gap-2">
+                        <lucide-icon [name]="PinIcon" size="14" class="text-[#E8541C] mt-0.5 shrink-0"></lucide-icon>
+                        <div>
+                          <p class="text-[9px] font-bold text-[#E8541C] uppercase tracking-widest mb-0.5">Entregar en:</p>
+                          <p class="text-xs font-medium text-orange-900 leading-tight">{{ pedido.direccion }}</p>
+                        </div>
+                      </div>
+
+                      <!-- Botones de Acción (Cliente) -->
+                      <div *ngIf="pedido.estado === 'aprobado' || pedido.estado === 'pendiente'" class="mt-4 pt-3 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-2">
+                        
+                        <!-- Botón WhatsApp si está pendiente -->
+                        <button 
+                          *ngIf="pedido.estado === 'pendiente' && pedido.direccion"
+                          (click)="contactarFerreteria(pedido)"
+                          class="bg-[#25D366]/10 border border-[#25D366]/30 text-[#128C7E] hover:bg-[#25D366]/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <lucide-icon [name]="MessageCircleIcon" size="14"></lucide-icon>
+                          Cotizar Envío (WhatsApp)
+                        </button>
+                        
+                        <!-- Botón Cancelar -->
+                        <button 
+                          (click)="cancelarPedido(pedido)"
+                          [disabled]="cancelandoPedido === pedido.id"
+                          class="bg-white border border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                        >
+                          <lucide-icon [name]="XCircleIcon" size="14" [class.animate-spin]="cancelandoPedido === pedido.id"></lucide-icon>
+                          Cancelar Pedido
+                        </button>
+
+                        <!-- Botón Aceptar Precio si está aprobado -->
+                        <button 
+                          *ngIf="pedido.estado === 'aprobado'"
+                          (click)="aceptarPrecio(pedido)"
+                          [disabled]="aceptandoPedido === pedido.id"
+                          class="bg-blue-600 text-white hover:bg-blue-700 shadow-md px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                        >
+                          <lucide-icon [name]="CheckCircleIcon" size="14" [class.animate-spin]="aceptandoPedido === pedido.id"></lucide-icon>
+                          Aceptar Precio
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            } @else if (activeView() === 'Direcciones') {
+              <div class="space-y-6">
+                <!-- Agregar Nueva Dirección -->
+                <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+                  <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+                      <lucide-icon [name]="PinIcon" size="18"></lucide-icon>
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-black text-gray-900 uppercase">Nueva Dirección</h3>
+                      <p class="text-[10px] text-gray-400 font-bold">Añade un punto de entrega exacto</p>
+                    </div>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Calle principal y número</label>
+                      <input type="text" [(ngModel)]="nuevaDireccion.calle" placeholder="Ej. Av. 9 de Octubre y Boyacá" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">Referencia o Link de Google Maps</label>
+                      <input type="text" [(ngModel)]="nuevaDireccion.referencia" placeholder="Ej. Frente al parque / https://maps.app.goo.gl/..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none transition-all" />
+                    </div>
+                    
+                    <button (click)="obtenerUbicacionGPS()" class="w-full bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl py-3 font-black text-[10px] uppercase tracking-widest mt-2 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2">
+                      <lucide-icon [name]="PinIcon" size="14"></lucide-icon>
+                      Obtener mi Ubicación GPS (Precisión Alta)
+                    </button>
+                    
+                    <p *ngIf="nuevaDireccion.lat && nuevaDireccion.lng" class="text-[10px] font-bold text-emerald-600 text-center mt-2 bg-emerald-50 py-1.5 rounded-lg border border-emerald-100">
+                      ✅ Coordenadas: {{ nuevaDireccion.lat | number:'1.4-4' }}, {{ nuevaDireccion.lng | number:'1.4-4' }}
+                    </p>
+
+                    <button (click)="guardarDireccion()" class="w-full bg-emerald-600 text-white rounded-xl py-4 font-black text-[11px] uppercase tracking-widest mt-4 shadow-lg shadow-emerald-200 active:scale-95 transition-all flex items-center justify-center gap-2">
+                      <lucide-icon [name]="SaveIcon" size="16"></lucide-icon>
+                      Guardar Dirección
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Lista de Direcciones -->
+                <div>
+                  <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Mis Direcciones Guardadas</h3>
+                  <div *ngIf="direccionesGuardadas().length === 0" class="bg-white p-6 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <p class="text-xs font-bold text-gray-400">Aún no has guardado ninguna dirección.</p>
+                  </div>
+                  
+                  <div class="space-y-3">
+                    <div *ngFor="let dir of direccionesGuardadas()" class="bg-white border border-gray-100 p-4 rounded-2xl shadow-sm flex items-start gap-3 relative overflow-hidden group">
+                      <div class="absolute right-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
+                      <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                        <lucide-icon [name]="PinIcon" size="14" class="text-emerald-500"></lucide-icon>
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="text-xs font-black text-gray-900">{{ dir.calle }}</h4>
+                        <p class="text-[10px] font-medium text-gray-500 mt-0.5">{{ dir.referencia || 'Sin referencia' }}</p>
+                        <p *ngIf="dir.lat && dir.lng" class="text-[9px] font-bold text-emerald-600 mt-1 flex items-center gap-1">
+                          <lucide-icon [name]="PinIcon" size="8"></lucide-icon> GPS Exacto Capturado
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            } @else if (activeView() === 'Notificaciones') {
+              <div class="space-y-4">
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Centro de Notificaciones</h3>
+                
+                <!-- Notificación Tipo: Aprobación -->
+                <div class="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <lucide-icon [name]="CheckCircleIcon" size="20"></lucide-icon>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-black text-gray-900">¡Crédito Aprobado!</h4>
+                    <p class="text-xs text-gray-500 mt-1 leading-snug">Tu solicitud de crédito en <strong>Ferretería Central</strong> por $500 ha sido aprobada. Ya puedes usarlo para tus compras.</p>
+                    <span class="text-[9px] font-bold text-gray-400 mt-2 block">Hace 2 horas</span>
+                  </div>
+                </div>
+
+                <!-- Notificación Tipo: Pedido -->
+                <div class="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm flex items-start gap-4 relative overflow-hidden">
+                  <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                  <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <lucide-icon [name]="PackageIcon" size="20"></lucide-icon>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-black text-gray-900">Pedido en Camino</h4>
+                    <p class="text-xs text-gray-500 mt-1 leading-snug">Tu pedido <strong>#864FAC</strong> está en ruta hacia tu dirección de entrega. Llegará pronto.</p>
+                    <span class="text-[9px] font-bold text-gray-400 mt-2 block">Ayer, 15:30</span>
+                  </div>
+                </div>
+
+                <!-- Notificación Tipo: Rechazo / Alerta -->
+                <div class="bg-white border border-red-100 rounded-2xl p-4 shadow-sm flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                    <lucide-icon [name]="XCircleIcon" size="20"></lucide-icon>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-black text-gray-900">Producto sin stock</h4>
+                    <p class="text-xs text-gray-500 mt-1 leading-snug">Lamentamos informarte que el producto <em>Amoladora DeWalt</em> de tu carrito ya no está disponible en la tienda.</p>
+                    <span class="text-[9px] font-bold text-gray-400 mt-2 block">Ayer, 09:15</span>
+                  </div>
+                </div>
+
+                <!-- Notificación Tipo: Promoción -->
+                <div class="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-2xl p-4 shadow-sm flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-full bg-orange-100 text-[#E8541C] flex items-center justify-center shrink-0">
+                    <lucide-icon [name]="BellIcon" size="20"></lucide-icon>
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-black text-gray-900">Descuento Especial</h4>
+                    <p class="text-xs text-gray-600 mt-1 leading-snug">Tienes un <strong>15% de descuento</strong> en toda la categoría de Herramientas Eléctricas válido por 24 horas.</p>
+                    <span class="text-[9px] font-bold text-gray-500 mt-2 block">Hace 3 días</span>
+                  </div>
+                </div>
+
+              </div>
             } @else {
               <!-- Pantalla genérica para las demás opciones -->
               <div class="flex flex-col items-center justify-center text-center mt-12">
@@ -265,9 +553,9 @@ import { SupabaseService } from '../supabase.service';
     </div>
   `
 })
-export class DashboardViewComponent {
+export class DashboardViewComponent implements OnInit, OnDestroy {
   protected auth = inject(AuthService);
-  private store = inject(StoreService);
+  protected store = inject(StoreService);
   private supabase = inject(SupabaseService);
 
   activeView = signal<string>('main');
@@ -276,6 +564,12 @@ export class DashboardViewComponent {
 
   avatarPreview = '';
   selectedAvatarFile: File | null = null;
+
+  cargandoGlobal = computed(() => 
+    this.cargandoCreditos() || 
+    this.cargandoPedidos() || 
+    this.guardando()
+  );
 
   // Formulario de edición
   perfilForm = {
@@ -295,15 +589,197 @@ export class DashboardViewComponent {
   readonly SaveIcon = Save;
   readonly CheckCircleIcon = CheckCircle;
   readonly CameraIcon = Camera;
+  readonly DollarSignIcon = CreditCard; 
+  readonly BellIcon = Bell;
+  readonly PackageIcon = Package;
+  readonly XCircleIcon = XCircle;
+  readonly MessageCircleIcon = MessageCircle;
 
   readonly menuItems = [
+    { label: 'Mis Créditos', desc: 'Gestiona tus solicitudes y créditos', icon: CreditCard, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Editar Perfil', desc: 'Cambia tu nombre, teléfono y ciudad', icon: User, color: 'text-[#E8541C]', bg: 'bg-orange-50' },
     { label: 'Mis Pedidos', desc: 'Sigue tus compras y envíos', icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Direcciones', desc: 'Gestiona tus puntos de entrega', icon: MapPin, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Métodos de Pago', desc: 'Tarjetas guardadas y facturación', icon: CreditCard, color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'Notificaciones', desc: 'Alertas de precios y ofertas', icon: Bell, color: 'text-orange-600', bg: 'bg-orange-50' },
     { label: 'Seguridad', desc: 'Contraseña y verificación', icon: Shield, color: 'text-indigo-600', bg: 'bg-indigo-50' },
   ];
+
+  creditosData = signal<{ solicitudes: any[], activos: any[] }>({ solicitudes: [], activos: [] });
+  cargandoCreditos = signal(false);
+
+  pedidosData = signal<any[]>([]);
+  cargandoPedidos = signal(false);
+  cancelandoPedido: string | null = null;
+  aceptandoPedido: string | null = null;
+
+  nuevaDireccion = {
+    calle: '',
+    referencia: '',
+    lat: null as number | null,
+    lng: null as number | null
+  };
+  direccionesGuardadas = signal<any[]>([]);
+
+  realtimeChannel: any;
+
+  ngOnInit() {
+    this.cargarPedidos();
+    this.suscribirseAPedidos();
+    
+    const savedDirs = localStorage.getItem('ferrecompara_direcciones');
+    if (savedDirs) {
+      try {
+        this.direccionesGuardadas.set(JSON.parse(savedDirs));
+      } catch (e) {
+        console.error('Error parseando direcciones locales', e);
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.realtimeChannel) {
+      this.supabase.getClient().removeChannel(this.realtimeChannel);
+    }
+  }
+
+  suscribirseAPedidos() {
+    this.realtimeChannel = this.supabase.getClient()
+      .channel('cliente-pedidos-cambios')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pedidos' },
+        (payload: any) => {
+          // Recarga silenciosa
+          this.supabase.obtenerMisPedidos().then(res => {
+            this.pedidosData.set(res);
+          });
+        }
+      )
+      .subscribe();
+  }
+
+  obtenerUbicacionGPS() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.nuevaDireccion.lat = position.coords.latitude;
+          this.nuevaDireccion.lng = position.coords.longitude;
+          this.nuevaDireccion.referencia = `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`;
+          alert('Ubicación GPS capturada con éxito.');
+        },
+        (error) => {
+          alert('Error al obtener la ubicación. Asegúrate de dar permisos a tu navegador.');
+          console.error(error);
+        }
+      );
+    } else {
+      alert('Tu navegador no soporta geolocalización.');
+    }
+  }
+
+  guardarDireccion() {
+    if (!this.nuevaDireccion.calle) {
+      alert('Por favor, ingresa al menos la calle principal.');
+      return;
+    }
+    const nueva = { ...this.nuevaDireccion };
+    const nuevasDirecciones = [...this.direccionesGuardadas(), nueva];
+    this.direccionesGuardadas.set(nuevasDirecciones);
+    
+    // Persist to local storage
+    localStorage.setItem('ferrecompara_direcciones', JSON.stringify(nuevasDirecciones));
+    
+    this.nuevaDireccion = { calle: '', referencia: '', lat: null, lng: null };
+    alert('¡Dirección guardada exitosamente!');
+  }
+
+  seleccionarMenu(menu: string) {
+    this.activeView.set(menu);
+    if (menu === 'Mis Créditos') {
+      this.cargarCreditos();
+    } else if (menu === 'Mis Pedidos') {
+      this.cargarPedidos();
+    }
+  }
+
+  async cargarCreditos() {
+    this.cargandoCreditos.set(true);
+    try {
+      const res = await this.supabase.obtenerMisCreditos();
+      this.creditosData.set(res);
+    } catch (error) {
+      console.error('Error al cargar créditos', error);
+    } finally {
+      this.cargandoCreditos.set(false);
+    }
+  }
+
+  async cargarPedidos() {
+    this.cargandoPedidos.set(true);
+    try {
+      const res = await this.supabase.obtenerMisPedidos();
+      this.pedidosData.set(res);
+    } catch (error) {
+      console.error('Error al cargar pedidos', error);
+    } finally {
+      this.cargandoPedidos.set(false);
+    }
+  }
+
+  getSubtotal(pedido: any): number {
+    if (!pedido.pedidos_items) return 0;
+    return pedido.pedidos_items.reduce((sum: number, item: any) => sum + (item.precio_unitario * item.cantidad), 0);
+  }
+
+  getCostoEnvio(pedido: any): number {
+    return Math.max(0, pedido.total - this.getSubtotal(pedido));
+  }
+
+  async cancelarPedido(pedido: any) {
+    if (!confirm('¿Deseas cancelar este pedido?')) return;
+    
+    this.cancelandoPedido = pedido.id;
+    try {
+      await this.supabase.actualizarEstadoPedido(pedido.id, 'rechazado', 0);
+      const newList = this.pedidosData().map(p => p.id === pedido.id ? { ...p, estado: 'rechazado' } : p);
+      this.pedidosData.set(newList);
+    } catch (error) {
+      console.error(error);
+      alert('Hubo un error al cancelar el pedido.');
+    } finally {
+      this.cancelandoPedido = null;
+    }
+  }
+
+  async aceptarPrecio(pedido: any) {
+    this.aceptandoPedido = pedido.id;
+    try {
+      await this.supabase.actualizarEstadoPedido(pedido.id, 'aprobado', 0);
+      const newList = this.pedidosData().map(p => p.id === pedido.id ? { ...p, estado: 'confirmado' } : p);
+      this.pedidosData.set(newList);
+    } catch (error) {
+      console.error(error);
+      alert('Hubo un error al aceptar el precio.');
+    } finally {
+      this.aceptandoPedido = null;
+    }
+  }
+
+  contactarFerreteria(pedido: any) {
+    const phone = pedido.tiendas?.telefono?.replace(/\D/g, '') || '593';
+    
+    const listaProductos = pedido.pedidos_items
+      ?.map((i: any) => `• ${i.cantidad}x ${i.nombre_producto}`)
+      .join('\n') || '';
+
+    // Si está pendiente de cotización de envío
+    const direccionText = pedido.direccion ? `a la dirección:\n📍 *${pedido.direccion}*` : `en su local`;
+    
+    let msg = `Hola *${pedido.tiendas?.nombre || 'Ferretería'}*, tengo un pedido *PENDIENTE (#${pedido.id.substring(0,6).toUpperCase()})*.\n\n*Artículos:*\n${listaProductos}\n\nPara entregar ${direccionText}.\n\n¿Me podrían confirmar el costo del envío para poder aprobarlo desde mi perfil?`;
+    
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+  }
 
   abrirEdicion() {
     // Pre-llenar el formulario con los datos actuales
@@ -354,6 +830,11 @@ export class DashboardViewComponent {
       // Refrescamos la sesión para que el perfil actualizado aparezca de inmediato
       await this.auth.inicializar();
       this.guardadoExitoso.set(true);
+
+      // Sincronizar ciudad con StoreService
+      if (this.perfilForm.ciudad) {
+        this.store.setUserCity(this.perfilForm.ciudad);
+      }
 
       // Ocultar el mensaje de éxito después de 3 segundos
       setTimeout(() => this.guardadoExitoso.set(false), 3000);

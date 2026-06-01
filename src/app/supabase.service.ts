@@ -2,7 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../environments/environment';
-import { Product } from './types';
+import { Product, UploadResultDto, PreviewResultDto, CommitResultDto } from './types';
 import { firstValueFrom } from 'rxjs';
 
 // Tipos que mapean directamente con las tablas de Supabase
@@ -275,4 +275,100 @@ export class SupabaseService {
     if (error) throw error;
     return data ?? [];
   }
+
+  async subirCatalogo(file: File): Promise<UploadResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await firstValueFrom(
+        this.http.post<UploadResultDto>(`${environment.apiUrl}/catalog/upload`, formData)
+      );
+      return res;
+    } catch (err: any) {
+      const status = err?.status;
+      const backendMessage = typeof err?.error === 'string' ? err.error : '';
+      let mensaje: string;
+      switch (status) {
+        case 400:
+          mensaje = backendMessage ? `Archivo inválido: ${backendMessage}` : 'Archivo inválido';
+          break;
+        case 401:
+          mensaje = 'Tu sesión expiró. Por favor volvé a iniciar sesión.';
+          break;
+        case 422:
+          mensaje = backendMessage ? `No pudimos procesar el archivo: ${backendMessage}` : 'No pudimos procesar el archivo';
+          break;
+        case 500:
+          mensaje = 'Error inesperado. Intentá de nuevo en unos minutos.';
+          break;
+        default:
+          mensaje = 'Error desconocido al subir el catálogo.';
+      }
+      throw new Error(mensaje);
+    }
+  }
+
+  async previewCatalogo(uploadId: string): Promise<PreviewResultDto> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<PreviewResultDto>(`${environment.apiUrl}/catalog/upload/${uploadId}/preview`, {})
+      );
+      return res;
+    } catch (err: any) {
+      const status = err?.status;
+      let mensaje: string;
+      switch (status) {
+        case 401:
+          mensaje = 'Tu sesión expiró. Por favor volvé a iniciar sesión.';
+          break;
+        case 404:
+          mensaje = 'No se encontró la carga. Intentá subirla de nuevo.';
+          break;
+        case 400:
+          mensaje = err?.error?.message || 'La carga no se puede analizar en este momento.';
+          break;
+        case 500:
+          mensaje = 'Error inesperado al analizar los productos.';
+          break;
+        default:
+          mensaje = 'Error desconocido al analizar la carga.';
+      }
+      throw new Error(mensaje);
+    }
+  }
+  async commitCatalogo(uploadId: string, strategy: string = 'UpdateExisting'): Promise<CommitResultDto> {
+    try {
+      const res = await firstValueFrom(
+        this.http.post<CommitResultDto>(
+          `${environment.apiUrl}/catalog/upload/${uploadId}/commit?strategy=${strategy}`,
+          {}
+        )
+      );
+      return res;
+    } catch (err: any) {
+      const status = err?.status;
+      let mensaje: string;
+      switch (status) {
+        case 401:
+          mensaje = 'Tu sesión expiró. Por favor volvé a iniciar sesión.';
+          break;
+        case 403:
+          mensaje = 'No tenés permiso para aplicar esta carga.';
+          break;
+        case 404:
+          mensaje = 'No se encontró la carga. Intentá subirla de nuevo.';
+          break;
+        case 400:
+          mensaje = err?.error?.message || 'La carga no se puede aplicar en este momento.';
+          break;
+        case 500:
+          mensaje = 'Error inesperado al aplicar al inventario.';
+          break;
+        default:
+          mensaje = 'Error desconocido al aplicar la carga.';
+      }
+      throw new Error(mensaje);
+    }
+  }
+
 }

@@ -125,7 +125,7 @@ export class AuthService {
 
       return {
         ok: true,
-        mensaje: '✅ ¡Bienvenido a FerreCompara!'
+        mensaje: '✅ ¡Bienvenido a FerreExpress!'
       };
 
     } catch (err: any) {

@@ -1,15 +1,16 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Image, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send } from 'lucide-angular';
+import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Image, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send, UploadCloud, FileSpreadsheet } from 'lucide-angular';
 import { AuthService } from '../auth.service';
 import { SupabaseService } from '../supabase.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ChatService, ChatConversation } from '../chat.service';
+import { UploadResultDto, PreviewResultDto } from '../types';
 
-type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
+type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' | 'revision-catalogo';
 
 @Component({
   selector: 'app-tienda-dashboard',
@@ -232,11 +233,19 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
             <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
               <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
             </button>
-            <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Mi Catálogo</h2>
+            <h2 class="text-sm font-black uppercase tracking-widest text-gray-900 hidden sm:block">Mi Catálogo</h2>
           </div>
-          <button (click)="abrirFormularioNuevo()" class="bg-[#E8541C] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-            <lucide-icon [name]="PlusIcon" size="14"></lucide-icon> Añadir
-          </button>
+          <div class="flex items-center gap-2">
+            <button (click)="showConfirmModalVaciar.set(true)" *ngIf="misProductos().length > 0" class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-100 transition-colors shadow-md border border-red-200">
+              <lucide-icon [name]="TrashIcon" size="14"></lucide-icon> Vaciar
+            </button>
+            <button (click)="abrirModalCargaMasiva()" class="bg-gray-800 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-900 transition-colors shadow-md">
+              <lucide-icon [name]="FileSpreadsheetIcon" size="14"></lucide-icon> Carga Masiva
+            </button>
+            <button (click)="abrirFormularioNuevo()" class="bg-[#E8541C] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-md shadow-orange-100">
+              <lucide-icon [name]="PlusIcon" size="14"></lucide-icon> Añadir
+            </button>
+          </div>
         </div>
 
         <div class="p-6">
@@ -266,6 +275,72 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
                   <lucide-icon [name]="TrashIcon" size="16"></lucide-icon>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL DE CARGA MASIVA -->
+        <div *ngIf="mostrarModalCarga()" class="fixed inset-0 z-[100] flex items-center justify-center">
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" (click)="cerrarModalCarga()"></div>
+          <div class="relative bg-white w-[90%] max-w-md rounded-[2rem] p-6 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button (click)="cerrarModalCarga()" class="absolute top-5 right-5 p-2 bg-gray-50 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+              <lucide-icon [name]="XIcon" size="18"></lucide-icon>
+            </button>
+            
+            <div class="flex flex-col items-center text-center mt-2">
+              <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                <lucide-icon [name]="UploadCloudIcon" size="32"></lucide-icon>
+              </div>
+              <h3 class="text-lg font-black text-gray-900">Subir Catálogo</h3>
+              <p class="text-[11px] font-medium text-gray-500 mt-2 px-4 leading-relaxed">
+                Selecciona tu archivo <span class="font-bold text-gray-700">Excel (.xlsx)</span> o <span class="font-bold text-gray-700">CSV</span> con tu lista de productos, precios y stock.
+              </p>
+
+              <div class="w-full mt-6 mb-4">
+                <div class="relative group cursor-pointer" (click)="excelInput.click()">
+                  <div class="w-full border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center bg-gray-50 group-hover:border-blue-500 group-hover:bg-blue-50/50 transition-all">
+                    <lucide-icon [name]="FileSpreadsheetIcon" size="32" class="text-gray-400 group-hover:text-blue-500 mb-3 transition-colors"></lucide-icon>
+                    <span class="text-xs font-bold text-gray-600 group-hover:text-blue-600 transition-colors">
+                      {{ archivoExcel() ? archivoExcel()!.name : 'Toca para buscar archivo' }}
+                    </span>
+                  </div>
+                  <input #excelInput type="file" (change)="onExcelSelected($event)" accept=".xlsx, .csv" class="hidden" />
+                </div>
+              </div>
+
+              <div *ngIf="resultadoCarga()" class="w-full bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-left">
+                <p class="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">✅ Archivo procesado: {{ resultadoCarga()!.rowCount }} productos detectados</p>
+                <div class="space-y-1 mb-3">
+                  <div *ngFor="let entry of resultadoCarga()!.suggestedMapping | keyvalue" class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">{{ entry.key }}</span>
+                    <span class="text-[10px] text-gray-400">→</span>
+                    <span class="text-[10px] font-medium text-gray-700">{{ entry.value }}</span>
+                  </div>
+                </div>
+                <p class="text-[10px] text-gray-400 italic">Próximamente: vas a poder confirmar y aplicar estos productos a tu inventario.</p>
+                <button
+                  (click)="continuarConPreview()"
+                  [disabled]="cargandoPreview()"
+                  class="w-full mt-3 bg-gray-800 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all hover:bg-gray-900"
+                >
+                  <div *ngIf="cargandoPreview()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{{ cargandoPreview() ? 'Analizando productos...' : 'Continuar y analizar productos →' }}</span>
+                </button>
+                <div *ngIf="errorPreview()" class="mt-2 text-xs font-medium text-red-600">{{ errorPreview() }}</div>
+              </div>
+
+              <div *ngIf="errorCarga()" class="w-full bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-left">
+                <p class="text-xs font-bold text-red-600">{{ errorCarga() }}</p>
+              </div>
+
+              <button 
+                (click)="procesarCargaMasiva()" 
+                [disabled]="!archivoExcel() || subiendoExcel()"
+                class="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <div *ngIf="subiendoExcel()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {{ subiendoExcel() ? 'Subiendo...' : 'Procesar Archivo' }}
+              </button>
             </div>
           </div>
         </div>
@@ -341,6 +416,112 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
               </div>
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- VISTA: REVISIÓN DE CATÁLOGO -->
+      <div *ngIf="activeTab() === 'revision-catalogo' && previewCatalogo()" class="animate-in fade-in duration-300 pb-32">
+
+        <!-- Header sticky -->
+        <div class="px-6 py-4 bg-gray-50 sticky top-[81px] z-10 border-b border-gray-100">
+          <div class="flex items-center gap-4">
+            <button (click)="volverAlCatalogo()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+              <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+            </button>
+            <div>
+              <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Revisión de carga</h2>
+              <p class="text-[10px] text-gray-400 font-medium">{{ previewCatalogo()!.totalRows }} productos analizados</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex bg-white border-b border-gray-100">
+          <button
+            (click)="tabPreviewActivo.set('nuevos')"
+            [ngClass]="{ 'text-[#E8541C] border-b-2 border-[#E8541C]': tabPreviewActivo() === 'nuevos', 'text-gray-400': tabPreviewActivo() !== 'nuevos' }"
+            class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all"
+          >Nuevos ({{ previewCatalogo()!.resumen.nuevosCount }})</button>
+          <button
+            (click)="tabPreviewActivo.set('existentes')"
+            [ngClass]="{ 'text-[#E8541C] border-b-2 border-[#E8541C]': tabPreviewActivo() === 'existentes', 'text-gray-400': tabPreviewActivo() !== 'existentes' }"
+            class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all"
+          >Existentes ({{ previewCatalogo()!.resumen.existentesCount }})</button>
+          <button
+            (click)="tabPreviewActivo.set('errores')"
+            [ngClass]="{ 'text-red-500 border-b-2 border-red-500': tabPreviewActivo() === 'errores', 'text-gray-400': tabPreviewActivo() !== 'errores' }"
+            class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all"
+          >Errores ({{ previewCatalogo()!.resumen.erroresCount }})</button>
+        </div>
+
+        <!-- Contenido por tab -->
+        <div class="p-6 space-y-3">
+
+          <!-- Nuevos -->
+          <ng-container *ngIf="tabPreviewActivo() === 'nuevos'">
+            <div *ngIf="previewCatalogo()!.nuevos.length === 0" class="text-center py-10">
+              <p class="text-xs text-gray-400 font-medium">No hay productos nuevos en esta carga.</p>
+            </div>
+            <div *ngFor="let prod of previewCatalogo()!.nuevos" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-black text-gray-900 truncate">{{ prod.nombre }}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">{{ prod.sku || '—' }} · {{ prod.categoria || 'Sin categoría' }}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-xs font-black text-gray-900">USD {{ prod.precio | number:'1.2-2' }}</p>
+                <p class="text-[10px] text-gray-400">{{ prod.stock }} unidades</p>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Existentes -->
+          <ng-container *ngIf="tabPreviewActivo() === 'existentes'">
+            <div *ngIf="previewCatalogo()!.existentes.length === 0" class="text-center py-10">
+              <p class="text-xs text-gray-400 font-medium">No hay productos existentes en esta carga.</p>
+            </div>
+            <div *ngFor="let prod of previewCatalogo()!.existentes" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-black text-gray-900 truncate">{{ prod.nombre }}</p>
+                <span *ngIf="prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Ya en tu inventario</span>
+                <span *ngIf="!prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Producto global, sin precio tuyo</span>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-xs font-black text-gray-900">USD {{ prod.precioNuevo | number:'1.2-2' }}</p>
+                <p class="text-[10px] text-gray-400">{{ prod.stockNuevo }} unidades</p>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Errores -->
+          <ng-container *ngIf="tabPreviewActivo() === 'errores'">
+            <div *ngIf="previewCatalogo()!.errores.length === 0" class="text-center py-10">
+              <p class="text-xs text-gray-400 font-medium">No hay errores en esta carga.</p>
+            </div>
+            <div *ngFor="let err of previewCatalogo()!.errores" class="bg-red-50 rounded-2xl border border-red-100 shadow-sm p-4">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fila {{ err.rowNumber }}</p>
+                <span class="text-[9px] font-black text-red-600 bg-red-100 px-2 py-0.5 rounded-md">{{ err.motivo }}</span>
+              </div>
+              <p class="text-[10px] text-gray-400 leading-relaxed">
+                <ng-container *ngFor="let kv of err.rawData | keyvalue; let last = last">
+                  {{ kv.key }}: '{{ kv.value }}'<ng-container *ngIf="!last"> · </ng-container>
+                </ng-container>
+              </p>
+            </div>
+          </ng-container>
+
+        </div>
+
+        <!-- Botones fijos abajo -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 flex gap-3 z-10 shadow-lg">
+          <button
+            (click)="volverAlCatalogo()"
+            class="flex-1 bg-gray-100 text-gray-700 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all hover:bg-gray-200"
+          >Volver al catálogo</button>
+          <button
+            disabled
+            class="flex-1 bg-gray-100 text-gray-400 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] cursor-not-allowed"
+          >Aplicar al inventario</button>
         </div>
       </div>
 
@@ -486,6 +667,26 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
         </div>
       </div>
 
+      <!-- MODAL VACIAR CATÁLOGO -->
+      <div *ngIf="showConfirmModalVaciar()" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div class="bg-white p-6 rounded-3xl max-w-sm w-full space-y-4 text-center animate-in scale-in-95 duration-300">
+          <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+            <lucide-icon [name]="TrashIcon" size="24"></lucide-icon>
+          </div>
+          <div>
+            <h3 class="font-black text-gray-900 text-sm">¿Vaciar TODO el Catálogo?</h3>
+            <p class="text-[10px] font-medium text-gray-500 mt-2 leading-relaxed">Esta acción <span class="font-bold">no se puede deshacer</span>. Se eliminarán permanentemente los {{ misProductos().length }} productos de tu inventario.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <button (click)="showConfirmModalVaciar.set(false)" class="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold text-xs">Cancelar</button>
+            <button (click)="ejecutarVaciadoCatalogo()" [disabled]="vaciandoCatalogo()" class="bg-red-500 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-red-100 flex items-center justify-center gap-2">
+              <div *ngIf="vaciandoCatalogo()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>{{ vaciandoCatalogo() ? 'Borrando...' : 'Sí, Vaciar Todo' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- TOAST SUCCESS -->
       <div *ngIf="successToast().show" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom duration-300">
         <span class="text-xs font-bold">{{ successToast().msg }}</span>
@@ -511,6 +712,8 @@ export class TiendaDashboardView implements OnInit {
   selectedFile: File | null = null;
 
   showConfirmModal = signal(false);
+  showConfirmModalVaciar = signal(false);
+  vaciandoCatalogo = signal(false);
   itemAEliminar = signal<any>(null);
   successToast = signal<{ show: boolean, msg: string }>({ show: false, msg: '' });
 
@@ -705,6 +908,28 @@ export class TiendaDashboardView implements OnInit {
     }
   }
 
+  async ejecutarVaciadoCatalogo() {
+    this.vaciandoCatalogo.set(true);
+    try {
+      const productos = this.misProductos();
+      const chunkSize = 10;
+      
+      for (let i = 0; i < productos.length; i += chunkSize) {
+        const chunk = productos.slice(i, i + chunkSize);
+        await Promise.all(chunk.map(p => this.supabase.eliminarProducto(Number(p.id))));
+      }
+
+      this.showConfirmModalVaciar.set(false);
+      this.mostrarToast('✅ Catálogo vaciado completamente');
+      await this.cargarMisProductos();
+    } catch (e) {
+      alert('❌ Error al vaciar catálogo');
+      console.error(e);
+    } finally {
+      this.vaciandoCatalogo.set(false);
+    }
+  }
+
   mostrarToast(msg: string) {
     this.successToast.set({ show: true, msg });
     setTimeout(() => this.successToast.set({ show: false, msg: '' }), 3000);
@@ -804,7 +1029,7 @@ export class TiendaDashboardView implements OnInit {
         this.tiendaLogoPreview = url;
       }
 
-      await this.auth.checkSession();
+      await this.auth.inicializar();
       await this.abrirPerfil();
       this.mostrarToast('✅ Perfil guardado con éxito');
       this.activeTab.set('dashboard');
@@ -876,5 +1101,90 @@ export class TiendaDashboardView implements OnInit {
     } catch {
       return '';
     }
+  }
+
+  // ==========================================
+  // LÓGICA DE CARGA MASIVA (EXCEL/CSV)
+  // ==========================================
+  mostrarModalCarga = signal<boolean>(false);
+  archivoExcel = signal<File | null>(null);
+  subiendoExcel = signal<boolean>(false);
+  resultadoCarga = signal<UploadResultDto | null>(null);
+  errorCarga = signal<string | null>(null);
+
+  previewCatalogo = signal<PreviewResultDto | null>(null);
+  cargandoPreview = signal(false);
+  errorPreview = signal<string | null>(null);
+  tabPreviewActivo = signal<'nuevos' | 'existentes' | 'errores'>('nuevos');
+
+  readonly UploadCloudIcon = UploadCloud;
+  readonly FileSpreadsheetIcon = FileSpreadsheet;
+
+  abrirModalCargaMasiva() {
+    this.archivoExcel.set(null);
+    this.resultadoCarga.set(null);
+    this.errorCarga.set(null);
+    this.mostrarModalCarga.set(true);
+  }
+
+  cerrarModalCarga() {
+    this.mostrarModalCarga.set(false);
+  }
+
+  onExcelSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext !== 'xlsx' && ext !== 'csv') {
+        alert('Por favor selecciona un archivo .xlsx o .csv');
+        return;
+      }
+      this.archivoExcel.set(file);
+      this.resultadoCarga.set(null); // Limpiamos el resultado anterior
+    }
+  }
+
+  async procesarCargaMasiva() {
+    const file = this.archivoExcel();
+    if (!file) return;
+
+    this.errorCarga.set(null);
+    this.resultadoCarga.set(null);
+    this.subiendoExcel.set(true);
+    try {
+      const res = await this.supabase.subirCatalogo(file);
+      this.resultadoCarga.set(res);
+    } catch (e: any) {
+      this.errorCarga.set(e?.message ?? 'Error al subir el archivo.');
+    } finally {
+      this.subiendoExcel.set(false);
+    }
+  }
+
+  async continuarConPreview() {
+    const upload = this.resultadoCarga();
+    if (!upload?.uploadId) return;
+
+    this.errorPreview.set(null);
+    this.cargandoPreview.set(true);
+    try {
+      const res = await this.supabase.previewCatalogo(upload.uploadId);
+      this.previewCatalogo.set(res);
+      this.tabPreviewActivo.set(
+        res.resumen.nuevosCount > 0 ? 'nuevos' :
+        res.resumen.erroresCount > 0 ? 'errores' : 'existentes'
+      );
+      this.cerrarModalCarga();
+      this.activeTab.set('revision-catalogo');
+    } catch (e: any) {
+      this.errorPreview.set(e?.message ?? 'Error al analizar la carga.');
+    } finally {
+      this.cargandoPreview.set(false);
+    }
+  }
+
+  volverAlCatalogo() {
+    this.previewCatalogo.set(null);
+    this.activeTab.set('catalogo');
   }
 }

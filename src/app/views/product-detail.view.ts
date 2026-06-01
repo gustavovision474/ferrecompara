@@ -15,7 +15,7 @@ import { CartService } from '../cart.service';
           <button (click)="store.selectProduct(null)" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
             <lucide-icon [name]="BackIcon" size="24"></lucide-icon>
           </button>
-          <span class="text-xl font-black text-[#E8541C] uppercase tracking-tighter">FerreCompara</span>
+          <span class="text-xl font-black text-[#E8541C] uppercase tracking-tighter">FerreExpress</span>
           <div class="flex items-center gap-1 text-gray-400">
             <lucide-icon [name]="PinIcon" size="18"></lucide-icon>
             <span class="text-[10px] font-bold">{{ store.userCity() || 'Ecuador' }}</span>
@@ -215,7 +215,7 @@ export class ProductDetailViewComponent {
 
   contactarWhatsApp(ferreteria: any, producto: any) {
     const telefono = (ferreteria.phone || ferreteria.telefono)?.replace(/\D/g, '') || '593';
-    const mensaje = encodeURIComponent(`Hola, estoy interesado en el producto ${producto.name} que vi en FerreCompara.`);
+    const mensaje = encodeURIComponent(`Hola, estoy interesado en el producto ${producto.name} que vi en FerreExpress.`);
     window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
   }
 

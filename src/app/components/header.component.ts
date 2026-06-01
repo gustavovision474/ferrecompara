@@ -23,12 +23,15 @@ import { FormsModule } from '@angular/forms';
           <button (click)="store.toggleSidebar(true)" class="text-gray-500 hover:bg-gray-50 transition-colors p-2 rounded-lg">
             <lucide-icon [name]="MenuIcon" size="24"></lucide-icon>
           </button>
-          <span 
+          <div 
             (click)="store.setTab('home')" 
-            class="text-xl font-black text-[#E8541C] uppercase tracking-tighter cursor-pointer select-none"
+            class="flex items-center cursor-pointer select-none"
           >
-            FerreCompara
-          </span>
+            <img src="assets/images/ferrecompara-logo.png" alt="FerreCompara" class="h-8 md:h-10 object-contain drop-shadow-sm" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="text-xl font-black text-[#E8541C] uppercase tracking-tighter hidden">
+              FerreCompara
+            </span>
+          </div>
         </div>
         
         <div class="hidden md:flex flex-1 max-w-md mx-8">
@@ -81,7 +84,7 @@ import { FormsModule } from '@angular/forms';
               <div class="space-y-2">
                 @for (city of ['Guayaquil', 'Quito', 'Cuenca', 'Manta', 'Portoviejo', 'Machala']; track city) {
                   <button 
-                    (click)="store.setCity(city)"
+                    (click)="store.setUserCity(city); store.toggleSidebar(false)"
                     [class]="'w-full flex items-center justify-between p-4 rounded-2xl transition-all ' + (store.userCity() === city ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50 border border-transparent hover:bg-gray-100')"
                   >
                     <div class="flex items-center gap-3">

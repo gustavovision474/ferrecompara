@@ -352,7 +352,7 @@ export class DashboardViewComponent {
       });
 
       // Refrescamos la sesión para que el perfil actualizado aparezca de inmediato
-      await this.auth.checkSession();
+      await this.auth.inicializar();
       this.guardadoExitoso.set(true);
 
       // Ocultar el mensaje de éxito después de 3 segundos

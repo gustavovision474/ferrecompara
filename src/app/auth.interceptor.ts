@@ -12,7 +12,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const baseReq = req.clone({
-    headers: req.headers.set('bypass-tunnel-reminder', 'true')
+    headers: req.headers
+      .set('bypass-tunnel-reminder', 'true')
+      .set('ngrok-skip-browser-warning', 'true')
   });
 
   const supabaseService = inject(SupabaseService);

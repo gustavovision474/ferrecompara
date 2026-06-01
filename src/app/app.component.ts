@@ -36,6 +36,11 @@ type AuthScreen = 'welcome' | 'auth';
     BottomNavComponent
   ],
   template: `
+    <div *ngIf="globalError()" class="fixed top-0 left-0 w-full z-[9999] bg-red-600 text-white p-4 font-mono text-xs overflow-auto max-h-screen">
+      <b>ERROR GLOBAL:</b><br/>
+      {{ globalError() }}
+      <button (click)="globalError.set(null)" class="mt-2 bg-black/30 px-3 py-1 rounded">Cerrar</button>
+    </div>
     <div class="min-h-screen bg-white">
       @if (auth.isLoggedIn()) {
         @if (auth.currentRol() === 'tienda') {
@@ -50,7 +55,7 @@ type AuthScreen = 'welcome' | 'auth';
             <app-store-detail-view></app-store-detail-view>
           } @else {
             <app-header></app-header>
-            <div class="pt-[64px] pb-[80px]">
+            <div class="pb-[80px]">
               @if (store.activeTab() === 'home') {
                 <app-home-view></app-home-view>
               } @else if (store.activeTab() === 'stores') {
@@ -94,6 +99,16 @@ export class AppComponent implements OnInit {
   authScreen = signal<AuthScreen>('welcome');
   rolSeleccionado = signal<UserRole | null>(null);
   modoAuth = signal<'login' | 'register'>('register');
+  globalError = signal<string | null>(null);
+
+  constructor() {
+    window.addEventListener('error', (e) => {
+      this.globalError.set(e.message + '\n' + e.error?.stack);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      this.globalError.set(e.reason?.message + '\n' + e.reason?.stack);
+    });
+  }
 
   ngOnInit() {}
 
@@ -114,5 +129,11 @@ export class AppComponent implements OnInit {
     this.rolSeleccionado.set(null);
   }
 
-  onLoginExitoso() {}
+  onLoginExitoso() {
+    console.log('✅ Login exitoso');
+    const userCity = this.auth.profile()?.ciudad;
+    if (userCity) {
+      this.store.setUserCity(userCity);
+    }
+  }
 }

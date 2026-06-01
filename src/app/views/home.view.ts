@@ -15,7 +15,12 @@ import { StoreService } from '../store.service';
     }
   `],
   template: `
-    <div class="pb-12 animate-in fade-in duration-500">
+    <div class="pb-12 animate-in fade-in duration-500 relative">
+      <!-- GLOBAL FULLSCREEN LOADER -->
+      <div *ngIf="store.cargando()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Cargando...</p>
+      </div>
       <!-- Banner (Only show when not searching) -->
       @if (!store.searchQuery()) {
         <section class="px-4 pt-6">
@@ -55,103 +60,7 @@ import { StoreService } from '../store.service';
         </div>
       </section>
 
-      <!-- Quick Filters & Tools Toolbar -->
-      <section class="px-4 pt-4 pb-3 sticky-filter-top">
-        <div class="flex items-center justify-between mb-4 px-1">
-          <div class="flex items-center gap-2">
-            <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider">Filtrar por</h3>
-            <div class="w-1 h-1 bg-[#E8541C] rounded-full animate-pulse"></div>
-          </div>
-          @if (store.searchQuery() || store.sortByPrice() || store.onlyNearby() || store.onlyInStock()) {
-            <button (click)="store.clearFilters()" class="text-[10px] font-bold text-[#E8541C] border-b border-orange-200 uppercase tracking-widest">Limpiar todo</button>
-          }
-        </div>
-        
-        <div class="flex items-center gap-3 pb-1">
-          <!-- Main Filter Button with Dropdown (Outside scroll to avoid clipping) -->
-          <div class="relative flex-shrink-0">
-            <button 
-              (click)="toggleFilterMenu()"
-              [class]="'h-11 rounded-xl px-5 flex items-center gap-2.5 shadow-lg transition-all active:scale-95 ' + (isFilterMenuOpen ? 'bg-gray-800 text-white ring-2 ring-orange-200' : 'bg-gray-900 text-white shadow-gray-200')"
-            >
-              <lucide-icon [name]="FilterIcon" size="18" [class]="isFilterMenuOpen ? 'rotate-180 transition-transform' : ''"></lucide-icon>
-              <span class="text-[11px] font-black uppercase tracking-widest">Opciones</span>
-            </button>
 
-            <!-- Dropdown Menu -->
-            @if (isFilterMenuOpen) {
-              <div class="absolute top-14 left-0 w-64 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[100] p-4 animate-in zoom-in-95 fade-in duration-200 origin-top-left">
-                <div class="space-y-4">
-                  <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Ordenar por</p>
-                    <button 
-                      (click)="store.toggleSortByPrice(); isFilterMenuOpen = false"
-                      [class]="'w-full flex items-center justify-between p-3 rounded-xl transition-colors ' + (store.sortByPrice() ? 'bg-orange-50 text-[#E8541C]' : 'bg-gray-50 text-gray-700')"
-                    >
-                      <span class="text-xs font-bold">Menor Precio Primero</span>
-                      @if (store.sortByPrice()) { <div class="w-2 h-2 rounded-full bg-[#E8541C]"></div> }
-                    </button>
-                  </div>
-
-                  <div class="h-[1px] bg-gray-100 mx-1"></div>
-
-                  <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">Disponibilidad</p>
-                    <div class="space-y-1">
-                      <button 
-                        (click)="store.toggleOnlyInStock()"
-                        class="w-full flex items-center gap-3 p-2.5 group rounded-xl hover:bg-gray-50 transition-colors"
-                      >
-                        <div [class]="'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ' + (store.onlyInStock() ? 'bg-[#E8541C] border-[#E8541C]' : 'border-gray-300 group-hover:border-orange-300')">
-                          @if (store.onlyInStock()) { <div class="w-2 h-2 rounded-full bg-white"></div> }
-                        </div>
-                        <span class="text-xs font-bold text-gray-700">Solo en Stock</span>
-                      </button>
-                      <button 
-                        (click)="store.toggleOnlyNearby()"
-                        class="w-full flex items-center gap-3 p-2.5 group rounded-xl hover:bg-gray-50 transition-colors"
-                      >
-                        <div [class]="'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ' + (store.onlyNearby() ? 'bg-[#E8541C] border-[#E8541C]' : 'border-gray-300 group-hover:border-orange-300')">
-                          @if (store.onlyNearby()) { <div class="w-2 h-2 rounded-full bg-white"></div> }
-                        </div>
-                        <span class="text-xs font-bold text-gray-700">Cerca de mí</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Overlay to close dropdown -->
-              <div class="fixed inset-0 z-40 bg-transparent" (click)="isFilterMenuOpen = false"></div>
-            }
-          </div>
-
-          <div class="flex gap-3 overflow-x-auto hide-scrollbar w-full">
-            <button 
-              (click)="store.toggleOnlyInStock()"
-              [class]="'h-11 flex-shrink-0 border border-gray-200 rounded-xl px-5 flex items-center gap-2.5 shadow-sm active:scale-95 transition-all group ' + (store.onlyInStock() ? 'bg-orange-50 border-[#E8541C]' : 'bg-white hover:border-[#E8541C]')"
-            >
-              <lucide-icon [name]="BoxIcon" size="14" [class]="store.onlyInStock() ? 'text-[#E8541C]' : 'text-gray-400 group-hover:text-[#E8541C]'"></lucide-icon>
-              <span [class]="'text-[11px] font-bold transition-colors ' + (store.onlyInStock() ? 'text-gray-900' : 'text-gray-600 group-hover:text-gray-900')">En Stock</span>
-            </button>
-
-            <button 
-              (click)="store.toggleOnlyNearby()"
-              [class]="'h-11 flex-shrink-0 border border-gray-200 rounded-xl px-5 flex items-center gap-2.5 shadow-sm active:scale-95 transition-all group ' + (store.onlyNearby() ? 'bg-orange-50 border-[#E8541C]' : 'bg-white hover:border-[#E8541C]')"
-            >
-              <lucide-icon [name]="PinIcon" size="14" [class]="store.onlyNearby() ? 'text-[#E8541C]' : 'text-gray-400 group-hover:text-[#E8541C]'"></lucide-icon>
-              <span [class]="'text-[11px] font-bold transition-colors ' + (store.onlyNearby() ? 'text-gray-900' : 'text-gray-600 group-hover:text-gray-900')">Cerca de mí</span>
-            </button>
-
-            <button 
-              class="h-11 flex-shrink-0 bg-white border border-gray-200 rounded-xl px-5 flex items-center gap-2.5 shadow-sm active:scale-95 transition-all hover:border-[#E8541C] group"
-            >
-              <lucide-icon [name]="StarIcon" size="14" class="text-gray-400 group-hover:text-[#E8541C]"></lucide-icon>
-              <span class="text-[11px] font-bold text-gray-600 group-hover:text-gray-900">Top Rating</span>
-            </button>
-          </div>
-        </div>
-      </section>
 
       <!-- Popular Brands Filters -->
       <section class="px-4 mt-6">
@@ -172,7 +81,7 @@ import { StoreService } from '../store.service';
 
       <!-- Main Content -->
       <section class="px-4 mt-8">
-        @if (store.searchQuery() || store.sortByPrice() || store.onlyNearby() || store.onlyInStock()) {
+        @if (store.searchQuery()) {
           <!-- Results Mode -->
           <div class="flex items-center justify-between mb-6">
             <div>
@@ -206,11 +115,7 @@ import { StoreService } from '../store.service';
           </div>
           
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            @if (store.cargando()) {
-              @for (i of [1,2,3,4,5,6,7,8]; track i) {
-                <div class="bg-white rounded-2xl h-56 animate-pulse border border-gray-100"></div>
-              }
-            } @else if (store.filteredProducts().length === 0) {
+            @if (store.filteredProducts().length === 0) {
               <div class="col-span-4 py-12 text-center text-gray-400">
                 <p class="font-black text-xs uppercase tracking-widest">No se encontraron productos</p>
               </div>

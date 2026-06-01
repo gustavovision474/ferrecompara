@@ -20,11 +20,6 @@ import { StoreService } from '../store.service';
           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
         />
         
-        @if (product.tag) {
-          <div [class]="'absolute top-3 left-3 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg shadow-sm ' + (product.status === 'available' ? 'bg-green-500' : 'bg-[#E8541C]')">
-            {{ product.tag }}
-          </div>
-        }
 
         <button 
           (click)="$event.stopPropagation(); store.toggleFavorite(product.id)"

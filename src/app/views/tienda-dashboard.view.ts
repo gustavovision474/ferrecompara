@@ -1,25 +1,39 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Image, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send } from 'lucide-angular';
+import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send, UploadCloud, FileSpreadsheet, FileText, Printer, DollarSign, CheckCircle, XCircle, Settings, ShoppingBag, Wrench, Truck, Bike } from 'lucide-angular';
 import { AuthService } from '../auth.service';
 import { SupabaseService } from '../supabase.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ChatService, ChatConversation } from '../chat.service';
+import { UploadResultDto, PreviewResultDto } from '../types';
 
-type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
+type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' | 'revision-catalogo' | 'cotizacion' | 'creditos' | 'pedidos' | 'expertos';
 
 @Component({
   selector: 'app-tienda-dashboard',
   standalone: true,
   imports: [CommonModule, LucideAngularModule, FormsModule],
+  styles: [`
+    @keyframes loading-bar {
+      0%   { transform: scaleX(0.1); transform-origin: left; opacity: 1; }
+      50%  { transform: scaleX(0.6); transform-origin: left; opacity: 1; }
+      100% { transform: scaleX(1);   transform-origin: left; opacity: 0.8; }
+    }
+  `],
   template: `
-    <div class="min-h-screen bg-gray-50 flex flex-col relative" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
+    <div class="min-h-screen bg-gray-50 block relative" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
       
+
+
       <!-- HEADER GLOBAL -->
       <header class="bg-white px-6 py-5 flex items-center justify-between border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+        <!-- Barra de progreso sutil para operaciones de escritura -->
+        <div *ngIf="cargandoGlobal()" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8541C]/30">
+          <div class="h-full bg-[#E8541C] w-1/2 animate-pulse rounded-full"></div>
+        </div>
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-orange-100 text-[#E8541C] rounded-xl flex items-center justify-center">
             <lucide-icon [name]="PackageIcon" size="20"></lucide-icon>
@@ -29,20 +43,25 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
             <p class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{{ nombreTiendaActual() }}</p>
           </div>
         </div>
-        <button (click)="onLogout()" class="w-10 h-10 bg-gray-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors">
-          <lucide-icon [name]="LogoutIcon" size="18"></lucide-icon>
-        </button>
+        <div class="flex items-center gap-2">
+          <button (click)="abrirPerfil()" class="w-10 h-10 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-[#E8541C] transition-colors" title="Perfil de Tienda">
+            <lucide-icon [name]="SettingsIcon" size="18"></lucide-icon>
+          </button>
+          <button (click)="onLogout()" class="w-10 h-10 bg-gray-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors" title="Cerrar Sesión">
+            <lucide-icon [name]="LogoutIcon" size="18"></lucide-icon>
+          </button>
+        </div>
       </header>
 
       <!-- VISTA: DASHBOARD PRINCIPAL -->
-      <div *ngIf="activeTab() === 'dashboard'" class="p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div *ngIf="activeTab() === 'dashboard'" class="p-6">
         <div class="grid grid-cols-2 gap-4 mb-8">
-          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors" (click)="abrirPedidos()">
             <div class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center mb-3">
-              <lucide-icon [name]="TrendingUpIcon" size="16"></lucide-icon>
+              <lucide-icon [name]="ShoppingBagIcon" size="16"></lucide-icon>
             </div>
-            <p class="text-2xl font-black text-gray-900">124</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Visitas hoy</p>
+            <p class="text-2xl font-black text-gray-900">{{ pedidos().length }}</p>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pedidos</p>
           </div>
           <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
             <div class="w-8 h-8 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center mb-3">
@@ -92,6 +111,24 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
           </button>
 
           <button 
+            (click)="abrirPedidos()"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="PackageIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Gestión de Pedidos</h3>
+                <p class="text-[10px] text-gray-400">Revisa las compras de tus clientes</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+          <button 
             (click)="abrirMensajes()"
             class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500 transition-all shadow-sm active:scale-[0.98] relative"
           >
@@ -110,27 +147,335 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
           </button>
 
           <button 
-            (click)="abrirPerfil()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-blue-500 transition-all shadow-sm active:scale-[0.98]"
+            (click)="abrirCotizacion()"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-teal-500 transition-all shadow-sm active:scale-[0.98]"
           >
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="EditIcon" size="24"></lucide-icon>
+              <div class="w-12 h-12 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="FileTextIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Generar Cotización</h3>
+                <p class="text-[10px] text-gray-400">Crear presupuesto para un cliente</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-teal-500 group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+
+          <button 
+            (click)="abrirCreditos()"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="DollarSignIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Gestión de Créditos</h3>
+                <p class="text-[10px] text-gray-400">Administra solicitudes y líneas de crédito</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+          <button 
+            (click)="abrirExpertos()"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500 transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="WrenchIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Panel de Expertos</h3>
+                <p class="text-[10px] text-gray-400">Sube y gestiona tus referidos</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+          <button 
+            (click)="abrirPerfil()"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="SettingsIcon" size="24"></lucide-icon>
               </div>
               <div class="text-left">
                 <h3 class="font-bold text-sm text-gray-900">Perfil de Tienda</h3>
-                <p class="text-[10px] text-gray-400">Actualizar logo y horarios</p>
+                <p class="text-[10px] text-gray-400">Configura horarios, dirección y logo de tu negocio</p>
               </div>
             </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
               <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
             </div>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- VISTA: EXPERTOS -->
+      <div *ngIf="activeTab() === 'expertos'" class="pb-32">
+        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10 border-b border-gray-100">
+          <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+            <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+          </button>
+          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Expertos Referidos</h2>
+          <button (click)="abrirModalNuevoExperto()" class="w-10 h-10 bg-[#E8541C] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-colors">
+            <lucide-icon [name]="PlusIcon" size="20"></lucide-icon>
+          </button>
+        </div>
+
+
+
+        <div class="p-6">
+          <div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3 mb-6">
+            <lucide-icon [name]="WrenchIcon" size="20" class="text-blue-500 shrink-0 mt-0.5"></lucide-icon>
+            <div>
+              <p class="text-xs font-bold text-blue-900">Aumenta tu visibilidad</p>
+              <p class="text-[10px] text-blue-700 mt-1">Registra a los profesionales de confianza. Cuando un cliente los contrate por FerreCompara, ellos te comprarán los materiales a ti.</p>
+            </div>
+          </div>
+
+          <div *ngIf="misExpertos().length === 0" class="py-12 text-center bg-white border border-gray-100 rounded-3xl shadow-sm">
+            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+              <lucide-icon [name]="WrenchIcon" size="32"></lucide-icon>
+            </div>
+            <h3 class="font-black text-gray-900 text-sm">Aún no tienes expertos registrados</h3>
+            <p class="text-xs text-gray-500 mt-1 mb-6 px-8">Añade a tu primer plomero, electricista o albañil de confianza.</p>
+            <button (click)="abrirModalNuevoExperto()" class="bg-[#E8541C] text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-200 active:scale-95 transition-all">
+              Agregar Experto
+            </button>
+          </div>
+
+          <div *ngIf="misExpertos().length > 0" class="space-y-4">
+            <div *ngFor="let ex of misExpertos()" class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex gap-4">
+              <div class="w-16 h-16 rounded-2xl object-cover bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <img *ngIf="ex.foto_url" [src]="ex.foto_url" class="w-full h-full object-cover" (error)="$any($event.target).style.display='none'" />
+                <span *ngIf="!ex.foto_url" class="text-2xl font-black text-gray-400">{{ ex.nombre?.charAt(0)?.toUpperCase() }}</span>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="font-black text-sm text-gray-900 leading-none">{{ ex.nombre }}</h3>
+                    <p class="text-[10px] font-bold text-[#E8541C] uppercase tracking-widest mt-1">{{ ex.profesion || ex.categoria }}</p>
+                  </div>
+                  <button (click)="editarExperto(ex)" class="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                    <lucide-icon [name]="EditIcon" size="14"></lucide-icon>
+                  </button>
+                </div>
+                <div class="mt-2 text-xs text-gray-500 flex justify-between items-center">
+                  <div>
+                    <span class="font-bold text-gray-900">{{ ex.total_resenas || 0 }}</span> reseñas • 
+                    <span class="font-bold text-gray-900">{{ ex.rating || '5.0' }}</span>/5
+                  </div>
+                  <div *ngIf="ex.activo || ex.verificado" class="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-md text-[10px] font-bold">
+                    <lucide-icon [name]="CheckCircleIcon" size="10"></lucide-icon>
+                    Verificado
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL Añadir Experto -->
+      <div *ngIf="mostrarAgregarExperto()" class="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
+        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-in fade-in" (click)="mostrarAgregarExperto.set(false)"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] p-6 animate-in slide-in-from-bottom-8 shadow-2xl h-[85vh] flex flex-col">
+          <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+          
+          <div class="flex justify-between items-center mb-6 shrink-0">
+            <h2 class="text-xl font-black text-gray-900 tracking-tight">{{ expertoEnEdicionId() ? 'Editar Experto' : 'Nuevo Experto' }}</h2>
+            <button (click)="mostrarAgregarExperto.set(false)" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 active:scale-90 transition-all">
+              <lucide-icon [name]="XIcon" size="18"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="space-y-4 overflow-y-auto flex-1 pr-2 hide-scrollbar pb-24">
+            
+            <div class="flex flex-col items-center justify-center py-2">
+              <div class="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-[2rem] flex items-center justify-center overflow-hidden relative cursor-pointer hover:border-[#E8541C] transition-colors" (click)="expertoFotoInput.click()">
+                <img *ngIf="expertoFotoPreview()" [src]="expertoFotoPreview()" class="w-full h-full object-cover" />
+                <lucide-icon *ngIf="!expertoFotoPreview()" [name]="CameraIcon" size="28" class="text-gray-300"></lucide-icon>
+              </div>
+              <p class="text-[10px] text-gray-400 font-bold mt-3 uppercase tracking-widest cursor-pointer hover:text-[#E8541C] transition-colors" (click)="expertoFotoInput.click()">Subir Foto del Experto</p>
+              <input #expertoFotoInput type="file" (change)="onExpertoFotoSelected($event)" accept="image/*" class="hidden" />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
+              <input type="text" [(ngModel)]="nuevoExperto.nombre" placeholder="Ej. Carlos Mendoza" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+              <select [(ngModel)]="nuevoExperto.categoria" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all appearance-none">
+                <option value="Plomero">Plomero</option>
+                <option value="Electricista">Electricista</option>
+                <option value="Albañil">Albañil</option>
+                <option value="Carpintero">Carpintero</option>
+                <option value="Pintor">Pintor</option>
+                <option value="Cerrajero">Cerrajero</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
+              <input type="tel" [(ngModel)]="nuevoExperto.telefono" placeholder="Ej. 0991234567" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Breve Biografía</label>
+              <textarea [(ngModel)]="nuevoExperto.bio" rows="3" placeholder="Experiencia, certificaciones..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all resize-none"></textarea>
+            </div>
+            
+            <button (click)="guardarExperto()" [disabled]="guardandoExperto() || !nuevoExperto.nombre || !nuevoExperto.telefono" class="w-full bg-[#E8541C] text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-orange-200 flex items-center justify-center gap-2 mt-4 active:scale-95 transition-all disabled:opacity-50">
+              <span *ngIf="guardandoExperto()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span *ngIf="!guardandoExperto()">{{ expertoEnEdicionId() ? 'GUARDAR CAMBIOS' : 'REGISTRAR EXPERTO' }}</span>
+              <span *ngIf="guardandoExperto()">GUARDANDO...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA: COTIZACIÓN -->
+      <div *ngIf="activeTab() === 'cotizacion'" class="pb-32">
+        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10 border-b border-gray-100">
+          <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+            <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+          </button>
+          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Nueva Cotización</h2>
+          <div class="w-10"></div>
+        </div>
+
+        <div class="p-6 space-y-4">
+
+          <!-- Datos del cliente -->
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+            <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest">Datos del Cliente</h3>
+            <input type="text" [(ngModel)]="cotizacion.nombreCliente" placeholder="Nombre del cliente" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none transition-all" />
+            <input type="tel" [(ngModel)]="cotizacion.telefonoCliente" placeholder="Teléfono (opcional)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none transition-all" />
+            <input type="text" [(ngModel)]="cotizacion.proyectoCliente" placeholder="Descripción del proyecto (opcional)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-medium text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none transition-all" />
+          </div>
+
+          <!-- Lista de ítems -->
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest">Productos</h3>
+              <button (click)="agregarItemCotizacion()" class="flex items-center gap-1.5 text-[10px] font-black text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-colors">
+                <lucide-icon [name]="PlusIcon" size="12"></lucide-icon> Agregar Ítem
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <div *ngFor="let item of cotizacion.items; let i = index" class="flex items-start gap-2 bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                <div class="flex-1 space-y-2">
+                  <!-- Dropdown de productos de la ferretería -->
+                  <div>
+                    <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1">Producto</label>
+                    <select
+                      (change)="seleccionarProductoCotizacion(i, $event)"
+                      class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none transition-all appearance-none"
+                    >
+                      <option value="">-- Seleccionar del catálogo --</option>
+                      <option *ngFor="let prod of misProductos()" [value]="prod.id">{{ prod.name }} - $ {{ prod.minPrice }}</option>
+                      <option value="__manual__">Escribir manualmente...</option>
+                    </select>
+                  </div>
+
+                  <!-- Campo de texto libre (visible sólo si eligió "manual" o ya tiene texto propio) -->
+                  <input
+                    *ngIf="item.esManual"
+                    type="text"
+                    [(ngModel)]="item.descripcion"
+                    placeholder="Ej. Cemento Holcim 50kg"
+                    class="w-full bg-white border border-teal-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                  />
+
+                  <!-- Nombre del producto seleccionado (solo lectura) -->
+                  <div *ngIf="!item.esManual && item.descripcion" class="bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100">
+                    <p class="text-[10px] font-black text-teal-700 truncate">{{ item.descripcion }}</p>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1">Cantidad</label>
+                      <input type="number" min="1" [(ngModel)]="item.cantidad" (ngModelChange)="recalcularTotales()" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none" />
+                    </div>
+                    <div>
+                      <label class="block text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1">Precio Unit. ($)</label>
+                      <input type="number" step="0.01" min="0" [(ngModel)]="item.precioUnitario" (ngModelChange)="recalcularTotales()" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none" />
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between pt-1">
+                    <span class="text-[10px] font-bold text-gray-400">Subtotal:</span>
+                    <span class="text-xs font-black text-teal-700">$ {{ (item.cantidad * item.precioUnitario) | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+                <button (click)="eliminarItemCotizacion(i)" class="mt-1 p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                  <lucide-icon [name]="XIcon" size="16"></lucide-icon>
+                </button>
+              </div>
+
+              <div *ngIf="cotizacion.items.length === 0" class="text-center py-6">
+                <p class="text-[10px] font-bold text-gray-400">Añade productos a la cotización</p>
+              </div>
+            </div>
+
+            <!-- Totales -->
+            <div *ngIf="cotizacion.items.length > 0" class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold text-gray-500 uppercase">Subtotal</span>
+                <span class="text-xs font-black text-gray-900">$ {{ cotizacionSubtotal() | number:'1.2-2' }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-gray-500 uppercase">Descuento</span>
+                  <input type="number" min="0" max="100" [(ngModel)]="cotizacion.descuentoPct" (ngModelChange)="recalcularTotales()" class="w-14 bg-gray-100 border border-gray-200 rounded-lg px-2 py-1 text-[10px] font-bold text-center outline-none" />
+                  <span class="text-[10px] text-gray-400">%</span>
+                </div>
+                <span class="text-xs font-black text-red-500">- $ {{ cotizacionDescuento() | number:'1.2-2' }}</span>
+              </div>
+              <div class="flex justify-between items-center bg-teal-50 p-3 rounded-xl">
+                <span class="text-xs font-black text-teal-700 uppercase tracking-widest">TOTAL</span>
+                <span class="text-lg font-black text-teal-700">$ {{ cotizacionTotal() | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notas adicionales -->
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+            <h3 class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-3">Notas Adicionales</h3>
+            <textarea [(ngModel)]="cotizacion.notas" rows="3" placeholder="Condiciones de pago, tiempo de entrega, vigencia de la oferta..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-medium text-gray-900 focus:ring-2 focus:ring-teal-500 outline-none transition-all resize-none"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Botones fijos abajo -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 flex gap-3 z-10 shadow-lg">
+          <button
+            (click)="imprimirCotizacion()"
+            [disabled]="cotizacion.items.length === 0 || !cotizacion.nombreCliente"
+            class="flex-1 bg-teal-600 text-white py-4 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all hover:bg-teal-700 disabled:opacity-40 disabled:active:scale-100 flex items-center justify-center gap-2"
+          >
+            <lucide-icon [name]="PrinterIcon" size="16"></lucide-icon>
+            Imprimir / Guardar PDF
           </button>
         </div>
       </div>
 
       <!-- VISTA: BANDEJA DE MENSAJES -->
-      <div *ngIf="activeTab() === 'mensajes'" class="animate-in fade-in duration-300 flex-1 flex flex-col">
+      <div *ngIf="activeTab() === 'mensajes'" class="flex-1 flex flex-col">
         <div *ngIf="!chatActual()" class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10 border-b border-gray-200">
           <div class="flex items-center gap-4">
             <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
@@ -226,17 +571,27 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
       </div>
 
       <!-- VISTA: MI CATÁLOGO -->
-      <div *ngIf="activeTab() === 'catalogo'" class="animate-in fade-in duration-300">
-        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10">
-          <div class="flex items-center gap-4">
-            <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+      <div *ngIf="activeTab() === 'catalogo'">
+        <div class="px-4 sm:px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10 gap-4 overflow-x-auto hide-scrollbar">
+          <div class="flex items-center gap-3 shrink-0">
+            <button (click)="volverAlDashboard()" class="w-10 h-10 shrink-0 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
               <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
             </button>
-            <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Mi Catálogo</h2>
+            <h2 class="text-sm font-black uppercase tracking-widest text-gray-900 hidden sm:block">Mi Catálogo</h2>
           </div>
-          <button (click)="abrirFormularioNuevo()" class="bg-[#E8541C] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-            <lucide-icon [name]="PlusIcon" size="14"></lucide-icon> Añadir
-          </button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button (click)="showConfirmModalVaciar.set(true)" *ngIf="misProductos().length > 0" class="bg-red-50 text-red-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-100 transition-colors shadow-md border border-red-200 shrink-0">
+              <lucide-icon [name]="TrashIcon" size="14"></lucide-icon> 
+              <span class="hidden sm:inline">Vaciar</span>
+            </button>
+            <button (click)="abrirModalCargaMasiva()" class="bg-gray-800 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-900 transition-colors shadow-md shrink-0">
+              <lucide-icon [name]="FileSpreadsheetIcon" size="14"></lucide-icon> 
+              <span class="hidden sm:inline">Carga Masiva</span><span class="sm:hidden">Masiva</span>
+            </button>
+            <button (click)="abrirFormularioNuevo()" class="bg-[#E8541C] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-md shadow-orange-100 shrink-0">
+              <lucide-icon [name]="PlusIcon" size="14"></lucide-icon> Añadir
+            </button>
+          </div>
         </div>
 
         <div class="p-6">
@@ -269,10 +624,76 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
             </div>
           </div>
         </div>
+
+        <!-- MODAL DE CARGA MASIVA -->
+        <div *ngIf="mostrarModalCarga()" class="fixed inset-0 z-[100] flex items-center justify-center">
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in" (click)="cerrarModalCarga()"></div>
+          <div class="relative bg-white w-[90%] max-w-md rounded-[2rem] p-6 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button (click)="cerrarModalCarga()" class="absolute top-5 right-5 p-2 bg-gray-50 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+              <lucide-icon [name]="XIcon" size="18"></lucide-icon>
+            </button>
+            
+            <div class="flex flex-col items-center text-center mt-2">
+              <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                <lucide-icon [name]="UploadCloudIcon" size="32"></lucide-icon>
+              </div>
+              <h3 class="text-lg font-black text-gray-900">Subir Catálogo</h3>
+              <p class="text-[11px] font-medium text-gray-500 mt-2 px-4 leading-relaxed">
+                Selecciona tu archivo <span class="font-bold text-gray-700">Excel (.xlsx)</span> o <span class="font-bold text-gray-700">CSV</span> con tu lista de productos, precios y stock.
+              </p>
+
+              <div class="w-full mt-6 mb-4">
+                <div class="relative group cursor-pointer" (click)="excelInput.click()">
+                  <div class="w-full border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center bg-gray-50 group-hover:border-blue-500 group-hover:bg-blue-50/50 transition-all">
+                    <lucide-icon [name]="FileSpreadsheetIcon" size="32" class="text-gray-400 group-hover:text-blue-500 mb-3 transition-colors"></lucide-icon>
+                    <span class="text-xs font-bold text-gray-600 group-hover:text-blue-600 transition-colors">
+                      {{ archivoExcel() ? archivoExcel()!.name : 'Toca para buscar archivo' }}
+                    </span>
+                  </div>
+                  <input #excelInput type="file" (change)="onExcelSelected($event)" accept=".xlsx, .csv" class="hidden" />
+                </div>
+              </div>
+
+              <div *ngIf="resultadoCarga()" class="w-full bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-left">
+                <p class="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">✅ Archivo procesado: {{ resultadoCarga()!.rowCount }} productos detectados</p>
+                <div class="space-y-1 mb-3">
+                  <div *ngFor="let entry of resultadoCarga()!.suggestedMapping | keyvalue" class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">{{ entry.key }}</span>
+                    <span class="text-[10px] text-gray-400">→</span>
+                    <span class="text-[10px] font-medium text-gray-700">{{ entry.value }}</span>
+                  </div>
+                </div>
+                <p class="text-[10px] text-gray-400 italic">Próximamente: vas a poder confirmar y aplicar estos productos a tu inventario.</p>
+                <button
+                  (click)="continuarConPreview()"
+                  [disabled]="cargandoPreview()"
+                  class="w-full mt-3 bg-gray-800 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all hover:bg-gray-900"
+                >
+                  <div *ngIf="cargandoPreview()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{{ cargandoPreview() ? 'Analizando productos...' : 'Continuar y analizar productos →' }}</span>
+                </button>
+                <div *ngIf="errorPreview()" class="mt-2 text-xs font-medium text-red-600">{{ errorPreview() }}</div>
+              </div>
+
+              <div *ngIf="errorCarga()" class="w-full bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-left">
+                <p class="text-xs font-bold text-red-600">{{ errorCarga() }}</p>
+              </div>
+
+              <button 
+                (click)="procesarCargaMasiva()" 
+                [disabled]="!archivoExcel() || subiendoExcel()"
+                class="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <div *ngIf="subiendoExcel()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                {{ subiendoExcel() ? 'Subiendo...' : 'Procesar Archivo' }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- VISTA: NUEVO PRODUCTO O EDITAR -->
-      <div *ngIf="activeTab() === 'nuevo-producto'" class="animate-in fade-in duration-300">
+      <div *ngIf="activeTab() === 'nuevo-producto'">
         <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10">
           <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
             <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
@@ -344,131 +765,242 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
         </div>
       </div>
 
-      <!-- VISTA: PERFIL DE TIENDA -->
-      <div *ngIf="activeTab() === 'perfil'" class="animate-in fade-in duration-300">
-        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10">
+      <!-- VISTA: PEDIDOS -->
+      <div *ngIf="activeTab() === 'pedidos'" class="pb-32">
+        <div class="px-6 py-4 flex items-center justify-between bg-gray-50 sticky top-[81px] z-10 border-b border-gray-100">
           <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
             <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
           </button>
-          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Perfil de Tienda</h2>
+          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Gestión de Pedidos</h2>
           <div class="w-10"></div>
         </div>
 
         <div class="p-6">
-          <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
-            <div class="flex flex-col items-center gap-3">
-              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Logo de la Ferretería</p>
-              <div class="relative group cursor-pointer" (click)="logoInput.click()">
-                <div class="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-full flex flex-col items-center justify-center overflow-hidden group-hover:border-blue-500 transition-colors">
-                  <img *ngIf="tiendaLogoPreview" [src]="tiendaLogoPreview" class="w-full h-full object-cover" />
-                  <lucide-icon *ngIf="!tiendaLogoPreview" [name]="ImageIcon" size="28" class="text-gray-300 group-hover:text-blue-500 transition-colors"></lucide-icon>
-                </div>
-                <input #logoInput type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
-              </div>
+          <div *ngIf="cargandoPedidos()" class="flex justify-center py-12">
+            <div class="w-8 h-8 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+
+          <div *ngIf="!cargandoPedidos() && pedidos().length === 0" class="text-center py-12 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+              <lucide-icon [name]="PackageIcon" size="32"></lucide-icon>
             </div>
+            <h3 class="text-sm font-black text-gray-900">Sin pedidos</h3>
+            <p class="text-xs text-gray-400 mt-1">Aún no tienes compras registradas</p>
+          </div>
 
-            <div class="space-y-4">
-              <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Comercial</label>
-                <input type="text" [(ngModel)]="perfilTiendaForm.nombre" placeholder="Nombre de tu ferretería" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-              </div>
-              
-              <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección Física</label>
-                <input type="text" [(ngModel)]="perfilTiendaForm.direccion" placeholder="Calle principal y transversal" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-              </div>
-
-              <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Ciudad</label>
-                <select [(ngModel)]="perfilTiendaForm.ciudad" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                  <option value="">-- Selecciona la ciudad --</option>
-                  <option value="Portoviejo">Portoviejo</option>
-                  <option value="Manta">Manta</option>
-                  <option value="Guayaquil">Guayaquil</option>
-                  <option value="Quito">Quito</option>
-                  <option value="Cuenca">Cuenca</option>
-                  <option value="Santo Domingo">Santo Domingo</option>
-                  <option value="Machala">Machala</option>
-                  <option value="Duran">Durán</option>
-                  <option value="Daule">Daule</option>
-                  <option value="Samborondon">Samborondón</option>
-                  <option value="Ambato">Ambato</option>
-                  <option value="Riobamba">Riobamba</option>
-                  <option value="Loja">Loja</option>
-                  <option value="Ibarra">Ibarra</option>
-                  <option value="Esmeraldas">Esmeraldas</option>
-                  <option value="Quevedo">Quevedo</option>
-                  <option value="Babahoyo">Babahoyo</option>
-                  <option value="Milagro">Milagro</option>
-                  <option value="Santa Elena">Santa Elena</option>
-                  <option value="La Libertad">La Libertad</option>
-                  <option value="Salinas">Salinas</option>
-                  <option value="Tulcan">Tulcán</option>
-                  <option value="Latacunga">Latacunga</option>
-                  <option value="Azogues">Azogues</option>
-                  <option value="Puyo">Puyo</option>
-                  <option value="Tena">Tena</option>
-                  <option value="Macas">Macas</option>
-                  <option value="Zamora">Zamora</option>
-                  <option value="Nueva Loja">Nueva Loja</option>
-                  <option value="Puerto Baquerizo Moreno">Puerto Baquerizo Moreno</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono / WhatsApp</label>
-                <input type="tel" [(ngModel)]="perfilTiendaForm.telefono" placeholder="099..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-              </div>
-
-              <!-- HORARIOS DE ATENCIÓN INTERACTIVOS -->
-              <div class="pt-4 border-t border-gray-100">
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Horarios de Atención</label>
-                <div class="space-y-2.5">
-                  <div *ngFor="let h of horarios" class="flex items-center justify-between gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 transition-colors hover:bg-gray-100/50">
-                    <div class="flex items-center gap-2 w-28 shrink-0">
-                      <input 
-                        type="checkbox" 
-                        [id]="'dia_' + h.diaSemana"
-                        [checked]="!h.estaCerrado"
-                        (change)="h.estaCerrado = !$event.target.checked"
-                        class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
-                      />
-                      <label [for]="'dia_' + h.diaSemana" class="text-xs font-bold text-gray-900 select-none cursor-pointer">{{ h.nombre }}</label>
-                    </div>
-
-                    <div *ngIf="!h.estaCerrado" class="flex items-center gap-2 flex-1 justify-end animate-in fade-in duration-200">
-                      <input 
-                        type="time" 
-                        [(ngModel)]="h.horaApertura" 
-                        class="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-900 outline-none w-24 text-center focus:ring-2 focus:ring-blue-500"
-                      />
-                      <span class="text-xs font-bold text-gray-400">a</span>
-                      <input 
-                        type="time" 
-                        [(ngModel)]="h.horaCierre" 
-                        class="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-900 outline-none w-24 text-center focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div *ngIf="h.estaCerrado" class="flex-1 text-right pr-2 animate-in fade-in duration-200">
-                      <span class="text-[10px] font-black text-red-500 uppercase tracking-wider bg-red-50 px-2.5 py-1 rounded-md border border-red-100">Cerrado</span>
+          <div *ngIf="!cargandoPedidos()" style="display:block; transform: translateZ(0);">
+            <div *ngFor="let pedido of pedidos()" class="bg-white border border-gray-200 rounded-2xl shadow-sm mb-4">
+              <div class="p-5 border-b border-gray-100 grid grid-cols-2 gap-4 w-full">
+                <!-- Izquierda: Datos del cliente -->
+                <div class="block">
+                  <h3 class="text-sm font-black text-gray-900">{{ pedido.profiles?.nombre_completo || 'Cliente' }}</h3>
+                  <div class="flex items-center gap-1 mt-1">
+                    <span class="text-[10px] text-gray-500">📞 {{ pedido.profiles?.telefono || 'Sin teléfono' }}</span>
+                  </div>
+                  <div class="text-[10px] text-gray-400 mt-1">{{ pedido.fecha_pedido | date:'short' }}</div>
+                  
+                  <!-- Dirección de entrega -->
+                  <div *ngIf="pedido.direccion" class="mt-3 bg-orange-50 border border-orange-100 p-2.5 rounded-lg w-fit max-w-full">
+                    <div class="flex items-start gap-1">
+                      <lucide-icon [name]="MapPinIcon" size="12" class="text-[#E8541C] mt-0.5 shrink-0"></lucide-icon>
+                      <span class="text-xs font-bold text-orange-900 break-words">{{ pedido.direccion }}</span>
                     </div>
                   </div>
                 </div>
+
+                <!-- Derecha: Estado y Total -->
+                <div class="text-right block">
+                  <div class="mb-2">
+                    <span 
+                      [ngClass]="{
+                        'bg-yellow-50 text-yellow-600 border-yellow-200': pedido.estado === 'pendiente',
+                        'bg-blue-50 text-blue-600 border-blue-200': pedido.estado === 'aprobado' || pedido.estado === 'confirmado',
+                        'bg-emerald-50 text-emerald-600 border-emerald-200': pedido.estado === 'entregado',
+                        'bg-red-50 text-red-600 border-red-200': pedido.estado === 'rechazado'
+                      }"
+                      class="px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border inline-block"
+                    >
+                      {{ pedido.estado === 'confirmado' ? 'Confirmado' : (pedido.estado || 'PENDIENTE') }}
+                    </span>
+                  </div>
+                  <div class="text-lg font-black text-[#E8541C] mt-1">{{ pedido.total | currency }}</div>
+                </div>
+              </div>
+              
+              <div class="p-4 bg-gray-50/50 space-y-2">
+                <h4 class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Artículos del pedido</h4>
+                <div *ngFor="let item of pedido.pedidos_items" class="flex items-center justify-between text-xs">
+                  <span class="text-gray-600 font-medium">{{ item.cantidad }}x {{ item.nombre_producto }}</span>
+                  <span class="text-gray-900 font-bold">{{ item.cantidad * item.precio_unitario | currency }}</span>
+                </div>
+                <div *ngIf="pedido.direccion && pedido.estado !== 'pendiente'" class="flex items-center justify-between text-xs pt-2 border-t border-gray-100 mt-2">
+                  <span class="text-[#E8541C] font-bold flex items-center gap-1"><lucide-icon [name]="MapPinIcon" size="10"></lucide-icon> Envío a Domicilio</span>
+                  <span class="text-gray-900 font-bold">{{ getCostoEnvio(pedido) > 0 ? (getCostoEnvio(pedido) | currency) : 'Gratis' }}</span>
+                </div>
               </div>
 
-              <button 
-                (click)="guardarPerfilTienda()" 
-                [disabled]="guardandoPerfil()"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-100 active:scale-95 transition-all flex items-center justify-center gap-2 mt-6 disabled:opacity-50"
-              >
-                <div *ngIf="guardandoPerfil()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                {{ guardandoPerfil() ? 'Guardando...' : 'Guardar Cambios' }}
-              </button>
+              <!-- Acciones de estado -->
+              <div *ngIf="pedido.estado !== 'rechazado' && pedido.estado !== 'entregado'" class="p-4 flex flex-col gap-3 border-t border-gray-50 bg-white">
+                <div [class.hidden]="!(pedido.estado === 'pendiente' && pedido.direccion)" class="flex flex-col gap-1.5 mb-2 animate-in fade-in duration-300">
+                  <label class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Costo de Envío a cotizar ($)</label>
+                  
+                  <div class="flex gap-2 mb-1">
+                    <button (click)="costoEnvioInput.value = '2.50'" class="flex-1 flex flex-col items-center justify-center gap-1 bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 text-gray-400 hover:text-[#E8541C] py-2 rounded-xl transition-all">
+                      <lucide-icon [name]="BikeIcon" size="14"></lucide-icon>
+                      <span class="text-[8px] font-black uppercase">$2.50</span>
+                    </button>
+                    <button (click)="costoEnvioInput.value = '8.00'" class="flex-1 flex flex-col items-center justify-center gap-1 bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 text-gray-400 hover:text-[#E8541C] py-2 rounded-xl transition-all">
+                      <lucide-icon [name]="TruckIcon" size="14"></lucide-icon>
+                      <span class="text-[8px] font-black uppercase">$8.00</span>
+                    </button>
+                    <button (click)="costoEnvioInput.value = '25.00'" class="flex-1 flex flex-col items-center justify-center gap-1 bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 text-gray-400 hover:text-[#E8541C] py-2 rounded-xl transition-all">
+                      <lucide-icon [name]="TruckIcon" size="14"></lucide-icon>
+                      <span class="text-[8px] font-black uppercase">$25.00</span>
+                    </button>
+                  </div>
+
+                  <input type="number" #costoEnvioInput placeholder="O ingresa un valor manual" min="0" step="0.5" class="w-full bg-orange-50/50 border border-orange-200 rounded-lg px-3 py-2.5 text-sm font-black text-[#E8541C] focus:ring-2 focus:ring-[#E8541C] outline-none transition-all placeholder:text-orange-300 placeholder:font-medium">
+                  <p class="text-[9px] text-gray-400 font-medium leading-tight">Selecciona un vehículo o escribe el costo. Se sumará automáticamente.</p>
+                </div>
+                
+                <div class="flex gap-2 w-full">
+                <button 
+                  *ngIf="pedido.estado === 'pendiente'"
+                  (click)="actualizarEstadoPedido(pedido.id, 'rechazado')"
+                  [disabled]="actualizandoPedido() === pedido.id"
+                  class="flex-1 border border-red-200 text-red-600 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 active:scale-95 transition-all disabled:opacity-50"
+                >Rechazar</button>
+                <button 
+                  *ngIf="pedido.estado === 'pendiente'"
+                  (click)="actualizarEstadoPedido(pedido.id, 'aprobado', costoEnvioInput.value)"
+                  [disabled]="actualizandoPedido() === pedido.id"
+                  class="flex-1 bg-blue-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-50 shadow-md shadow-blue-200"
+                >Enviar Precio</button>
+                <button 
+                  *ngIf="pedido.estado === 'aprobado' || pedido.estado === 'confirmado'"
+                  (click)="actualizarEstadoPedido(pedido.id, 'entregado')"
+                  [disabled]="actualizandoPedido() === pedido.id"
+                  class="flex-1 bg-emerald-500 text-white py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 active:scale-95 transition-all disabled:opacity-50 shadow-md shadow-emerald-200 flex justify-center items-center gap-1"
+                >
+                  <lucide-icon [name]="CheckCircleIcon" size="14"></lucide-icon> Marcar Entregado
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      </div> <!-- CIERRE FALTANTE DE PEDIDOS -->
+
+      <!-- VISTA: REVISIÓN DE CATÁLOGO -->
+      <div *ngIf="activeTab() === 'revision-catalogo' && previewCatalogo()" class="pb-32">
+
+        <!-- Header sticky -->
+        <div class="px-6 py-4 bg-gray-50 sticky top-[81px] z-10 border-b border-gray-100">
+          <div class="flex items-center gap-4">
+            <button (click)="volverAlCatalogo()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">
+              <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+            </button>
+            <div>
+              <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Revisión de carga</h2>
+              <p class="text-[10px] text-gray-400 font-medium">{{ previewCatalogo()!.totalRows }} productos analizados</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex bg-white border-b border-gray-100">
+          <button
+            (click)="tabPreviewActivo.set('nuevos')"
+            [ngClass]="{ 'text-[#E8541C] border-b-2 border-[#E8541C]': tabPreviewActivo() === 'nuevos', 'text-gray-400': tabPreviewActivo() !== 'nuevos' }"
+            class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all"
+          >Nuevos ({{ previewCatalogo()!.resumen.nuevosCount }})</button>
+          <button
+            (click)="tabPreviewActivo.set('existentes')"
+            [ngClass]="{ 'text-[#E8541C] border-b-2 border-[#E8541C]': tabPreviewActivo() === 'existentes', 'text-gray-400': tabPreviewActivo() !== 'existentes' }"
+            class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all"
+          >Existentes ({{ previewCatalogo()!.resumen.existentesCount }})</button>
+          <button
+            (click)="tabPreviewActivo.set('errores')"
+            [ngClass]="{ 'text-red-500 border-b-2 border-red-500': tabPreviewActivo() === 'errores', 'text-gray-400': tabPreviewActivo() !== 'errores' }"
+            class="flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all"
+          >Errores ({{ previewCatalogo()!.resumen.erroresCount }})</button>
+        </div>
+
+        <!-- Contenido por tab -->
+        <div class="p-6 space-y-3">
+
+          <!-- Nuevos -->
+          <ng-container *ngIf="tabPreviewActivo() === 'nuevos'">
+            <div *ngIf="previewCatalogo()!.nuevos.length === 0" class="text-center py-10">
+              <p class="text-xs text-gray-400 font-medium">No hay productos nuevos en esta carga.</p>
+            </div>
+            <div *ngFor="let prod of previewCatalogo()!.nuevos" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-black text-gray-900 truncate">{{ prod.nombre }}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">{{ prod.sku || '—' }} · {{ prod.categoria || 'Sin categoría' }}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-xs font-black text-gray-900">USD {{ prod.precio | number:'1.2-2' }}</p>
+                <p class="text-[10px] text-gray-400">{{ prod.stock }} unidades</p>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Existentes -->
+          <ng-container *ngIf="tabPreviewActivo() === 'existentes'">
+            <div *ngIf="previewCatalogo()!.existentes.length === 0" class="text-center py-10">
+              <p class="text-xs text-gray-400 font-medium">No hay productos existentes en esta carga.</p>
+            </div>
+            <div *ngFor="let prod of previewCatalogo()!.existentes" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-black text-gray-900 truncate">{{ prod.nombre }}</p>
+                <span *ngIf="prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Ya en tu inventario</span>
+                <span *ngIf="!prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Producto global, sin precio tuyo</span>
+              </div>
+              <div class="text-right shrink-0">
+                <p class="text-xs font-black text-gray-900">USD {{ prod.precioNuevo | number:'1.2-2' }}</p>
+                <p class="text-[10px] text-gray-400">{{ prod.stockNuevo }} unidades</p>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Errores -->
+          <ng-container *ngIf="tabPreviewActivo() === 'errores'">
+            <div *ngIf="previewCatalogo()!.errores.length === 0" class="text-center py-10">
+              <p class="text-xs text-gray-400 font-medium">No hay errores en esta carga.</p>
+            </div>
+            <div *ngFor="let err of previewCatalogo()!.errores" class="bg-red-50 rounded-2xl border border-red-100 shadow-sm p-4">
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fila {{ err.rowNumber }}</p>
+                <span class="text-[9px] font-black text-red-600 bg-red-100 px-2 py-0.5 rounded-md">{{ err.motivo }}</span>
+              </div>
+              <p class="text-[10px] text-gray-400 leading-relaxed">
+                <ng-container *ngFor="let kv of err.rawData | keyvalue; let last = last">
+                  {{ kv.key }}: '{{ kv.value }}'<ng-container *ngIf="!last"> · </ng-container>
+                </ng-container>
+              </p>
+            </div>
+          </ng-container>
+
+        </div>
+
+        <!-- Botones fijos abajo -->
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 flex gap-3 z-10 shadow-lg">
+          <button
+            (click)="volverAlCatalogo()"
+            class="flex-1 bg-gray-100 text-gray-700 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all hover:bg-gray-200"
+          >Volver al catálogo</button>
+          <button
+            (click)="aplicarInventario()"
+            [disabled]="aplicandoInventario()"
+            class="flex-1 bg-[#E8541C] text-white py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            <div *ngIf="aplicandoInventario()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            {{ aplicandoInventario() ? 'Aplicando...' : 'Aplicar al inventario' }}
+          </button>
+        </div>
+      </div>
+
 
       <!-- MODAL DE CONFIRMACIÓN -->
       <div *ngIf="showConfirmModal()" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
@@ -486,6 +1018,456 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
         </div>
       </div>
 
+      <!-- MODAL VACIAR CATÁLOGO -->
+      <div *ngIf="showConfirmModalVaciar()" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div class="bg-white p-6 rounded-3xl max-w-sm w-full space-y-4 text-center animate-in scale-in-95 duration-300">
+          <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto">
+            <lucide-icon [name]="TrashIcon" size="24"></lucide-icon>
+          </div>
+          <div>
+            <h3 class="font-black text-gray-900 text-sm">¿Vaciar TODO el Catálogo?</h3>
+            <p class="text-[10px] font-medium text-gray-500 mt-2 leading-relaxed">Esta acción <span class="font-bold">no se puede deshacer</span>. Se eliminarán permanentemente los {{ misProductos().length }} productos de tu inventario.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 pt-2">
+            <button (click)="showConfirmModalVaciar.set(false)" class="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold text-xs">Cancelar</button>
+            <button (click)="ejecutarVaciadoCatalogo()" [disabled]="vaciandoCatalogo()" class="bg-red-500 text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-red-100 flex items-center justify-center gap-2">
+              <div *ngIf="vaciandoCatalogo()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>{{ vaciandoCatalogo() ? 'Borrando...' : 'Sí, Vaciar Todo' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA: GESTIÓN DE CRÉDITOS -->
+      <div *ngIf="activeTab() === 'creditos'">
+        <div class="min-h-screen bg-[#F8FAFC] pb-32 animate-in fade-in duration-500">
+          
+          <!-- Header Moderno -->
+          <div class="px-8 py-6 flex flex-col md:flex-row items-start md:items-center justify-between bg-white/70 backdrop-blur-2xl sticky top-[81px] z-20 border-b border-gray-100/50 shadow-sm">
+            <div class="flex items-center gap-4">
+              <button (click)="volverAlDashboard()" class="w-12 h-12 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-[#E8541C] hover:border-[#E8541C] hover:shadow-lg transition-all active:scale-95 group">
+                <lucide-icon [name]="ArrowLeftIcon" size="22" class="group-hover:-translate-x-1 transition-transform"></lucide-icon>
+              </button>
+              <div>
+                <h2 class="text-xl font-black text-gray-900 tracking-tight">Centro de Créditos</h2>
+                <p class="text-xs font-medium text-gray-500 mt-1">Supervisa y administra el financiamiento de tus clientes</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-8 max-w-6xl mx-auto space-y-10">
+            
+            <!-- Dashboard Cards Ultra Premium -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              
+              <!-- Card 1: Cartera Activa -->
+              <div class="bg-gradient-to-br from-gray-900 via-gray-800 to-black p-8 rounded-[32px] shadow-2xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-orange-500/10 transition-colors duration-700"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
+                
+                <div class="relative z-10">
+                  <div class="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-orange-400 mb-6 border border-white/5 shadow-inner">
+                    <lucide-icon [name]="DollarSignIcon" size="24"></lucide-icon>
+                  </div>
+                  <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cartera Activa</h3>
+                  <p class="text-5xl font-black text-white tracking-tighter">{{ (carteraCredito()?.totalPrestado || 0) | currency }}</p>
+                  
+                  <div class="mt-8 flex items-center gap-3">
+                    <div class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold border border-emerald-500/20 flex items-center gap-1.5">
+                      <lucide-icon [name]="TrendingUpIcon" size="14"></lucide-icon> Rendimiento Óptimo
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Ingresos del Mes -->
+              <div class="bg-white p-8 rounded-[32px] shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute top-0 right-0 w-48 h-48 bg-blue-50/50 rounded-bl-full -z-10 group-hover:bg-blue-100/50 transition-colors duration-500"></div>
+                
+                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6">
+                  <lucide-icon [name]="FileTextIcon" size="24"></lucide-icon>
+                </div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cobros del Mes</h3>
+                <p class="text-4xl font-black text-gray-900 tracking-tighter">{{ (carteraCredito()?.cobradoMes || 0) | currency }}</p>
+                
+                <div class="mt-8">
+                  <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-widest">
+                    <span>Progreso</span>
+                    <span class="text-blue-500">75%</span>
+                  </div>
+                  <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-blue-500 h-full rounded-full w-[75%] relative">
+                      <div class="absolute inset-0 bg-white/30 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3: Alertas / Vencidos -->
+              <div class="bg-white p-8 rounded-[32px] shadow-xl shadow-gray-200/50 border border-gray-100 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute top-0 right-0 w-48 h-48 bg-red-50/50 rounded-bl-full -z-10 group-hover:bg-red-100/50 transition-colors duration-500"></div>
+                
+                <div class="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6">
+                  <lucide-icon [name]="XCircleIcon" size="24"></lucide-icon>
+                </div>
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Riesgo / Vencido</h3>
+                <p class="text-4xl font-black text-red-500 tracking-tighter">{{ (carteraCredito()?.carteraVencida || 0) | currency }}</p>
+                
+                <div class="mt-8">
+                  <div class="w-full bg-red-50 border border-red-100 rounded-xl p-3 flex items-center justify-between">
+                    <span class="text-xs font-bold text-red-600 flex items-center gap-2"><lucide-icon [name]="CheckCircleIcon" size="14"></lucide-icon> Clientes en Mora</span>
+                    <span class="text-sm font-black text-red-700 bg-red-200/50 px-2.5 py-1 rounded-lg">{{ carteraCredito()?.clientesMora || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+
+            <!-- Listados y Configuracion -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
+              
+              <!-- Columna Central: Listas -->
+              <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Solicitudes Pendientes (Aesthetic) -->
+                <div class="bg-white rounded-[32px] shadow-xl shadow-gray-200/40 border border-gray-100 overflow-hidden relative">
+                  <!-- Decorative header bg -->
+                  <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-orange-50/50 to-transparent pointer-events-none"></div>
+                  
+                  <div class="relative z-10 px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-orange-100 text-[#E8541C] rounded-2xl flex items-center justify-center shadow-inner">
+                        <lucide-icon [name]="SearchIcon" size="20"></lucide-icon>
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-black text-gray-900 tracking-tight">Solicitudes Pendientes</h3>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Requieren tu atención</p>
+                      </div>
+                    </div>
+                    <div class="px-4 py-2 bg-orange-50 text-[#E8541C] rounded-xl font-black text-sm border border-orange-100 shadow-sm">
+                      {{ solicitudesPendientes().length }}
+                    </div>
+                  </div>
+
+                  <div class="p-8">
+                    <!-- Estado Vacío -->
+                    <div *ngIf="solicitudesPendientes().length === 0" class="py-16 flex flex-col items-center justify-center text-center">
+                      <div class="w-24 h-24 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border border-gray-100">
+                        <lucide-icon [name]="CheckCircleIcon" size="40" class="text-gray-300"></lucide-icon>
+                      </div>
+                      <h4 class="text-lg font-black text-gray-900">Bandeja Limpia</h4>
+                      <p class="text-sm text-gray-500 font-medium mt-2 max-w-xs">No tienes solicitudes pendientes de aprobación en este momento.</p>
+                    </div>
+
+                    <!-- Lista de Solicitudes -->
+                    <div class="space-y-4">
+                      <div *ngFor="let sol of solicitudesPendientes()" class="group bg-white border-2 border-gray-50 rounded-3xl p-6 hover:border-orange-100 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300">
+                        <div class="flex flex-col sm:flex-row gap-6">
+                          <!-- Perfil del Solicitante -->
+                          <div class="flex items-center gap-5 sm:w-1/2">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 border border-gray-200 overflow-hidden shadow-inner flex-shrink-0 relative">
+                              <img *ngIf="sol.perfiles?.avatar_url" [src]="sol.perfiles.avatar_url" class="w-full h-full object-cover" />
+                              <div *ngIf="!sol.perfiles?.avatar_url" class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-gray-400 font-black text-2xl">{{ sol.perfiles?.full_name?.charAt(0) || 'U' }}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <h4 class="text-base font-black text-gray-900 leading-tight group-hover:text-[#E8541C] transition-colors">{{ sol.perfiles?.full_name || 'Usuario Anónimo' }}</h4>
+                              <p class="text-xs font-bold text-gray-400 mt-1 flex items-center gap-1"><lucide-icon [name]="MapPinIcon" size="12"></lucide-icon> {{ sol.perfiles?.ciudad || 'Ciudad no especificada' }}</p>
+                              
+                              <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-lg text-emerald-700 text-[10px] font-black tracking-widest uppercase border border-emerald-100">
+                                Ingresos: {{ sol.ingresos_mensuales | currency }}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- Detalles y Acciones -->
+                          <div class="flex flex-col justify-between sm:w-1/2 border-t sm:border-t-0 sm:border-l border-gray-100 pt-5 sm:pt-0 sm:pl-6">
+                            <div class="mb-4">
+                              <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Monto Solicitado</p>
+                              <div class="flex items-end gap-2">
+                                <span class="text-2xl font-black text-gray-900 tracking-tighter leading-none">{{ sol.monto_solicitado | currency }}</span>
+                                <span class="text-sm font-bold text-gray-500 mb-0.5">/ {{ sol.plazo_meses }} m</span>
+                              </div>
+                            </div>
+                            
+                            <div class="flex gap-3 mt-auto">
+                              <button (click)="resolverSolicitud(sol.id, 'rechazada')" class="flex-1 bg-white text-gray-500 border border-gray-200 rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm active:scale-95">
+                                Rechazar
+                              </button>
+                              <button (click)="abrirModalAprobar(sol)" class="flex-1 bg-[#E8541C] text-white border border-[#E8541C] rounded-xl py-3 text-xs font-black uppercase tracking-widest hover:bg-orange-600 hover:border-orange-600 transition-all shadow-lg shadow-orange-500/30 active:scale-95">
+                                Aprobar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Columna Derecha: Controles -->
+              <div class="lg:col-span-1 space-y-8">
+                
+                <!-- Panel de Configuración -->
+                <div class="bg-gray-900 rounded-[32px] shadow-2xl overflow-hidden relative border border-gray-800">
+                  <div class="absolute top-0 right-0 w-32 h-32 bg-[#E8541C]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                  
+                  <div class="px-8 py-6 border-b border-gray-800/50">
+                    <h3 class="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                      <lucide-icon [name]="SettingsIcon" size="18" class="text-gray-400"></lucide-icon> Parámetros
+                    </h3>
+                  </div>
+                  
+                  <div class="p-8 space-y-6">
+                    <div>
+                      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Tasa Mensual Sugerida</label>
+                      <div class="relative group">
+                        <input type="number" [(ngModel)]="configCreditoEdit.tasa_interes_mensual" class="w-full bg-gray-800/50 border border-gray-700 rounded-2xl pl-5 pr-12 py-4 text-sm font-black text-white focus:ring-2 focus:ring-[#E8541C] focus:border-[#E8541C] outline-none transition-all shadow-inner group-hover:bg-gray-800" />
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-black">%</div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Tope por Cliente</label>
+                      <div class="relative group">
+                        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-black">$</div>
+                        <input type="number" [(ngModel)]="configCreditoEdit.monto_maximo_credito" class="w-full bg-gray-800/50 border border-gray-700 rounded-2xl pl-9 pr-5 py-4 text-sm font-black text-white focus:ring-2 focus:ring-[#E8541C] focus:border-[#E8541C] outline-none transition-all shadow-inner group-hover:bg-gray-800" />
+                      </div>
+                    </div>
+
+                    <button 
+                      (click)="guardarConfigCredito()" 
+                      [disabled]="guardandoConfigCredito()" 
+                      class="w-full bg-white text-gray-900 py-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl hover:bg-gray-100 transition-all disabled:opacity-50 active:scale-95 mt-4"
+                    >
+                      <span *ngIf="guardandoConfigCredito()" class="w-4 h-4 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin"></span>
+                      <lucide-icon *ngIf="!guardandoConfigCredito()" [name]="SaveIcon" size="16"></lucide-icon>
+                      Actualizar
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Resumen Historial -->
+                <div class="bg-white rounded-[32px] border border-gray-100 shadow-xl shadow-gray-200/40 p-8">
+                  <h3 class="text-xs font-black text-gray-900 uppercase tracking-widest mb-6 flex items-center justify-between">
+                    Historial Reciente
+                    <span class="text-gray-400"><lucide-icon [name]="ListIcon" size="16"></lucide-icon></span>
+                  </h3>
+                  
+                  <div *ngIf="solicitudesHistorial().length === 0" class="text-center py-6">
+                    <p class="text-xs font-bold text-gray-400">Sin historial aún</p>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div *ngFor="let sol of solicitudesHistorial().slice(0, 5)" class="flex items-center justify-between group">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                          <img *ngIf="sol.perfiles?.avatar_url" [src]="sol.perfiles.avatar_url" class="w-full h-full object-cover opacity-80" />
+                          <span *ngIf="!sol.perfiles?.avatar_url" class="text-gray-400 font-bold text-xs">{{ sol.perfiles?.full_name?.charAt(0) || 'U' }}</span>
+                        </div>
+                        <div class="min-w-0">
+                          <h4 class="text-xs font-black text-gray-900 truncate max-w-[100px]">{{ sol.perfiles?.full_name || 'Cliente' }}</h4>
+                          <p class="text-[9px] font-bold text-gray-400 uppercase mt-0.5">{{ sol.fecha_solicitud | date:'dd/MM' }}</p>
+                        </div>
+                      </div>
+                      <div class="flex flex-col items-end">
+                        <span class="text-[11px] font-black text-gray-900">{{ sol.monto_solicitado | currency:'USD':'symbol':'1.0-0' }}</span>
+                        <span [ngClass]="{'text-emerald-500': sol.estado === 'aprobada', 'text-red-500': sol.estado === 'rechazada'}" class="text-[9px] font-black uppercase tracking-widest mt-0.5">
+                          {{ sol.estado }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA: PERFIL DE TIENDA -->
+      <div *ngIf="activeTab() === 'perfil'" class="pb-32 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <!-- Header sticky -->
+        <div class="px-6 py-4 flex items-center justify-between bg-gray-50/80 backdrop-blur-md sticky top-[81px] z-10 border-b border-gray-100">
+          <button (click)="volverAlDashboard()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors shadow-sm active:scale-90">
+            <lucide-icon [name]="ArrowLeftIcon" size="20"></lucide-icon>
+          </button>
+          <h2 class="text-sm font-black uppercase tracking-widest text-gray-900">Perfil de la Tienda</h2>
+          <div class="w-10"></div> <!-- Spacer to center title -->
+        </div>
+
+        <div class="p-6 max-w-xl mx-auto space-y-8">
+          
+          <!-- Loader de carga de datos -->
+          <div *ngIf="cargandoPerfil()" class="py-16 text-center">
+            <div class="w-12 h-12 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Cargando datos del negocio...</p>
+          </div>
+
+          <div *ngIf="!cargandoPerfil()" class="space-y-6">
+            
+            <!-- TARJETA: LOGO / PORTADA -->
+            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-tr from-orange-50/40 via-transparent to-transparent pointer-events-none"></div>
+              
+              <!-- Círculo de vista previa del logo -->
+              <div class="relative w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden group mb-4 bg-gray-50 flex items-center justify-center">
+                <img *ngIf="tiendaLogoPreview" [src]="tiendaLogoPreview" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div *ngIf="!tiendaLogoPreview" class="text-gray-300">
+                  <lucide-icon [name]="PackageIcon" size="48"></lucide-icon>
+                </div>
+                <!-- Overlay de subida al hacer hover -->
+                <label class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <lucide-icon [name]="CameraIcon" size="20" class="mb-1"></lucide-icon>
+                  <span class="text-[9px] font-bold uppercase tracking-wider">Cambiar</span>
+                  <input type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden" />
+                </label>
+              </div>
+
+              <h3 class="font-black text-gray-900 text-sm tracking-wide">Logo de la Ferretería</h3>
+              <p class="text-[10px] text-gray-400 mt-1">Sube una imagen cuadrada de buena calidad</p>
+            </div>
+
+            <!-- TARJETA: DATOS GENERALES -->
+            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <lucide-icon [name]="SettingsIcon" size="16" class="text-[#E8541C]"></lucide-icon> Datos del Negocio
+              </h3>
+
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Nombre Comercial</label>
+                  <div class="relative">
+                    <input type="text" [(ngModel)]="perfilTiendaForm.nombre" placeholder="Ej. Ferretería Zambrano" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
+                    <lucide-icon [name]="PackageIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Teléfono de Contacto</label>
+                  <div class="relative">
+                    <input type="text" [(ngModel)]="perfilTiendaForm.telefono" placeholder="Ej. +593 999999999" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
+                    <lucide-icon [name]="ChatIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Ciudad</label>
+                    <div class="relative">
+                      <input type="text" [(ngModel)]="perfilTiendaForm.ciudad" placeholder="Ej. Portoviejo" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
+                      <lucide-icon [name]="MapPinIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Dirección Completa</label>
+                    <div class="relative">
+                      <input type="text" [(ngModel)]="perfilTiendaForm.direccion" placeholder="Ej. Av. Universitaria y Calle 3" class="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] focus:bg-white outline-none transition-all shadow-inner" style="padding-left: 72px !important;" />
+                      <lucide-icon [name]="MapPinIcon" size="16" class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></lucide-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TARJETA: HORARIOS DE ATENCIÓN -->
+            <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                  <lucide-icon [name]="WrenchIcon" size="16" class="text-emerald-500"></lucide-icon> Horario Comercial
+                </h3>
+                <span class="text-[9px] font-black text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded-full">Zona Horaria Local</span>
+              </div>
+
+              <div class="divide-y divide-gray-100">
+                <div *ngFor="let dia of horarios" class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                  <!-- Nombre del día y botón Abierto/Cerrado -->
+                  <div class="flex items-center justify-between sm:justify-start gap-4">
+                    <span class="text-xs font-black text-gray-900 w-20">{{ dia.nombre }}</span>
+                    <button 
+                      type="button"
+                      (click)="dia.estaCerrado = !dia.estaCerrado"
+                      [class]="dia.estaCerrado 
+                        ? 'bg-red-50 text-red-500 border-red-200' 
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-200'"
+                      class="px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all min-w-[70px] text-center"
+                    >
+                      {{ dia.estaCerrado ? 'Cerrado' : 'Abierto' }}
+                    </button>
+                  </div>
+
+                  <!-- Selectores de tiempo -->
+                  <div class="flex items-center gap-2 self-start sm:self-auto pl-2 sm:pl-0" [class.opacity-40]="dia.estaCerrado">
+                    <input 
+                      type="time" 
+                      [(ngModel)]="dia.horaApertura"
+                      [disabled]="dia.estaCerrado"
+                      class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5 text-xs font-bold text-gray-900 outline-none focus:border-[#E8541C] w-[90px] text-center" 
+                    />
+                    <span class="text-[10px] text-gray-400 font-bold">a</span>
+                    <input 
+                      type="time" 
+                      [(ngModel)]="dia.horaCierre"
+                      [disabled]="dia.estaCerrado"
+                      class="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1.5 text-xs font-bold text-gray-900 outline-none focus:border-[#E8541C] w-[90px] text-center" 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTÓN GUARDAR -->
+            <button 
+              (click)="guardarPerfilTienda()"
+              [disabled]="guardandoPerfil()"
+              class="w-full bg-[#E8541C] text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:bg-orange-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <lucide-icon *ngIf="!guardandoPerfil()" [name]="SaveIcon" size="16"></lucide-icon>
+              <div *ngIf="guardandoPerfil()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              {{ guardandoPerfil() ? 'Guardando Cambios...' : 'Guardar Perfil' }}
+            </button>
+
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- MODAL APROBAR CRÉDITO -->
+      <div *ngIf="modalAprobarCreditoData" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100">
+          <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+              <lucide-icon [name]="CheckCircleIcon" size="18" class="text-emerald-500"></lucide-icon> Aprobar Crédito
+            </h3>
+            <button (click)="modalAprobarCreditoData = null" class="text-gray-400 hover:text-gray-900 transition-colors bg-gray-100 hover:bg-gray-200 rounded-full p-1"><lucide-icon [name]="XIcon" size="16"></lucide-icon></button>
+          </div>
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Monto Aprobado ($)</label>
+              <input type="number" [(ngModel)]="modalAprobarCreditoData.monto_aprobado" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all shadow-inner" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Tasa de Interés Mensual (%)</label>
+              <input type="number" [(ngModel)]="modalAprobarCreditoData.tasa_interes" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all shadow-inner" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Comentarios / Condiciones</label>
+              <textarea [(ngModel)]="modalAprobarCreditoData.comentarios_tienda" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all shadow-inner"></textarea>
+            </div>
+          </div>
+          <button (click)="confirmarAprobacion()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/30 transition-colors active:scale-[0.98]">
+            Confirmar Aprobación
+          </button>
+        </div>
+      </div>
+
       <!-- TOAST SUCCESS -->
       <div *ngIf="successToast().show" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-gray-900 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom duration-300">
         <span class="text-xs font-bold">{{ successToast().msg }}</span>
@@ -493,12 +1475,12 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes';
     </div>
   `
 })
-export class TiendaDashboardView implements OnInit {
-  protected auth = inject(AuthService);
-  protected supabase = inject(SupabaseService);
+export class TiendaDashboardView implements OnInit, OnDestroy {
+  auth = inject(AuthService);
+  supabase = inject(SupabaseService);
   protected http = inject(HttpClient);
   protected chatService = inject(ChatService);
-
+  protected cdr = inject(ChangeDetectorRef);
   activeTab = signal<Tab>('dashboard');
   
   misProductos = signal<any[]>([]);
@@ -511,8 +1493,23 @@ export class TiendaDashboardView implements OnInit {
   selectedFile: File | null = null;
 
   showConfirmModal = signal(false);
+  showConfirmModalVaciar = signal(false);
+  vaciandoCatalogo = signal(false);
   itemAEliminar = signal<any>(null);
   successToast = signal<{ show: boolean, msg: string }>({ show: false, msg: '' });
+
+  // ── Loading signals individuales por pantalla ──
+  cargandoCatalogo = signal(false);
+  cargandoPerfil = signal(false);
+  cargandoMensajes = signal(false);
+
+  // ── Global: true solo para operaciones de escritura que bloquean (guardar, vaciar, etc.) ──
+  // Los loaders de LECTURA por tab (cargandoCatalogo, cargandoPedidos, etc.) tienen sus propios spinners
+  cargandoGlobal = computed(() =>
+    this.estaGuardando() ||
+    this.vaciandoCatalogo() ||
+    this.aprobandoCredito()
+  );
 
   guardandoPerfil = signal(false);
   tiendaLogoPreview = '';
@@ -521,6 +1518,29 @@ export class TiendaDashboardView implements OnInit {
 
   chatActual = signal<ChatConversation | null>(null);
   mensajeRespuesta = '';
+
+  carteraCredito = signal<any>(null);
+  configCreditoEdit = { tasa_interes_mensual: 2.5, monto_maximo_credito: 5000, plazo_maximo_meses: 12 };
+  guardandoConfigCredito = signal(false);
+  todasSolicitudes = signal<any[]>([]);
+  modalAprobarCreditoData: any = null;
+  aprobandoCredito = signal(false);
+
+  misExpertos = signal<any[]>([]);
+  mostrarAgregarExperto = signal(false);
+  expertoEnEdicionId = signal<string | null>(null);
+  guardandoExperto = signal(false);
+  nuevoExperto = { nombre: '', categoria: 'Plomero', telefono: '', bio: '', foto_url: '' };
+  selectedExpertoFile = signal<File | null>(null);
+  expertoFotoPreview = signal<string | null>(null);
+
+  solicitudesPendientes = computed(() => {
+    return this.todasSolicitudes().filter(s => s.estado === 'pendiente');
+  });
+
+  solicitudesHistorial = computed(() => {
+    return this.todasSolicitudes().filter(s => s.estado !== 'pendiente');
+  });
 
   // Inicialización completa de los 7 días de la semana listos para Supabase
   horarios = [
@@ -536,10 +1556,10 @@ export class TiendaDashboardView implements OnInit {
   readonly PlusIcon = Plus;
   readonly PackageIcon = Package;
   readonly EditIcon = Edit;
+  readonly WrenchIcon = Wrench;
   readonly TrendingUpIcon = TrendingUp;
   readonly LogoutIcon = LogOut;
   readonly CameraIcon = Camera;
-  readonly ImageIcon = Image;
   readonly SaveIcon = Save;
   readonly XIcon = X;
   readonly ArrowLeftIcon = ArrowLeft;
@@ -550,10 +1570,62 @@ export class TiendaDashboardView implements OnInit {
   readonly TrashIcon = Trash2;
   readonly ChatIcon = MessageSquare;
   readonly SendIcon = Send;
+  readonly FileTextIcon = FileText;
+  readonly PrinterIcon = Printer;
+  readonly DollarSignIcon = DollarSign;
+  readonly CheckCircleIcon = CheckCircle;
+  readonly XCircleIcon = XCircle;
+  readonly SettingsIcon = Settings;
+  readonly ShoppingBagIcon = ShoppingBag;
+  readonly TruckIcon = Truck;
+  readonly BikeIcon = Bike;
+
+  realtimeChannel: any;
 
   ngOnInit() {
     this.cargarMisProductos();
+    this.cargarPedidos();
+    this.suscribirseAPedidos();
     this.cargarCategorias();
+    // Esperar a que el perfil esté disponible para cargar expertos
+    this.esperarPerfilYCargarExpertos();
+  }
+
+  ngOnDestroy() {
+    if (this.realtimeChannel) {
+      this.supabase.getClient().removeChannel(this.realtimeChannel);
+    }
+  }
+
+  suscribirseAPedidos() {
+    this.realtimeChannel = this.supabase.getClient()
+      .channel('tienda-pedidos-cambios')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pedidos' },
+        (payload: any) => {
+          const shop = this.auth.profile();
+          if (shop && shop.tienda_id) {
+            // Recarga silenciosa (sin mostrar el spinner de cargando)
+            this.supabase.obtenerPedidosTienda(shop.tienda_id).then(res => {
+              this.pedidos.set(res);
+              this.cdr.detectChanges();
+            });
+          }
+        }
+      )
+      .subscribe();
+  }
+
+  async cargarPedidos() {
+    const shop = this.auth.profile();
+    if (!shop || !shop.tienda_id) return;
+    try {
+      const res = await this.supabase.obtenerPedidosTienda(shop.tienda_id);
+      this.pedidos.set(res);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   nombreTiendaActual(): string {
@@ -576,6 +1648,7 @@ export class TiendaDashboardView implements OnInit {
   }
 
   volverAlDashboard() {
+    window.scrollTo(0, 0);
     this.activeTab.set('dashboard');
   }
 
@@ -594,11 +1667,13 @@ export class TiendaDashboardView implements OnInit {
   }
 
   async abrirCatalogo() {
+    window.scrollTo(0, 0);
     this.activeTab.set('catalogo');
     await this.cargarMisProductos();
   }
 
   abrirFormularioNuevo() {
+    window.scrollTo(0, 0);
     this.modoEdicion.set(false);
     this.productForm = { id: 0, nombre: '', precio: 0, stock: 10, descripcion: '', categoriaId: 0 };
     this.productImagePreview = '';
@@ -607,24 +1682,31 @@ export class TiendaDashboardView implements OnInit {
   }
 
   async cargarMisProductos() {
+    this.cargandoCatalogo.set(true);
+    this.cdr.detectChanges();
     try {
       const productos = await this.supabase.cargarMisProductosApi();
       this.misProductos.set(productos);
     } catch (e) {
       console.error('Error cargando catálogo', e);
+    } finally {
+      this.cargandoCatalogo.set(false);
+      this.cdr.detectChanges();
     }
   }
 
   async abrirMensajes() {
+    window.scrollTo(0, 0);
     this.activeTab.set('mensajes');
     this.chatActual.set(null);
+    this.cargandoMensajes.set(true);
+    this.cdr.detectChanges();
     
     try {
       const p = this.auth.profile();
       let tId = p?.tienda_id ? Number(p.tienda_id) : null;
       
       if (!tId && p?.id) {
-        // Buscar el tienda_id más reciente asignado en la base de datos
         const { data: profLive } = await this.supabase.getClient()
           .from('profiles')
           .select('tienda_id')
@@ -638,6 +1720,9 @@ export class TiendaDashboardView implements OnInit {
       await this.chatService.loadStoreConversations(tId || 1);
     } catch (e) {
       console.warn('Aviso cargando historial de chat:', e);
+    } finally {
+      this.cargandoMensajes.set(false);
+      this.cdr.detectChanges();
     }
   }
 
@@ -705,13 +1790,41 @@ export class TiendaDashboardView implements OnInit {
     }
   }
 
+  async ejecutarVaciadoCatalogo() {
+    this.vaciandoCatalogo.set(true);
+    try {
+      const productos = this.misProductos();
+      const chunkSize = 10;
+      
+      for (let i = 0; i < productos.length; i += chunkSize) {
+        const chunk = productos.slice(i, i + chunkSize);
+        await Promise.all(chunk.map(p => this.supabase.eliminarProducto(Number(p.id))));
+      }
+
+      this.showConfirmModalVaciar.set(false);
+      this.mostrarToast('✅ Catálogo vaciado completamente');
+      await this.cargarMisProductos();
+    } catch (e) {
+      alert('❌ Error al vaciar catálogo');
+      console.error(e);
+    } finally {
+      this.vaciandoCatalogo.set(false);
+    }
+  }
+
   mostrarToast(msg: string) {
     this.successToast.set({ show: true, msg });
     setTimeout(() => this.successToast.set({ show: false, msg: '' }), 3000);
   }
 
   async abrirPerfil() {
+    // Primero cambiamos de tab para que el usuario vea el contenido inmediatamente
+    window.scrollTo(0, 0);
+    this.activeTab.set('perfil');
+    this.cdr.detectChanges();
+
     const p = this.auth.profile();
+    // Pre-rellenamos con datos del perfil en memoria (respuesta inmediata)
     this.perfilTiendaForm = {
       nombre: p?.nombre_completo || p?.nombre_tienda || '',
       direccion: p?.direccion || '',
@@ -720,13 +1833,29 @@ export class TiendaDashboardView implements OnInit {
     };
     this.tiendaLogoPreview = p?.avatar_url || '';
 
-    if (p && p.tienda_id) {
-      try {
-        // 1. Cargar metadatos reales de la tienda guardada
+    // Luego cargamos datos actualizados de Supabase en segundo plano
+    this.cargandoPerfil.set(true);
+    this.cdr.detectChanges();
+
+    try {
+      let tiendaId = p?.tienda_id;
+
+      // Si no hay tienda_id en el perfil en memoria, lo buscamos en Supabase
+      if (!tiendaId && p?.id) {
+        const { data: profLive } = await this.supabase.getClient()
+          .from('profiles')
+          .select('tienda_id')
+          .eq('id', p.id)
+          .single();
+        tiendaId = profLive?.tienda_id;
+      }
+
+      if (tiendaId) {
+        // 1. Cargar metadatos reales de la tienda
         const { data: tiendaData } = await this.supabase.getClient()
           .from('tiendas')
           .select('*')
-          .eq('id', p.tienda_id)
+          .eq('id', tiendaId)
           .single();
 
         if (tiendaData) {
@@ -738,7 +1867,7 @@ export class TiendaDashboardView implements OnInit {
         }
 
         // 2. Cargar horarios guardados
-        const horariosGuardados = await this.supabase.cargarHorariosTienda(p.tienda_id);
+        const horariosGuardados = await this.supabase.cargarHorariosTienda(tiendaId);
         if (horariosGuardados && horariosGuardados.length > 0) {
           this.horarios = this.horarios.map(dia => {
             const guardado = horariosGuardados.find((h: any) => h.dia_semana === dia.diaSemana);
@@ -753,12 +1882,14 @@ export class TiendaDashboardView implements OnInit {
             return dia;
           });
         }
-      } catch (e) {
-        console.error('Error cargando datos de la tienda y horarios', e);
       }
+    } catch (e) {
+      console.error('Error cargando datos de la tienda y horarios', e);
+    } finally {
+      // SIEMPRE apagamos el spinner, sin importar si hubo error o no
+      this.cargandoPerfil.set(false);
+      this.cdr.detectChanges();
     }
-
-    this.activeTab.set('perfil');
   }
 
   onFileSelected(event: any) {
@@ -777,6 +1908,16 @@ export class TiendaDashboardView implements OnInit {
       this.selectedLogoFile = file;
       const reader = new FileReader();
       reader.onload = (e: any) => this.tiendaLogoPreview = e.target.result;
+      reader.readAsDataURL(file);
+    }
+  }
+
+  onExpertoFotoSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedExpertoFile.set(file);
+      const reader = new FileReader();
+      reader.onload = (e: any) => this.expertoFotoPreview.set(e.target.result);
       reader.readAsDataURL(file);
     }
   }
@@ -804,7 +1945,7 @@ export class TiendaDashboardView implements OnInit {
         this.tiendaLogoPreview = url;
       }
 
-      await this.auth.checkSession();
+      await this.auth.inicializar();
       await this.abrirPerfil();
       this.mostrarToast('✅ Perfil guardado con éxito');
       this.activeTab.set('dashboard');
@@ -877,4 +2018,553 @@ export class TiendaDashboardView implements OnInit {
       return '';
     }
   }
+
+  // ==========================================
+  // LÓGICA DE CARGA MASIVA (EXCEL/CSV)
+  // ==========================================
+  mostrarModalCarga = signal<boolean>(false);
+  archivoExcel = signal<File | null>(null);
+  subiendoExcel = signal<boolean>(false);
+  resultadoCarga = signal<UploadResultDto | null>(null);
+  errorCarga = signal<string | null>(null);
+
+  previewCatalogo = signal<PreviewResultDto | null>(null);
+  cargandoPreview = signal(false);
+  errorPreview = signal<string | null>(null);
+  tabPreviewActivo = signal<'nuevos' | 'existentes' | 'errores'>('nuevos');
+  aplicandoInventario = signal(false);
+  uploadIdActual = signal<string | null>(null);
+
+  readonly UploadCloudIcon = UploadCloud;
+  readonly FileSpreadsheetIcon = FileSpreadsheet;
+
+  abrirModalCargaMasiva() {
+    this.archivoExcel.set(null);
+    this.resultadoCarga.set(null);
+    this.errorCarga.set(null);
+    this.mostrarModalCarga.set(true);
+  }
+
+  cerrarModalCarga() {
+    this.mostrarModalCarga.set(false);
+  }
+
+  onExcelSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext !== 'xlsx' && ext !== 'csv') {
+        alert('Por favor selecciona un archivo .xlsx o .csv');
+        return;
+      }
+      this.archivoExcel.set(file);
+      this.resultadoCarga.set(null); // Limpiamos el resultado anterior
+    }
+  }
+
+  async procesarCargaMasiva() {
+    const file = this.archivoExcel();
+    if (!file) return;
+
+    this.errorCarga.set(null);
+    this.resultadoCarga.set(null);
+    this.subiendoExcel.set(true);
+    try {
+      const res = await this.supabase.subirCatalogo(file);
+      this.resultadoCarga.set(res);
+    } catch (e: any) {
+      this.errorCarga.set(e?.message ?? 'Error al subir el archivo.');
+    } finally {
+      this.subiendoExcel.set(false);
+    }
+  }
+
+  async continuarConPreview() {
+    const upload = this.resultadoCarga();
+    if (!upload?.uploadId) return;
+
+    this.errorPreview.set(null);
+    this.cargandoPreview.set(true);
+    try {
+      const res = await this.supabase.previewCatalogo(upload.uploadId);
+      this.previewCatalogo.set(res);
+      this.uploadIdActual.set(upload.uploadId); // ← guardar para el commit
+      this.tabPreviewActivo.set(
+        res.resumen.nuevosCount > 0 ? 'nuevos' :
+        res.resumen.erroresCount > 0 ? 'errores' : 'existentes'
+      );
+      this.cerrarModalCarga();
+      this.activeTab.set('revision-catalogo');
+    } catch (e: any) {
+      this.errorPreview.set(e?.message ?? 'Error al analizar la carga.');
+    } finally {
+      this.cargandoPreview.set(false);
+    }
+  }
+
+  volverAlCatalogo() {
+    this.previewCatalogo.set(null);
+    this.activeTab.set('catalogo');
+  }
+
+  async aplicarInventario() {
+    const uploadId = this.uploadIdActual();
+    if (!uploadId) return;
+
+    this.aplicandoInventario.set(true);
+    try {
+      const result = await this.supabase.commitCatalogo(uploadId, 'UpdateExisting');
+      const insertados = result.insertedInventory ?? 0;
+      const actualizados = result.updatedInventory ?? 0;
+      const creados = result.createdProducts ?? 0;
+      this.mostrarToast(`✅ ${insertados + actualizados + creados} productos aplicados al inventario`);
+      this.previewCatalogo.set(null);
+      this.uploadIdActual.set(null);
+      this.activeTab.set('catalogo');
+      await this.cargarMisProductos();
+    } catch (e: any) {
+      this.mostrarToast('❌ Error al aplicar el inventario: ' + (e?.message ?? 'Inténtalo de nuevo'));
+    } finally {
+      this.aplicandoInventario.set(false);
+    }
+  }
+
+  // ==========================================
+  // LÓGICA DE COTIZACIÓN
+  // ==========================================
+  cotizacion = {
+    nombreCliente: '',
+    telefonoCliente: '',
+    proyectoCliente: '',
+    notas: '',
+    descuentoPct: 0,
+    items: [] as { descripcion: string; cantidad: number; precioUnitario: number; esManual: boolean }[]
+  };
+
+  abrirCotizacion() {
+    // Pre-cargar ítems con los productos del catálogo si existen
+    const productos = this.misProductos();
+    if (productos.length > 0 && this.cotizacion.items.length === 0) {
+      // Empezamos con un ítem vacío para que el ferretero lo llene
+      this.cotizacion.items = [{ descripcion: '', cantidad: 1, precioUnitario: 0, esManual: false }];
+    } else if (this.cotizacion.items.length === 0) {
+      this.cotizacion.items = [{ descripcion: '', cantidad: 1, precioUnitario: 0, esManual: false }];
+    }
+    window.scrollTo(0, 0);
+    this.activeTab.set('cotizacion');
+  }
+
+  agregarItemCotizacion() {
+    this.cotizacion.items = [...this.cotizacion.items, { descripcion: '', cantidad: 1, precioUnitario: 0, esManual: false }];
+  }
+
+  eliminarItemCotizacion(index: number) {
+    this.cotizacion.items = this.cotizacion.items.filter((_, i) => i !== index);
+  }
+
+  recalcularTotales() {
+    // Fuerza actualización de la vista
+  }
+
+  seleccionarProductoCotizacion(index: number, event: any) {
+    const valor = event.target.value;
+    const item = this.cotizacion.items[index];
+
+    if (valor === '__manual__') {
+      item.esManual = true;
+      item.descripcion = '';
+      item.precioUnitario = 0;
+    } else if (valor === '') {
+      item.esManual = false;
+      item.descripcion = '';
+      item.precioUnitario = 0;
+    } else {
+      const prod = this.misProductos().find(p => String(p.id) === String(valor));
+      if (prod) {
+        item.esManual = false;
+        item.descripcion = prod.name;
+        item.precioUnitario = prod.minPrice;
+        this.recalcularTotales();
+      }
+    }
+  }
+
+  cotizacionSubtotal(): number {
+    return this.cotizacion.items.reduce((acc, i) => acc + (i.cantidad * i.precioUnitario), 0);
+  }
+
+  cotizacionDescuento(): number {
+    return this.cotizacionSubtotal() * (this.cotizacion.descuentoPct / 100);
+  }
+
+  cotizacionTotal(): number {
+    return this.cotizacionSubtotal() - this.cotizacionDescuento();
+  }
+
+  imprimirCotizacion() {
+    const tiendaNombre = this.nombreTiendaActual();
+    const fecha = new Date().toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' });
+    const numeroCot = `COT-${Date.now().toString().slice(-6)}`;
+
+    const itemsHtml = this.cotizacion.items.map(item => `
+      <tr>
+        <td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;color:#374151;">${item.descripcion || '—'}</td>
+        <td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;text-align:center;color:#374151;">${item.cantidad}</td>
+        <td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;text-align:right;color:#374151;">$${item.precioUnitario.toFixed(2)}</td>
+        <td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;text-align:right;font-weight:700;color:#111827;">$${(item.cantidad * item.precioUnitario).toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Cotización ${numeroCot}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #111827; padding: 32px; max-width: 800px; margin: auto; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 3px solid #e8541c; }
+          .logo { font-size: 22px; font-weight: 900; color: #e8541c; letter-spacing: -0.5px; }
+          .logo span { color: #111827; }
+          .cot-info { text-align: right; }
+          .cot-num { font-size: 14px; font-weight: 900; color: #e8541c; }
+          .cot-fecha { font-size: 11px; color: #6b7280; margin-top: 4px; }
+          .section-title { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #e8541c; margin-bottom: 8px; }
+          .client-box { background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 28px; }
+          .client-name { font-size: 16px; font-weight: 900; color: #111827; }
+          .client-detail { font-size: 11px; color: #6b7280; margin-top: 4px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th { background: #e8541c; color: white; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; padding: 12px 8px; text-align: left; }
+          th:last-child, th:nth-child(3) { text-align: right; }
+          th:nth-child(2) { text-align: center; }
+          .totals { margin-left: auto; width: 280px; }
+          .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 12px; color: #374151; }
+          .totals-total { display: flex; justify-content: space-between; padding: 14px 16px; background: #e8541c; color: white; border-radius: 12px; font-size: 16px; font-weight: 900; margin-top: 8px; }
+          .notes { background: #f8fafc; border-radius: 12px; padding: 16px; margin-top: 28px; }
+          .footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #9ca3af; }
+          @media print { body { padding: 16px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="logo">Ferre<span>Express</span></div>
+            <div style="font-size:13px;font-weight:700;color:#374151;margin-top:4px;">${tiendaNombre}</div>
+          </div>
+          <div class="cot-info">
+            <div class="cot-num">${numeroCot}</div>
+            <div class="cot-fecha">Fecha: ${fecha}</div>
+            <div class="cot-fecha" style="margin-top:2px;">Válida por: 15 días</div>
+          </div>
+        </div>
+
+        <div class="section-title">Cliente</div>
+        <div class="client-box">
+          <div class="client-name">${this.cotizacion.nombreCliente}</div>
+          ${this.cotizacion.telefonoCliente ? `<div class="client-detail">📞 ${this.cotizacion.telefonoCliente}</div>` : ''}
+          ${this.cotizacion.proyectoCliente ? `<div class="client-detail" style="margin-top:6px;font-style:italic;">"${this.cotizacion.proyectoCliente}"</div>` : ''}
+        </div>
+
+        <div class="section-title">Detalle de Productos</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style="text-align:center;">Cant.</th>
+              <th style="text-align:right;">Precio Unit.</th>
+              <th style="text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals-row">
+            <span>Subtotal</span>
+            <span>$${this.cotizacionSubtotal().toFixed(2)}</span>
+          </div>
+          ${this.cotizacion.descuentoPct > 0 ? `<div class="totals-row" style="color:#ef4444;">
+            <span>Descuento (${this.cotizacion.descuentoPct}%)</span>
+            <span>- $${this.cotizacionDescuento().toFixed(2)}</span>
+          </div>` : ''}
+          <div class="totals-total">
+            <span>TOTAL</span>
+            <span>$${this.cotizacionTotal().toFixed(2)}</span>
+          </div>
+        </div>
+
+        ${this.cotizacion.notas ? `<div class="notes"><div class="section-title">Notas y Condiciones</div><p style="font-size:11px;color:#374151;line-height:1.6;margin-top:6px;">${this.cotizacion.notas}</p></div>` : ''}
+
+        <div class="footer">Cotización generada por FerreExpress · ${tiendaNombre} · ${fecha}</div>
+      </body>
+      </html>
+    `;
+
+    const ventana = window.open('', '_blank', 'width=850,height=700');
+    if (ventana) {
+      ventana.document.write(html);
+      ventana.document.close();
+      ventana.focus();
+      setTimeout(() => ventana.print(), 500);
+    }
+  }
+
+  pedidos = signal<any[]>([]);
+  cargandoPedidos = signal(false);
+  actualizandoPedido = signal<string | null>(null);
+
+  async abrirPedidos() {
+    window.scrollTo(0, 0);
+    this.activeTab.set('pedidos');
+    const shop = this.auth.profile();
+    if (!shop || !shop.tienda_id) return;
+    
+    this.cargandoPedidos.set(true);
+    this.cdr.detectChanges();
+    try {
+      const res = await this.supabase.obtenerPedidosTienda(shop.tienda_id);
+      this.pedidos.set(res);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.cargandoPedidos.set(false);
+      this.cdr.detectChanges();
+      // Force browser to fully repaint the DOM after async data injection
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          this.cdr.detectChanges();
+          // Trigger layout recalculation
+          document.body.style.zoom = '1';
+        });
+      });
+    }
+  }
+
+  async actualizarEstadoPedido(pedidoId: string, estado: 'aprobado' | 'rechazado' | 'entregado', costoEnvioStr?: string) {
+    this.actualizandoPedido.set(pedidoId);
+    this.cdr.detectChanges();
+    try {
+      const costoEnvio = costoEnvioStr ? parseFloat(costoEnvioStr) : 0;
+      
+      // Llamada real a Supabase
+      await this.supabase.actualizarEstadoPedido(pedidoId, estado, costoEnvio);
+      
+      // Actualizar la interfaz SOLO si la base de datos respondió correctamente
+      this.pedidos.update(list => list.map(p => {
+        if (p.id === pedidoId) {
+          return { 
+            ...p, 
+            estado, 
+            total: Number(p.total) + (estado === 'aprobado' ? costoEnvio : 0) 
+          };
+        }
+        return p;
+      }));
+      
+      this.mostrarToast(`✅ Pedido ${estado}`);
+    } catch (e) {
+      console.error(e);
+      alert('Error al actualizar el estado. Por favor, recarga la página y vuelve a intentarlo.');
+    } finally {
+      this.actualizandoPedido.set(null);
+      this.cdr.detectChanges();
+    }
+  }
+
+  abrirCreditos() {
+    window.scrollTo(0, 0);
+    this.activeTab.set('creditos');
+    this.cargarDatosCredito();
+  }
+
+  abrirExpertos() {
+    window.scrollTo(0, 0);
+    this.activeTab.set('expertos');
+    this.cargarExpertos();
+  }
+
+  getSubtotal(pedido: any): number {
+    if (!pedido.pedidos_items) return 0;
+    return pedido.pedidos_items.reduce((sum: number, item: any) => sum + (item.precio_unitario * item.cantidad), 0);
+  }
+
+  getCostoEnvio(pedido: any): number {
+    return Math.max(0, Number(pedido.total) - this.getSubtotal(pedido));
+  }
+
+  // Reintenta cargar expertos hasta que el perfil tenga tienda_id (max 10 intentos)
+  private esperarPerfilYCargarExpertos(intentos = 0) {
+    const shop = this.auth.profile();
+    if (shop?.tienda_id) {
+      this.cargarExpertos();
+    } else if (intentos < 10) {
+      setTimeout(() => this.esperarPerfilYCargarExpertos(intentos + 1), 300);
+    }
+  }
+
+  async cargarExpertos() {
+    try {
+      const shop = this.auth.profile();
+      if (!shop || !shop.tienda_id) return;
+      const expertos = await this.supabase.getExpertos(shop.tienda_id);
+      this.misExpertos.set(expertos);
+    } catch (e) {
+      console.error('Error cargando expertos', e);
+    }
+  }
+  abrirModalNuevoExperto() {
+    this.nuevoExperto = { nombre: '', categoria: 'Plomero', telefono: '', bio: '', foto_url: '' };
+    this.expertoEnEdicionId.set(null);
+    this.expertoFotoPreview.set(null);
+    this.selectedExpertoFile.set(null);
+    this.mostrarAgregarExperto.set(true);
+  }
+
+  editarExperto(experto: any) {
+    this.nuevoExperto = { 
+      nombre: experto.nombre, 
+      categoria: experto.profesion || 'Plomero', 
+      telefono: experto.telefono, 
+      bio: experto.bio || '', 
+      foto_url: experto.foto_url 
+    };
+    this.expertoEnEdicionId.set(experto.id);
+    this.expertoFotoPreview.set(experto.foto_url || null);
+    this.selectedExpertoFile.set(null);
+    this.mostrarAgregarExperto.set(true);
+  }
+
+  async guardarExperto() {
+    if (!this.nuevoExperto.nombre || !this.nuevoExperto.categoria) {
+      alert('Nombre y categoría son obligatorios');
+      return;
+    }
+    this.guardandoExperto.set(true);
+    try {
+      const shop = this.auth.profile();
+      if (!shop || !shop.tienda_id) {
+        alert('No se encontró el ID de tu tienda');
+        return;
+      }
+      
+      let finalUrl = this.nuevoExperto.foto_url;
+      const fotoFile = this.selectedExpertoFile();
+      if (fotoFile) {
+        const uploadRes = await this.supabase.subirImagenProducto(fotoFile);
+        finalUrl = uploadRes.url;
+      }
+      
+      const expertoData = {
+        tienda_id: shop.tienda_id,
+        nombre: this.nuevoExperto.nombre,
+        profesion: this.nuevoExperto.categoria,
+        telefono: this.nuevoExperto.telefono,
+        descripcion: this.nuevoExperto.bio, // Mapeado a la columna real 'descripcion'
+        experiencia_anios: 1, // Fallback si no está en el form
+        foto_url: finalUrl || 'https://images.unsplash.com/photo-1540560085022-730894593bc1?auto=format&fit=crop&q=80&w=200'
+      };
+
+      if (this.expertoEnEdicionId()) {
+        await this.supabase.updateExperto(this.expertoEnEdicionId()!, expertoData);
+        this.mostrarToast('Experto actualizado exitosamente');
+      } else {
+        await this.supabase.addExperto(expertoData);
+        this.mostrarToast('Experto añadido exitosamente');
+      }
+      this.mostrarAgregarExperto.set(false);
+      this.nuevoExperto = { nombre: '', categoria: 'Plomero', telefono: '', bio: '', foto_url: '' };
+      this.selectedExpertoFile.set(null);
+      this.expertoFotoPreview.set(null);
+      this.cargarExpertos();
+    } catch (e) {
+      console.error(e);
+      alert('Error al añadir experto. Revisa la consola o si has creado la tabla en Supabase.');
+    } finally {
+      this.guardandoExperto.set(false);
+    }
+  }
+
+  async cargarDatosCredito() {
+    const shop = this.auth.profile();
+    if (!shop || !shop.tienda_id) return;
+    try {
+      const cartera = await this.supabase.obtenerCarteraCredito(shop.tienda_id);
+      this.carteraCredito.set(cartera);
+      
+      const sols = await this.supabase.obtenerSolicitudesTienda(shop.tienda_id);
+      this.todasSolicitudes.set(sols);
+
+      const config = await this.supabase.obtenerConfigCredito(shop.tienda_id);
+      if (config) {
+        this.configCreditoEdit = { 
+          tasa_interes_mensual: config.tasa_interes_mensual, 
+          monto_maximo_credito: config.monto_maximo_credito, 
+          plazo_maximo_meses: config.plazo_maximo_meses 
+        };
+      }
+    } catch (e) {
+      console.error('Error cargando datos de crédito:', e);
+    }
+  }
+
+  async guardarConfigCredito() {
+    const shop = this.auth.profile();
+    if (!shop || !shop.tienda_id) return;
+    this.guardandoConfigCredito.set(true);
+    try {
+      await this.supabase.guardarConfigCredito(shop.tienda_id, this.configCreditoEdit.tasa_interes_mensual, this.configCreditoEdit.monto_maximo_credito, this.configCreditoEdit.plazo_maximo_meses);
+      this.mostrarToast('Configuración guardada exitosamente');
+    } catch (e) {
+      console.error(e);
+      alert('Error guardando configuración');
+    } finally {
+      this.guardandoConfigCredito.set(false);
+    }
+  }
+
+  async resolverSolicitud(id: string, estado: 'aprobada' | 'rechazada') {
+    if (estado === 'rechazada') {
+      const confirm = window.confirm('¿Seguro que deseas rechazar esta solicitud?');
+      if (!confirm) return;
+      try {
+        await this.supabase.resolverSolicitud(id, 'rechazada');
+        this.mostrarToast('Solicitud rechazada');
+        this.cargarDatosCredito();
+      } catch (e) {
+        console.error(e);
+        alert('Error al rechazar solicitud');
+      }
+    }
+  }
+
+  abrirModalAprobar(solicitud: any) {
+    this.modalAprobarCreditoData = {
+      id: solicitud.id,
+      tienda_id: solicitud.tienda_id,
+      cliente_id: solicitud.cliente_id,
+      monto_aprobado: solicitud.monto_solicitado,
+      tasa_interes: this.configCreditoEdit.tasa_interes_mensual,
+      plazo: solicitud.plazo_meses,
+      comentarios_tienda: ''
+    };
+  }
+
+  async confirmarAprobacion() {
+    const data = this.modalAprobarCreditoData;
+    if (!data) return;
+    this.aprobandoCredito.set(true);
+    try {
+      await this.supabase.resolverSolicitud(data.id, 'aprobada', data.monto_aprobado, data.tasa_interes, data.plazo, data.tienda_id, data.cliente_id);
+      this.mostrarToast('Crédito aprobado exitosamente');
+      this.modalAprobarCreditoData = null;
+      this.cargarDatosCredito();
+    } catch (e) {
+      console.error(e);
+      alert('Error al aprobar crédito');
+    } finally {
+      this.aprobandoCredito.set(false);
+    }
+  }
+
 }

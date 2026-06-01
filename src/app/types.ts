@@ -10,4 +10,32 @@ export interface Product {
   category: string;
 }
 
-export const MOCK_PRODUCTS: Product[] = [];
+
+
+export interface CommitResultDto {
+  insertedInventory: number;
+  updatedInventory: number;
+  createdProducts: number;
+  skippedCategories: number;
+  skipped: number;
+  failed: number;
+}
+
+export interface UploadResultDto {
+  rowCount: number;
+  suggestedMapping: Record<string, string>;
+  uploadId?: any;
+}
+
+export interface PreviewResultDto {
+  totalRows: number;
+  resumen: {
+    nuevosCount: number;
+    existentesCount: number;
+    erroresCount: number;
+  };
+  nuevos: any[];
+  existentes: any[];
+  errores: any[];
+}
+

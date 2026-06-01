@@ -18,17 +18,21 @@ import { FormsModule } from '@angular/forms';
   `],
   template: `
     <header class="bg-white border-b border-gray-200 shadow-sm w-full">
-      <div class="flex items-center justify-between px-4 h-16 w-full max-w-7xl mx-auto">
-        <div class="flex items-center gap-3">
-          <button (click)="store.toggleSidebar(true)" class="text-gray-500 hover:bg-gray-50 transition-colors p-2 rounded-lg">
-            <lucide-icon [name]="MenuIcon" size="24"></lucide-icon>
+      <div class="flex items-center justify-between px-6 h-16 w-full">
+        <div class="flex items-center gap-4">
+          <button (click)="store.toggleSidebar(true)" class="text-gray-500 hover:bg-gray-100 transition-colors p-2 rounded-lg flex items-center gap-2">
+            <lucide-icon [name]="MenuIcon" size="20"></lucide-icon>
+            <span class="text-xs font-bold hidden sm:block">Filtros</span>
           </button>
-          <span 
+          <div 
             (click)="store.setTab('home')" 
-            class="text-xl font-black text-[#E8541C] uppercase tracking-tighter cursor-pointer select-none"
+            class="flex items-center cursor-pointer select-none"
           >
-            FerreCompara
-          </span>
+            <img src="assets/images/ferrecompara-logo.png" alt="FerreCompara" class="h-8 md:h-10 object-contain drop-shadow-sm" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="text-xl font-black text-[#E8541C] uppercase tracking-tighter hidden">
+              FerreCompara
+            </span>
+          </div>
         </div>
         
         <div class="hidden md:flex flex-1 max-w-md mx-8">
@@ -36,11 +40,12 @@ import { FormsModule } from '@angular/forms';
             <input 
               [ngModel]="store.searchQuery()"
               (ngModelChange)="store.setSearchQuery($event); store.setTab('home')"
-              class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-[#E8541C] outline-none" 
+              class="w-full bg-gray-50 border border-gray-200 rounded-2xl py-2 pr-4 focus:ring-2 focus:ring-[#E8541C] outline-none" 
+              style="padding-left: 48px;"
               placeholder="Busca cemento, varillas, herramientas..." 
               type="text" 
             />
-            <lucide-icon [name]="SearchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size="18"></lucide-icon>
+            <lucide-icon [name]="SearchIcon" class="absolute top-1/2 -translate-y-1/2 text-gray-400" style="left: 16px;" size="18"></lucide-icon>
           </div>
         </div>
 
@@ -56,11 +61,12 @@ import { FormsModule } from '@angular/forms';
           <input 
             [ngModel]="store.searchQuery()"
             (ngModelChange)="store.setSearchQuery($event); store.setTab('home')"
-            class="w-full h-11 bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 focus:ring-2 focus:ring-[#E8541C] outline-none" 
+            class="w-full h-11 bg-gray-50 border border-gray-200 rounded-2xl pr-4 focus:ring-2 focus:ring-[#E8541C] outline-none" 
+            style="padding-left: 48px;"
             placeholder="Busca cemento, varillas..." 
             type="text" 
           />
-          <lucide-icon [name]="SearchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size="18"></lucide-icon>
+          <lucide-icon [name]="SearchIcon" class="absolute top-1/2 -translate-y-1/2 text-gray-400" style="left: 16px;" size="18"></lucide-icon>
         </div>
       </div>
 
@@ -81,7 +87,7 @@ import { FormsModule } from '@angular/forms';
               <div class="space-y-2">
                 @for (city of ['Guayaquil', 'Quito', 'Cuenca', 'Manta', 'Portoviejo', 'Machala']; track city) {
                   <button 
-                    (click)="store.setCity(city)"
+                    (click)="store.setUserCity(city); store.toggleSidebar(false)"
                     [class]="'w-full flex items-center justify-between p-4 rounded-2xl transition-all ' + (store.userCity() === city ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50 border border-transparent hover:bg-gray-100')"
                   >
                     <div class="flex items-center gap-3">

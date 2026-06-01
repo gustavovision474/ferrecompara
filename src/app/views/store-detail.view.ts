@@ -1,11 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, ArrowLeft, MapPin, Star, Phone, MessageCircle, Navigation, MessageSquare, Send, X } from 'lucide-angular';
+import { LucideAngularModule, ArrowLeft, MapPin, Star, Phone, MessageCircle, Navigation, MessageSquare, Send, X, DollarSign, ShieldCheck, Briefcase, FileText } from 'lucide-angular';
 import { StoreService } from '../store.service';
 import { ProductCardComponent } from '../components/product-card.component';
 import { ChatService } from '../chat.service';
 import { AuthService } from '../auth.service';
+import { SupabaseService } from '../supabase.service';
 
 @Component({
   selector: 'app-store-detail-view',
@@ -72,6 +73,53 @@ import { AuthService } from '../auth.service';
       <div *ngIf="store.horario" class="px-4 py-4 bg-gray-50/50 border-b border-gray-100">
         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Horario de Atención</span>
         <p class="text-xs font-bold text-gray-700">{{ store.horario }}</p>
+      </div>
+
+      <!-- Banner de Crédito -->
+      <div class="px-4 py-6">
+        <div class="bg-[#1f2937] rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          
+          <div class="inline-flex items-center gap-1.5 bg-[#E8541C] text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest mb-4">
+            <lucide-icon [name]="ShieldCheckIcon" size="12"></lucide-icon>
+            Seguro y Transparente
+          </div>
+          
+          <h2 class="text-2xl font-black mb-3 leading-tight">Compra ahora,<br/>paga después</h2>
+          <p class="text-[11px] text-gray-300 mb-6 leading-relaxed">Crédito directo con tu ferretería de confianza. Financia tus herramientas y materiales de construcción sin complicaciones bancarias.</p>
+          
+          <button (click)="abrirModalCredito(store)" class="w-full bg-[#E8541C] text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-orange-900/50">
+            Solicitar Crédito Ahora
+          </button>
+        </div>
+
+        <h3 class="text-sm font-black text-gray-900 mt-8 mb-4">Requisitos para tu crédito</h3>
+        <p class="text-[11px] text-gray-500 mb-4 leading-relaxed">Proceso rápido y sin papeleo excesivo. Solo necesitas:</p>
+
+        <div class="space-y-3">
+          <div class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 shadow-sm">
+            <div class="w-10 h-10 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center flex-shrink-0">
+              <lucide-icon [name]="FileTextIcon" size="20"></lucide-icon>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-gray-900 mb-1">Identificación Válida</h4>
+              <p class="text-[10px] text-gray-500 mb-2 leading-relaxed">Cédula de identidad original o pasaporte vigente para validar tu identidad al instante.</p>
+              <div class="inline-flex items-center gap-1 text-[9px] font-bold text-[#E8541C] uppercase tracking-widest">
+                <lucide-icon [name]="ShieldCheckIcon" size="10"></lucide-icon> Requisito Obligatorio
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 shadow-sm">
+            <div class="w-10 h-10 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center flex-shrink-0">
+              <lucide-icon [name]="BriefcaseIcon" size="20"></lucide-icon>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-gray-900 mb-1">Prueba de Trabajo</h4>
+              <p class="text-[10px] text-gray-500 mb-2 leading-relaxed">Certificado laboral o RUC que demuestre tu actividad económica.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Store Catalog -->
@@ -168,12 +216,55 @@ import { AuthService } from '../auth.service';
         </button>
       </div>
     </div>
+
+    <!-- MODAL SOLICITAR CRÉDITO -->
+    <div *ngIf="modalCreditoAbierto()" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div class="bg-white w-full max-w-md rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+          <h3 class="font-black text-gray-900 text-sm uppercase">Solicitar Crédito</h3>
+          <button (click)="modalCreditoAbierto.set(false)" class="text-gray-400 hover:text-gray-900 transition-colors w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full"><lucide-icon [name]="CloseIcon" size="18"></lucide-icon></button>
+        </div>
+
+        <div class="p-6 space-y-4 overflow-y-auto">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Monto Solicitado ($)</label>
+            <input type="number" [(ngModel)]="solicitudForm.monto" placeholder="Ej: 500" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Plazo de Pago (Meses)</label>
+            <select [(ngModel)]="solicitudForm.plazo" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all appearance-none">
+              <option [value]="1">1 Mes</option>
+              <option [value]="3">3 Meses</option>
+              <option [value]="6">6 Meses</option>
+              <option [value]="12">12 Meses</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Tus Ingresos Mensuales ($)</label>
+            <input type="number" [(ngModel)]="solicitudForm.ingresos" placeholder="Ej: 800" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#E8541C] outline-none transition-all" />
+          </div>
+          <div class="p-4 bg-orange-50 border border-orange-100 rounded-2xl">
+            <p class="text-[10px] font-medium text-orange-800 leading-relaxed text-center">La ferretería se pondrá en contacto contigo para pedirte copias de tu cédula y certificado laboral en caso de pre-aprobar el crédito.</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-white border-t border-gray-100">
+          <button (click)="enviarSolicitudCredito()" [disabled]="enviandoSolicitud()" class="w-full bg-[#E8541C] text-white py-4 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-orange-200 flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <span *ngIf="enviandoSolicitud()" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            Enviar Solicitud
+          </button>
+        </div>
+      </div>
+    </div>
+
   `
 })
 export class StoreDetailViewComponent {
   protected storeService = inject(StoreService);
   protected chatService = inject(ChatService);
   protected authService = inject(AuthService);
+  protected supabaseService = inject(SupabaseService);
   
   readonly BackIcon = ArrowLeft;
   readonly PinIcon = MapPin;
@@ -184,10 +275,19 @@ export class StoreDetailViewComponent {
   readonly NavIcon = Navigation;
   readonly CloseIcon = X;
   readonly SendIcon = Send;
+  readonly DollarSignIcon = DollarSign;
+  readonly ShieldCheckIcon = ShieldCheck;
+  readonly BriefcaseIcon = Briefcase;
+  readonly FileTextIcon = FileText;
 
   chatAbierto = signal(false);
   nuevoMensaje = '';
   currentChatId: string | null = null;
+
+  modalCreditoAbierto = signal(false);
+  enviandoSolicitud = signal(false);
+  solicitudForm = { monto: null, plazo: 6, ingresos: null };
+  storeParaCredito: any = null;
 
   callStore(phone: string) {
     if (!phone) return;
@@ -264,4 +364,34 @@ export class StoreDetailViewComponent {
       return '';
     }
   }
+
+  abrirModalCredito(store: any) {
+    const user = this.authService.user();
+    if (!user || !user.id) {
+      alert('Para solicitar crédito necesitas estar registrado y haber iniciado sesión como Cliente.');
+      return;
+    }
+    this.storeParaCredito = store;
+    this.modalCreditoAbierto.set(true);
+  }
+
+  async enviarSolicitudCredito() {
+    if (!this.solicitudForm.monto || !this.solicitudForm.ingresos) {
+      alert('Por favor, llena los montos solicitados y tus ingresos.');
+      return;
+    }
+    this.enviandoSolicitud.set(true);
+    try {
+      const tiendaId = Number(this.storeParaCredito.id) || 1;
+      await this.supabaseService.solicitarCredito(tiendaId, this.solicitudForm.monto, this.solicitudForm.plazo, this.solicitudForm.ingresos);
+      alert('✅ Tu solicitud de crédito ha sido enviada a la ferretería. Se pondrán en contacto contigo.');
+      this.modalCreditoAbierto.set(false);
+    } catch (e) {
+      console.error(e);
+      alert('Error enviando la solicitud. Intenta nuevamente.');
+    } finally {
+      this.enviandoSolicitud.set(false);
+    }
+  }
+
 }

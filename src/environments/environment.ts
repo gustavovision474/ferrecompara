@@ -6,7 +6,7 @@ export const environment = {
   },
   get apiUrl() {
     if (import.meta.env.PROD) {
-      return 'https://segment-village-recycler.ngrok-free.dev/api';
+      return 'https://ferrecompara-backend.onrender.com/api';
     }
     return `http://${window.location.hostname}:5132/api`;
   }

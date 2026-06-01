@@ -4,5 +4,5 @@ export const environment = {
     url: 'https://qvglqtwjohwjvwyisrbj.supabase.co',
     publishableKey: 'sb_publishable_glKNUZbVYDLsIpbFVvjjMg_A7cylBiT'
   },
-  apiUrl: 'https://segment-village-recycler.ngrok-free.dev/api'
+  apiUrl: 'https://ferrecompara-backend.onrender.com/api'
 };

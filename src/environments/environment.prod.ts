@@ -4,5 +4,5 @@ export const environment = {
     url: 'https://qvglqtwjohwjvwyisrbj.supabase.co',
     publishableKey: 'sb_publishable_glKNUZbVYDLsIpbFVvjjMg_A7cylBiT'
   },
-  apiUrl: 'https://b48fa1b1319bbd.lhr.life/api'
+  apiUrl: 'https://2b46e984fecc80.lhr.life/api'
 };

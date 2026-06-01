@@ -6,7 +6,7 @@ export const environment = {
   },
   get apiUrl() {
     if (import.meta.env.PROD) {
-      return 'https://lazy-rattlesnake-24.loca.lt/api';
+      return 'https://6a5c88239ea6b6.lhr.life/api';
     }
     return `http://${window.location.hostname}:5132/api`;
   }

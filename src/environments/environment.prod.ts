@@ -4,5 +4,5 @@ export const environment = {
     url: 'https://qvglqtwjohwjvwyisrbj.supabase.co',
     publishableKey: 'sb_publishable_glKNUZbVYDLsIpbFVvjjMg_A7cylBiT'
   },
-  apiUrl: 'https://lazy-rattlesnake-24.loca.lt/api'
+  apiUrl: 'https://6a5c88239ea6b6.lhr.life/api'
 };

@@ -11,6 +11,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  const baseReq = req.clone({
+    headers: req.headers.set('bypass-tunnel-reminder', 'true')
+  });
+
   const supabaseService = inject(SupabaseService);
   const client = supabaseService.getClient();
 
@@ -24,15 +28,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         
         console.log('📡 Enviando petición con Token Fresco (inicia con):', cleanToken.substring(0, 10) + '...');
         
-        const authReq = req.clone({
-          headers: req.headers.set('Authorization', `Bearer ${cleanToken}`)
+        const authReq = baseReq.clone({
+          headers: baseReq.headers.set('Authorization', `Bearer ${cleanToken}`)
         });
         
         return next(authReq);
       }
 
       console.warn('⚠️ No se encontró token activo en la sesión para:', req.url);
-      return next(req);
+      return next(baseReq);
     })
   );
 };

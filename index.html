@@ -3,11 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FerreExpress — Compara Precios de Ferretería</title>
+    <title>FerreExpress</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1e293b" />
+    <link rel="apple-touch-icon" href="/assets/images/ferrecompara-logo.png" />
   </head>
   <body>
+    <div id="error-overlay" style="color: red; font-family: monospace; background: #fff; position: absolute; z-index: 999999; padding: 20px; word-break: break-all; top: 0; left: 0; display: none;"></div>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        alert('ERROR JS: ' + message + '\nLinea: ' + lineno);
+        var el = document.getElementById('error-overlay');
+        if (el) {
+          el.style.display = 'block';
+          el.innerHTML += '<p><strong>Error:</strong> ' + message + '<br/>' + source + ':' + lineno + ':' + colno + '<br/>' + (error ? error.stack : '') + '</p>';
+        }
+      };
+      window.onunhandledrejection = function(event) {
+        alert('Unhandled Promise: ' + event.reason);
+        var el = document.getElementById('error-overlay');
+        if (el) {
+          el.style.display = 'block';
+          el.innerHTML += '<p><strong>Unhandled Rejection:</strong> ' + event.reason + '</p>';
+        }
+      };
+    </script>
     <app-root></app-root>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
   </body>
 </html>
 

@@ -1262,14 +1262,24 @@ export class SupabaseService {
   // EXPERTOS
   // ─────────────────────────────────────────────
   async getExpertos(tiendaId?: number | string): Promise<any[]> {
+    const isDemo = localStorage.getItem('ferrecompara_demo_session') !== null;
+    if (isDemo) {
+      return this.obtenerExpertosDemo(tiendaId);
+    }
     try {
       let query = this.supabaseClient.from('expertos').select('*, tiendas(nombre)');
       if (tiendaId) {
         query = query.eq('tienda_id', tiendaId);
       }
-      const { data, error } = await query.order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
-        return data;
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout expertos Supabase')), 2500)
+      );
+      const res: any = await Promise.race([
+        query.order('created_at', { ascending: false }),
+        timeoutPromise
+      ]);
+      if (!res.error && res.data && res.data.length > 0) {
+        return res.data;
       }
     } catch (error) {
       console.warn('Error fetching expertos Supabase, usando demo:', error);

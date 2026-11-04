@@ -1519,14 +1519,20 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   chatActual = signal<ChatConversation | null>(null);
   mensajeRespuesta = '';
 
-  carteraCredito = signal<any>(null);
+  carteraCredito = signal<any>(
+    localStorage.getItem('ferrecompara_demo_session') === 'tienda' ? this.supabase.obtenerCarteraCreditoDemo() : null
+  );
   configCreditoEdit = { tasa_interes_mensual: 2.5, monto_maximo_credito: 5000, plazo_maximo_meses: 12 };
   guardandoConfigCredito = signal(false);
-  todasSolicitudes = signal<any[]>([]);
+  todasSolicitudes = signal<any[]>(
+    localStorage.getItem('ferrecompara_demo_session') === 'tienda' ? this.supabase.obtenerSolicitudesTiendaDemo() : []
+  );
   modalAprobarCreditoData: any = null;
   aprobandoCredito = signal(false);
 
-  misExpertos = signal<any[]>([]);
+  misExpertos = signal<any[]>(
+    localStorage.getItem('ferrecompara_demo_session') === 'tienda' ? this.supabase.obtenerExpertosDemo('1') : []
+  );
   mostrarAgregarExperto = signal(false);
   expertoEnEdicionId = signal<string | null>(null);
   guardandoExperto = signal(false);
@@ -2566,11 +2572,21 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   async cargarExpertos() {
     try {
       const shop = this.auth.profile();
-      if (!shop || !shop.tienda_id) return;
+      if (!shop || !shop.tienda_id) {
+        if (this.auth.isDemo()) {
+          this.misExpertos.set(this.supabase.obtenerExpertosDemo('1'));
+        }
+        return;
+      }
+      if (this.auth.isDemo()) {
+        this.misExpertos.set(this.supabase.obtenerExpertosDemo(shop.tienda_id));
+        return;
+      }
       const expertos = await this.supabase.getExpertos(shop.tienda_id);
-      this.misExpertos.set(expertos);
+      this.misExpertos.set(expertos && expertos.length > 0 ? expertos : this.supabase.obtenerExpertosDemo(shop.tienda_id));
     } catch (e) {
       console.error('Error cargando expertos', e);
+      this.misExpertos.set(this.supabase.obtenerExpertosDemo('1'));
     }
   }
   abrirModalNuevoExperto() {

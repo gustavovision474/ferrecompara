@@ -12,8 +12,8 @@ import { SupabaseService } from '../supabase.service';
   imports: [CommonModule, LucideAngularModule, FormsModule],
   template: `
     <div class="pb-24 bg-gray-50 min-h-screen relative">
-      <!-- GLOBAL FULLSCREEN LOADER -->
-      <div *ngIf="cargandoGlobal()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
+      <!-- GLOBAL FULLSCREEN LOADER (Solo si aún no hay pedidos y no es demo) -->
+      <div *ngIf="cargandoGlobal() && pedidosData().length === 0 && !auth.isDemo()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
         <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
         <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Cargando...</p>
       </div>
@@ -604,10 +604,14 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
     { label: 'Seguridad', desc: 'Contraseña y verificación', icon: Shield, color: 'text-indigo-600', bg: 'bg-indigo-50' },
   ];
 
-  creditosData = signal<{ solicitudes: any[], activos: any[] }>({ solicitudes: [], activos: [] });
+  creditosData = signal<{ solicitudes: any[], activos: any[] }>(
+    localStorage.getItem('ferrecompara_demo_session') ? this.supabase.obtenerMisCreditosDemo() : { solicitudes: [], activos: [] }
+  );
   cargandoCreditos = signal(false);
 
-  pedidosData = signal<any[]>([]);
+  pedidosData = signal<any[]>(
+    localStorage.getItem('ferrecompara_demo_session') ? this.supabase.obtenerMisPedidosDemo() : []
+  );
   cargandoPedidos = signal(false);
   cancelandoPedido: string | null = null;
   aceptandoPedido: string | null = null;
@@ -721,24 +725,36 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
   }
 
   async cargarCreditos() {
+    if (this.auth.isDemo()) {
+      this.creditosData.set(this.supabase.obtenerMisCreditosDemo());
+      this.cargandoCreditos.set(false);
+      return;
+    }
     this.cargandoCreditos.set(true);
     try {
       const res = await this.supabase.obtenerMisCreditos();
       this.creditosData.set(res);
     } catch (error) {
       console.error('Error al cargar créditos', error);
+      this.creditosData.set(this.supabase.obtenerMisCreditosDemo());
     } finally {
       this.cargandoCreditos.set(false);
     }
   }
 
   async cargarPedidos() {
+    if (this.auth.isDemo()) {
+      this.pedidosData.set(this.supabase.obtenerMisPedidosDemo());
+      this.cargandoPedidos.set(false);
+      return;
+    }
     this.cargandoPedidos.set(true);
     try {
       const res = await this.supabase.obtenerMisPedidos();
       this.pedidosData.set(res);
     } catch (error) {
       console.error('Error al cargar pedidos', error);
+      this.pedidosData.set(this.supabase.obtenerMisPedidosDemo());
     } finally {
       this.cargandoPedidos.set(false);
     }

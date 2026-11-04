@@ -17,6 +17,7 @@ import { StoreService } from '../store.service';
         <img 
           [src]="product.image" 
           [alt]="product.name"
+          (error)="$any($event.target).src='https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=600&auto=format&fit=crop'"
           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
         />
         

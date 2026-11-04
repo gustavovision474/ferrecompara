@@ -38,7 +38,7 @@ import { SupabaseService } from '../supabase.service';
           <div class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex gap-4">
               <div class="relative">
-                <img [src]="expert.foto_url || 'https://images.unsplash.com/photo-1540560085022-730894593bc1?auto=format&fit=crop&q=80&w=200'" class="w-16 h-16 rounded-2xl object-cover" />
+                <img [src]="expert.foto_url || 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=300&auto=format&fit=crop'" (error)="$any($event.target).src='https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=300&auto=format&fit=crop'" class="w-16 h-16 rounded-2xl object-cover" />
                 @if (expert.activo || expert.verificado) {
                   <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
                     <lucide-icon [name]="CheckIcon" size="14" class="text-blue-500 fill-current"></lucide-icon>
@@ -127,50 +127,11 @@ export class ExpertsViewComponent implements OnInit {
     this.cargando.set(true);
     try {
       const data = await this.supabase.getExpertos();
-      if (data && data.length > 0) {
-        this.expertos.set(data);
-      } else {
-        this.expertos.set(this.obtenerExpertosDemo());
-      }
+      this.expertos.set(data && data.length > 0 ? data : this.supabase.obtenerExpertosDemo());
     } catch (e) {
-      this.expertos.set(this.obtenerExpertosDemo());
+      this.expertos.set(this.supabase.obtenerExpertosDemo());
     } finally {
       this.cargando.set(false);
     }
-  }
-
-  obtenerExpertosDemo(): any[] {
-    return [
-      {
-        id: 1,
-        nombre: 'Carlos Mendoza',
-        profesion: 'Albañil',
-        telefono: '0987654321',
-        bio: 'Especialista en estructuras de hormigón armado, encofrados y mampostería con más de 12 años de experiencia.',
-        rating: 4.9,
-        reviews: 42,
-        foto_url: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=200&auto=format&fit=crop'
-      },
-      {
-        id: 2,
-        nombre: 'Miguel Ángel Zambrano',
-        profesion: 'Electricista',
-        telefono: '0991122334',
-        bio: 'Instalaciones eléctricas residenciales e industriales, tableros de control y certificación SEC.',
-        rating: 4.8,
-        reviews: 35,
-        foto_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop'
-      },
-      {
-        id: 3,
-        nombre: 'Luis Alberto Vera',
-        profesion: 'Plomero',
-        telefono: '0955443322',
-        bio: 'Redes de agua potable, bombas de presión, desagües sanitarios y detección de fugas no destructiva.',
-        rating: 4.7,
-        reviews: 28,
-        foto_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop'
-      }
-    ];
   }
 }

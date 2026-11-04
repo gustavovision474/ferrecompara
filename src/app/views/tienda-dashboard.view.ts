@@ -259,7 +259,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <div *ngIf="misExpertos().length > 0" class="space-y-4">
             <div *ngFor="let ex of misExpertos()" class="bg-white border border-gray-200 rounded-3xl p-5 shadow-sm flex gap-4">
               <div class="w-16 h-16 rounded-2xl object-cover bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                <img *ngIf="ex.foto_url" [src]="ex.foto_url" class="w-full h-full object-cover" (error)="$any($event.target).style.display='none'" />
+                <img *ngIf="ex.foto_url" [src]="ex.foto_url" class="w-full h-full object-cover" (error)="$any($event.target).src='https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=300&auto=format&fit=crop'" />
                 <span *ngIf="!ex.foto_url" class="text-2xl font-black text-gray-400">{{ ex.nombre?.charAt(0)?.toUpperCase() }}</span>
               </div>
               <div class="flex-1">

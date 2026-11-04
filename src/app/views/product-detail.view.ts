@@ -25,7 +25,7 @@ import { CartService } from '../cart.service';
         <!-- Product Hero Image -->
         <div class="px-6 py-6">
           <div class="bg-gray-50 rounded-[40px] p-8 flex items-center justify-center relative overflow-hidden group">
-            <img [src]="product.image" class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-700" />
+            <img [src]="product.image" (error)="$any($event.target).src='https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=600&auto=format&fit=crop'" class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-700" />
             <div class="absolute top-4 left-4 flex flex-col gap-2">
               <span class="px-3 py-1 bg-white/90 backdrop-blur-sm text-[9px] font-black uppercase rounded-full shadow-sm">Construcción</span>
               <span class="px-3 py-1 bg-[#E8541C] text-white text-[9px] font-black uppercase rounded-full shadow-md">{{ product.category }}</span>

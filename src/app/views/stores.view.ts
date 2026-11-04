@@ -84,7 +84,7 @@ import { StoreService } from '../store.service';
             class="bg-white border border-gray-100 rounded-[32px] p-5 shadow-sm hover:shadow-md hover:border-orange-200 transition-all group cursor-pointer relative mb-4"
           >
             <div class="flex gap-4">
-              <img [src]="item.image" class="w-20 h-20 rounded-2xl object-cover shadow-sm border border-gray-50 shrink-0" />
+              <img [src]="item.image" (error)="$any($event.target).src='https://images.unsplash.com/photo-1513467655676-561b7d489a88?q=80&w=600&auto=format&fit=crop'" class="w-20 h-20 rounded-2xl object-cover shadow-sm border border-gray-50 shrink-0" />
               
               <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-start gap-2">

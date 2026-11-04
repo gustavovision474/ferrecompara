@@ -634,6 +634,24 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
         console.error('Error parseando direcciones locales', e);
       }
     }
+    if (this.direccionesGuardadas().length === 0) {
+      const defaultDirs = [
+        {
+          calle: 'Av. Reales Tamarindos y Paulo Emilio Macías',
+          referencia: 'Edificio Los Almendros, Dpto 3B (Portoviejo)',
+          lat: -1.0545,
+          lng: -80.4545
+        },
+        {
+          calle: 'Obra Residencial Los Ceibos, Manzana 4 Villa 12',
+          referencia: 'Frente al parque infantil, Portoviejo',
+          lat: -1.0580,
+          lng: -80.4590
+        }
+      ];
+      this.direccionesGuardadas.set(defaultDirs);
+      localStorage.setItem('ferrecompara_direcciones', JSON.stringify(defaultDirs));
+    }
   }
 
   ngOnDestroy() {

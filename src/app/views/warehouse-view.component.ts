@@ -32,7 +32,21 @@ import {
   Calendar,
   Tag,
   FileText,
-  Layers
+  Layers,
+  Building2,
+  ShoppingCart,
+  PackageOpen,
+  Pencil,
+  History,
+  TrendingUp,
+  TrendingDown,
+  Calculator,
+  ShieldCheck,
+  Building,
+  ExternalLink,
+  ZoomIn,
+  Receipt,
+  Filter
 } from 'lucide-angular';
 import { WarehouseService } from '../warehouse.service';
 import {
@@ -395,7 +409,7 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
           <div *ngIf="inventarioSubTab() === 'herramientas'" class="space-y-4">
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div *ngFor="let tool of filteredTools()" 
+              <div *ngFor="let tool of inventarioFilteredTools()" 
                    class="bg-white border border-gray-200 hover:border-orange-300 rounded-2xl p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group">
                 
                 <div>
@@ -582,7 +596,7 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
 
           <!-- LISTA DE PRÉSTAMOS -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div *ngFor="let loan of filteredLoans()" 
+            <div *ngFor="let loan of prestamosFilteredLoans()" 
                  class="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between"
                  [class.border-red-300]="loan.status === 'overdue'"
                  [class.border-gray-200]="loan.status !== 'overdue'">
@@ -846,125 +860,888 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
         <!-- ==================================================== -->
         <!-- TAB 6: TABLAS RÁPIDAS (EXCEL SPREADSHEET VIEW)       -->
         <!-- ==================================================== -->
-        <div *ngIf="currentTab() === 'tablas'" class="space-y-4">
+        <div *ngIf="currentTab() === 'tablas'" class="space-y-4 animate-in fade-in">
           
-          <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <!-- Header Superior -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-4">
             <div>
               <div class="flex items-center gap-2">
-                <lucide-icon [name]="FileSpreadsheetIcon" size="20" class="text-emerald-600"></lucide-icon>
-                <h2 class="text-sm font-black text-gray-900 uppercase tracking-wider">
-                  Vista Hoja de Cálculo / Tablas Masivas
-                </h2>
+                <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <lucide-icon [name]="FileSpreadsheetIcon" size="20"></lucide-icon>
+                </span>
+                <h1 class="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight">
+                  Tablas del Sistema
+                </h1>
               </div>
-              <p class="text-xs text-gray-500 mt-0.5">Auditoría rápida y exportación de datos del almacén en CSV</p>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Registro dividido por materiales, ferreterías, compras, herramientas y saldos contables
+              </p>
             </div>
 
-            <div class="flex items-center gap-2 flex-wrap">
-              <button 
-                *ngFor="let s of spreadsheetTabs"
-                (click)="setSpreadsheetSheet(s)"
-                [class]="spreadsheetSheet() === s ? 'bg-emerald-600 text-white font-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold'"
-                class="px-3 py-1.5 rounded-xl text-xs capitalize transition cursor-pointer"
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                (click)="abrirModalNuevaCompra()"
+                class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 transition cursor-pointer"
+                title="Registrar una nueva compra o factura con IA"
               >
-                {{ s }}
+                <lucide-icon [name]="PlusIcon" size="16"></lucide-icon>
+                <span>Agregar Compra</span>
               </button>
-
-              <button 
-                (click)="descargarCsvActual()" 
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-black text-white text-xs font-bold transition shadow-sm cursor-pointer ml-2"
+              <button
+                type="button"
+                (click)="exportCurrentSheetCsv()"
+                class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer"
+                title="Descargar datos en archivo (.csv)"
               >
-                <lucide-icon [name]="DownloadIcon" size="14"></lucide-icon>
-                <span>Descargar CSV</span>
+                <lucide-icon [name]="DownloadIcon" size="16"></lucide-icon>
+                <span>Exportar Tabla (.csv)</span>
               </button>
             </div>
           </div>
 
-          <!-- TABLA DILIGENTE ESTILO EXCEL -->
-          <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-            <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
-              
-              <!-- HOJA: MATERIALES -->
-              <table *ngIf="spreadsheetSheet() === 'materiales'" class="w-full text-left text-xs">
-                <thead class="bg-gray-100 text-gray-600 font-black uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-gray-200">
-                  <tr>
-                    <th class="py-2.5 px-3">ID</th>
-                    <th class="py-2.5 px-3">Material / Consumible</th>
-                    <th class="py-2.5 px-3">Categoría</th>
-                    <th class="py-2.5 px-3">Stock Actual</th>
-                    <th class="py-2.5 px-3">Unidad</th>
-                    <th class="py-2.5 px-3">Costo Unit.</th>
-                    <th class="py-2.5 px-3">Valor Total</th>
-                    <th class="py-2.5 px-3">Bodega</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 font-mono text-[11px]">
-                  <tr *ngFor="let c of service.consumables()" class="hover:bg-amber-50/50 transition">
-                    <td class="py-2 px-3 text-gray-400">{{ c.id }}</td>
-                    <td class="py-2 px-3 font-bold text-gray-900 font-sans">{{ c.name }}</td>
-                    <td class="py-2 px-3 text-gray-500 font-sans">{{ c.category }}</td>
-                    <td class="py-2 px-3 font-bold" [class.text-amber-600]="c.is_low_stock">{{ c.stock_quantity }}</td>
-                    <td class="py-2 px-3 text-gray-500">{{ c.unit }}</td>
-                    <td class="py-2 px-3 text-emerald-600">\${{ c.unit_cost | number:'1.2-2' }}</td>
-                    <td class="py-2 px-3 font-bold text-gray-900">\${{ (c.stock_quantity * c.unit_cost) | number:'1.2-2' }}</td>
-                    <td class="py-2 px-3 text-gray-500 font-sans">{{ c.warehouse_name }}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- Selector de Pestañas / Hojas de Cálculo (Estilo Pestañas de Excel) -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-zinc-200 dark:border-zinc-800 scrollbar-thin">
+            <button
+              *ngFor="let tab of spreadsheetSheetsList"
+              type="button"
+              (click)="setSpreadsheetSheet(tab.id)"
+              [class]="spreadsheetSheet() === tab.id
+                ? 'bg-emerald-500 text-white font-bold shadow-sm shadow-emerald-500/25'
+                : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 font-semibold'"
+              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs transition shrink-0 cursor-pointer"
+            >
+              <lucide-icon [name]="tab.icon" size="14"></lucide-icon>
+              <span>{{ tab.label }}</span>
+              <span 
+                [class]="spreadsheetSheet() === tab.id 
+                  ? 'bg-black/20 text-white font-extrabold' 
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-semibold'"
+                class="text-[10px] px-1.5 py-0.5 rounded-full"
+              >
+                {{ tab.count }}
+              </span>
+            </button>
+          </div>
 
-              <!-- HOJA: HERRAMIENTAS -->
-              <table *ngIf="spreadsheetSheet() === 'herramientas'" class="w-full text-left text-xs">
-                <thead class="bg-gray-100 text-gray-600 font-black uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-gray-200">
-                  <tr>
-                    <th class="py-2.5 px-3">ID</th>
-                    <th class="py-2.5 px-3">Herramienta</th>
-                    <th class="py-2.5 px-3">Marca / Modelo</th>
-                    <th class="py-2.5 px-3">Total</th>
-                    <th class="py-2.5 px-3">Disponibles</th>
-                    <th class="py-2.5 px-3">Condición</th>
-                    <th class="py-2.5 px-3">Costo Compra</th>
-                    <th class="py-2.5 px-3">Ubicación</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 font-mono text-[11px]">
-                  <tr *ngFor="let t of service.tools()" class="hover:bg-orange-50/50 transition">
-                    <td class="py-2 px-3 text-gray-400">{{ t.id }}</td>
-                    <td class="py-2 px-3 font-bold text-gray-900 font-sans">{{ t.name }}</td>
-                    <td class="py-2 px-3 text-gray-500 font-sans">{{ t.brand }} {{ t.model || '' }}</td>
-                    <td class="py-2 px-3 font-bold">{{ t.total_quantity }}</td>
-                    <td class="py-2 px-3 font-bold text-emerald-600">{{ t.available_quantity }}</td>
-                    <td class="py-2 px-3 font-sans capitalize">{{ t.condition }}</td>
-                    <td class="py-2 px-3">\${{ t.purchase_price || 0 }}</td>
-                    <td class="py-2 px-3 text-gray-500 font-sans">{{ t.warehouse_name }}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- Barra de Filtros y Búsqueda -->
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+              <lucide-icon [name]="SearchIcon" size="16" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400"></lucide-icon>
+              <input
+                type="text"
+                [placeholder]="getSpreadsheetSearchPlaceholder()"
+                [ngModel]="spreadsheetSearchTerm()"
+                (ngModelChange)="spreadsheetSearchTerm.set($event)"
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs sm:text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-emerald-500 transition shadow-sm"
+              />
+            </div>
 
-              <!-- HOJA: PRÉSTAMOS -->
-              <table *ngIf="spreadsheetSheet() === 'prestamos'" class="w-full text-left text-xs">
-                <thead class="bg-gray-100 text-gray-600 font-black uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-gray-200">
-                  <tr>
-                    <th class="py-2.5 px-3">Herramienta</th>
-                    <th class="py-2.5 px-3">Prestatario (Experto / Cliente)</th>
-                    <th class="py-2.5 px-3">Cant.</th>
-                    <th class="py-2.5 px-3">Fecha Salida</th>
-                    <th class="py-2.5 px-3">Fecha Límite</th>
-                    <th class="py-2.5 px-3">Estado</th>
-                    <th class="py-2.5 px-3">Destino / Obra</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 font-mono text-[11px]">
-                  <tr *ngFor="let l of service.loans()" class="hover:bg-purple-50/50 transition">
-                    <td class="py-2 px-3 font-bold text-gray-900 font-sans">{{ l.tool_name }}</td>
-                    <td class="py-2 px-3 font-sans">{{ l.contact_name }} ({{ l.contact_role }})</td>
-                    <td class="py-2 px-3 font-bold">{{ l.quantity }}</td>
-                    <td class="py-2 px-3">{{ l.loan_date }}</td>
-                    <td class="py-2 px-3">{{ l.due_date || 'N/A' }}</td>
-                    <td class="py-2 px-3 font-sans capitalize font-bold">{{ l.status }}</td>
-                    <td class="py-2 px-3 font-sans text-gray-500">{{ l.destination_location }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <!-- Filtro por almacén -->
+            <select
+              *ngIf="spreadsheetSheet() !== 'suppliers'"
+              [ngModel]="spreadsheetWarehouse()"
+              (ngModelChange)="spreadsheetWarehouse.set($event)"
+              class="px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-emerald-500 shrink-0 shadow-sm"
+            >
+              <option value="all">Todos los Almacenes</option>
+              <option *ngFor="let w of service.warehouses()" [value]="w.id.toString()">
+                {{ w.name }} {{ w.code ? '(' + w.code + ')' : '' }}
+              </option>
+            </select>
+          </div>
 
+          <!-- ======================================================== -->
+          <!-- HOJA 1: MATERIALES Y CONSUMIBLES                         -->
+          <!-- ======================================================== -->
+          <div *ngIf="spreadsheetSheet() === 'materials'" class="space-y-3">
+            <!-- Tarjetas KPI Superiores -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Materiales Distintos</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ filteredMaterials().length }}</p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Unidades en Existencia</span>
+                <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  {{ getMaterialsUnitsTotal() | number:'1.1-1' }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Valor Total Invertido</span>
+                <p class="text-lg font-black text-orange-600 dark:text-orange-400">
+                  \${{ getMaterialsValueTotal() | number:'1.2-2' }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Alertas de Bajo Stock</span>
+                <p class="text-lg font-black text-red-500">
+                  {{ getMaterialsLowStockCount() }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Tabla Excel -->
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-zinc-200 dark:border-zinc-700">
+                    <tr>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Material / Insumo</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Proveedor / Ferretería</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">N° Factura</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Fecha Compra</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Categoría</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Almacén</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Ubicación</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Stock</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center">Unidad</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Costo Promedio</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Valor Total</th>
+                      <th class="px-3.5 py-2.5 text-center border-r border-zinc-200 dark:border-zinc-700">Estado</th>
+                      <th class="px-3.5 py-2.5 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono">
+                    <tr *ngFor="let m of filteredMaterials()" class="hover:bg-emerald-500/5 transition">
+                      <!-- Material / Insumo -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans font-bold text-zinc-900 dark:text-white">
+                        <div class="flex flex-col">
+                          <span>{{ m.name }}</span>
+                          <span *ngIf="m.barcode" class="text-[10px] font-mono text-zinc-400 font-normal">{{ m.barcode }}</span>
+                        </div>
+                      </td>
+                      <!-- Proveedor / Ferretería -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            (click)="abrirModalEditarConsumible(m)"
+                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 transition cursor-pointer text-left group"
+                            [title]="'Proveedor: ' + getConsumableMeta(m).supplier"
+                          >
+                            <lucide-icon [name]="Building2Icon" size="12" class="text-emerald-500 shrink-0"></lucide-icon>
+                            <span class="truncate max-w-[130px]">{{ getConsumableMeta(m).supplier }}</span>
+                            <lucide-icon [name]="PencilIcon" size="10" class="opacity-0 group-hover:opacity-100 text-emerald-600 transition"></lucide-icon>
+                          </button>
+                          <button
+                            *ngIf="getConsumableMeta(m).suppliersCount > 1"
+                            type="button"
+                            (click)="abrirHistorialItem(m, 'consumable')"
+                            class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 transition cursor-pointer inline-flex items-center gap-1 shrink-0"
+                            [title]="getConsumableMeta(m).suppliersCount + ' proveedores registrados. Clic para ver historial.'"
+                          >
+                            <lucide-icon [name]="HistoryIcon" size="10"></lucide-icon>
+                            <span>{{ getConsumableMeta(m).suppliersCount }} prov.</span>
+                          </button>
+                        </div>
+                      </td>
+                      <!-- N° Factura -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                        <span *ngIf="getConsumableMeta(m).invoiceNumber" class="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-bold">
+                          {{ getConsumableMeta(m).invoiceNumber }}
+                        </span>
+                        <span *ngIf="!getConsumableMeta(m).invoiceNumber" class="text-zinc-400">—</span>
+                      </td>
+                      <!-- Fecha Compra -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+                        {{ getConsumableMeta(m).purchaseDate || '—' }}
+                      </td>
+                      <!-- Categoría -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ m.category }}
+                      </td>
+                      <!-- Almacén -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ m.warehouse_name || 'Sin almacén' }}
+                      </td>
+                      <!-- Ubicación -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ m.location_name || 'General' }}
+                      </td>
+                      <!-- Stock -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-zinc-900 dark:text-white">
+                        {{ m.stock_quantity | number }}
+                      </td>
+                      <!-- Unidad -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-center uppercase text-zinc-500 font-semibold font-sans">
+                        {{ m.unit }}
+                      </td>
+                      <!-- Costo Promedio -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-sans">
+                        <button
+                          type="button"
+                          (click)="abrirHistorialItem(m, 'consumable')"
+                          class="group inline-flex flex-col items-end text-right hover:opacity-80 transition cursor-pointer w-full"
+                          title="Clic para ver el desglose del Costo Promedio Ponderado (CPP) y comparativa"
+                        >
+                          <div class="flex items-center justify-end gap-1 font-mono font-bold text-zinc-900 dark:text-white">
+                            <span>\${{ m.unit_cost | number:'1.2-2' }}</span>
+                            <lucide-icon [name]="CalculatorIcon" size="10" class="text-zinc-400 group-hover:text-emerald-500 transition"></lucide-icon>
+                          </div>
+                          <div *ngIf="getConsumableMeta(m).previousCost !== null" class="flex items-center gap-1 text-[10px] font-mono mt-0.5">
+                            <span class="text-zinc-400">Ant: \${{ getConsumableMeta(m).previousCost | number:'1.2-2' }}</span>
+                            <span 
+                              *ngIf="getConsumableMeta(m).priceDiff !== null"
+                              [class]="(getConsumableMeta(m).priceDiff || 0) <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
+                              class="font-bold inline-flex items-center"
+                            >
+                              <lucide-icon *ngIf="(getConsumableMeta(m).priceDiff || 0) <= 0" [name]="TrendingDownIcon" size="10"></lucide-icon>
+                              <lucide-icon *ngIf="(getConsumableMeta(m).priceDiff || 0) > 0" [name]="TrendingUpIcon" size="10"></lucide-icon>
+                              <span>{{ (getConsumableMeta(m).priceDiff || 0) > 0 ? '+' : '' }}\${{ getConsumableMeta(m).priceDiff | number:'1.2-2' }}</span>
+                            </span>
+                          </div>
+                        </button>
+                      </td>
+                      <!-- Valor Total -->
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                        \${{ (m.stock_quantity * m.unit_cost) | number:'1.2-2' }}
+                      </td>
+                      <!-- Estado -->
+                      <td class="px-3.5 py-2 text-center font-sans border-r border-zinc-200 dark:border-zinc-800">
+                        <span *ngIf="m.stock_quantity <= m.min_stock_alert" class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/10 text-red-600 border border-red-500/20">
+                          Bajo Stock
+                        </span>
+                        <span *ngIf="m.stock_quantity > m.min_stock_alert" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                          Disponible
+                        </span>
+                      </td>
+                      <!-- Acciones -->
+                      <td class="px-3.5 py-2 text-center font-sans">
+                        <div class="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            (click)="abrirModalEditarConsumible(m)"
+                            class="px-2 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            title="Editar datos y proveedor"
+                          >
+                            <lucide-icon [name]="PencilIcon" size="12" class="text-zinc-500"></lucide-icon>
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="abrirHistorialItem(m, 'consumable')"
+                            class="px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            title="Ver historial de compras y CPP"
+                          >
+                            <lucide-icon [name]="HistoryIcon" size="12"></lucide-icon>
+                            <span>Historial</span>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="abrirModalNuevaCompra({ type: 'consumable', id: m.id })"
+                            class="px-2 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            title="Registrar nueva compra o factura"
+                          >
+                            <lucide-icon [name]="ShoppingCartIcon" size="12"></lucide-icon>
+                            <span>Comprar</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <!-- Fila de Totales Excel -->
+                  <tfoot class="bg-zinc-100 dark:bg-zinc-800 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+                    <tr>
+                      <td colspan="7" class="px-3.5 py-2.5 text-right font-sans text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        TOTALES:
+                      </td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-zinc-900 dark:text-white border-r border-zinc-200 dark:border-zinc-700">
+                        {{ getMaterialsUnitsTotal() | number:'1.0-0' }}
+                      </td>
+                      <td class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700"></td>
+                      <td class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700"></td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-emerald-600 dark:text-emerald-400 border-r border-zinc-200 dark:border-zinc-700">
+                        \${{ getMaterialsValueTotal() | number:'1.2-2' }}
+                      </td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- HOJA 2: FERRETERÍAS Y PROVEEDORES                        -->
+          <!-- ======================================================== -->
+          <div *ngIf="spreadsheetSheet() === 'suppliers'" class="space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Proveedores Registrados</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ filteredSuppliers().length }}</p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Total Facturado en Compras</span>
+                <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  \${{ getSuppliersTotalFacturado() | number:'1.2-2' }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Total Operaciones</span>
+                <p class="text-lg font-black text-orange-600 dark:text-orange-400">
+                  {{ getSuppliersTotalOperations() }} compras
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-zinc-200 dark:border-zinc-700">
+                    <tr>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Ferretería / Razón Social</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 whitespace-nowrap">RUC / Identificación</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Dirección</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 whitespace-nowrap">Teléfono / WhatsApp</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Representante</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 whitespace-nowrap">Condiciones Pago</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center whitespace-nowrap">N° Compras</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right whitespace-nowrap">Total Facturado</th>
+                      <th class="px-3.5 py-2.5 text-center whitespace-nowrap">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-sans">
+                    <tr 
+                      *ngFor="let s of filteredSuppliers()" 
+                      (click)="abrirDetalleProveedor(s)"
+                      class="hover:bg-emerald-500/5 transition cursor-pointer group"
+                    >
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-bold text-zinc-900 dark:text-white flex items-center justify-between">
+                        <span>{{ s.name }}</span>
+                        <span class="text-[10px] text-orange-500 opacity-0 group-hover:opacity-100 transition font-normal hidden sm:inline">
+                          Ver detalle →
+                        </span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-zinc-900 dark:text-white font-semibold whitespace-nowrap">
+                        <span *ngIf="s.tax_id" class="text-orange-600 dark:text-orange-400 font-bold">{{ s.tax_id }}</span>
+                        <span *ngIf="!s.tax_id" class="text-zinc-400 italic text-[11px]">Sin RUC</span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs max-w-[200px] truncate" [title]="s.address || ''">
+                        {{ s.address || '—' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
+                        <a
+                          *ngIf="s.phone"
+                          [href]="'tel:' + s.phone"
+                          (click)="$event.stopPropagation()"
+                          class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+                        >
+                          {{ s.phone }}
+                        </a>
+                        <span *ngIf="!s.phone" class="text-zinc-400 italic text-[11px]">—</span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300">
+                        {{ s.contact_name || '—' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 capitalize text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                        {{ s.payment_terms || 'Contado' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-center font-mono font-bold text-zinc-800 dark:text-zinc-200">
+                        {{ getSupplierStats(s).count }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        \${{ getSupplierStats(s).total | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 text-center whitespace-nowrap" (click)="$event.stopPropagation()">
+                        <div class="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            (click)="abrirDetalleProveedor(s)"
+                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold transition cursor-pointer"
+                            title="Ver historial de facturas del proveedor"
+                          >
+                            <lucide-icon [name]="EyeIcon" size="12"></lucide-icon>
+                            <span>Facturas</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-zinc-100 dark:bg-zinc-800 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+                    <tr>
+                      <td colspan="6" class="px-3.5 py-2.5 text-right font-sans uppercase">TOTAL COMPRAS:</td>
+                      <td class="px-3.5 py-2.5 text-center font-mono border-r border-zinc-200 dark:border-zinc-700">
+                        {{ getSuppliersTotalOperations() }}
+                      </td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-emerald-600 dark:text-emerald-400 border-r border-zinc-200 dark:border-zinc-700">
+                        \${{ getSuppliersTotalFacturado() | number:'1.2-2' }}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- HOJA 3: HERRAMIENTAS Y MAQUINARIA                        -->
+          <!-- ======================================================== -->
+          <div *ngIf="spreadsheetSheet() === 'tools'" class="space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Herramientas</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ filteredTools().length }}</p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Total Unidades</span>
+                <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  {{ getToolsTotalUnits() }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">En Préstamo</span>
+                <p class="text-lg font-black text-orange-500">
+                  {{ getToolsLentUnits() }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Valor Parque Herramientas</span>
+                <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  \${{ getToolsTotalValue() | number:'1.2-2' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-zinc-200 dark:border-zinc-700">
+                    <tr>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Herramienta</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Proveedor / Ferretería</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">N° Factura</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Fecha Compra</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Marca / Modelo</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Categoría</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Almacén</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Ubicación</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Total</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Disp.</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center">Condición</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Precio Unit.</th>
+                      <th class="px-3.5 py-2.5 text-right border-r border-zinc-200 dark:border-zinc-800 whitespace-nowrap">Valor Total</th>
+                      <th class="px-3.5 py-2.5 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono">
+                    <tr *ngFor="let t of filteredTools()" class="hover:bg-emerald-500/5 transition">
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans font-bold text-zinc-900 dark:text-white">
+                        <div class="flex flex-col">
+                          <span>{{ t.name }}</span>
+                          <span *ngIf="t.barcode" class="text-[10px] font-mono text-zinc-400 font-normal">{{ t.barcode }}</span>
+                        </div>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            (click)="abrirModalEditarHerramienta(t)"
+                            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 transition cursor-pointer text-left group"
+                            [title]="'Proveedor: ' + getToolMeta(t).supplier"
+                          >
+                            <lucide-icon [name]="Building2Icon" size="12" class="text-emerald-500 shrink-0"></lucide-icon>
+                            <span class="truncate max-w-[130px]">{{ getToolMeta(t).supplier }}</span>
+                            <lucide-icon [name]="PencilIcon" size="10" class="opacity-0 group-hover:opacity-100 text-emerald-600 transition"></lucide-icon>
+                          </button>
+                        </div>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                        <span *ngIf="getToolMeta(t).invoiceNumber" class="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-bold">
+                          {{ getToolMeta(t).invoiceNumber }}
+                        </span>
+                        <span *ngIf="!getToolMeta(t).invoiceNumber" class="text-zinc-400">—</span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+                        {{ getToolMeta(t).purchaseDate || '—' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ t.brand }} <span *ngIf="t.model">• {{ t.model }}</span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ t.category }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ t.warehouse_name || 'Sin almacén' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ t.location_name || 'Sin asignar' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-zinc-900 dark:text-white">
+                        {{ t.total_quantity }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ t.available_quantity }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-center font-sans capitalize text-zinc-600 dark:text-zinc-400">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+                          {{ t.condition }}
+                        </span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-sans">
+                        <div class="flex items-center justify-end gap-1 font-mono font-bold text-zinc-900 dark:text-white">
+                          <span>\${{ (t.purchase_price || 0) | number:'1.2-2' }}</span>
+                        </div>
+                      </td>
+                      <td class="px-3.5 py-2 text-right font-bold text-emerald-600 dark:text-emerald-400 border-r border-zinc-200 dark:border-zinc-800">
+                        \${{ (t.total_quantity * (t.purchase_price || 0)) | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 text-center font-sans">
+                        <div class="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            (click)="abrirModalEditarHerramienta(t)"
+                            class="px-2 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            title="Editar datos y proveedor"
+                          >
+                            <lucide-icon [name]="PencilIcon" size="12" class="text-zinc-500"></lucide-icon>
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="abrirHistorialItem(t, 'tool')"
+                            class="px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            title="Ver historial de compras"
+                          >
+                            <lucide-icon [name]="HistoryIcon" size="12"></lucide-icon>
+                            <span>Historial</span>
+                          </button>
+                          <button
+                            type="button"
+                            (click)="abrirModalNuevaCompra({ type: 'tool', id: t.id })"
+                            class="px-2 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-[11px] font-bold transition inline-flex items-center gap-1 cursor-pointer"
+                            title="Registrar nueva compra"
+                          >
+                            <lucide-icon [name]="ShoppingCartIcon" size="12"></lucide-icon>
+                            <span>Comprar</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-zinc-100 dark:bg-zinc-800 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+                    <tr>
+                      <td colspan="8" class="px-3.5 py-2.5 text-right font-sans uppercase">TOTALES:</td>
+                      <td class="px-3.5 py-2.5 text-right font-mono border-r border-zinc-200 dark:border-zinc-700">
+                        {{ getToolsTotalUnits() }}
+                      </td>
+                      <td class="px-3.5 py-2.5 text-right font-mono border-r border-zinc-200 dark:border-zinc-700 text-emerald-600">
+                        {{ service.stats().tools.available_units }}
+                      </td>
+                      <td colspan="2" class="border-r border-zinc-200 dark:border-zinc-700"></td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-emerald-600 dark:text-emerald-400 border-r border-zinc-200 dark:border-zinc-700">
+                        \${{ getToolsTotalValue() | number:'1.2-2' }}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- HOJA 4: FACTURAS Y COMPRAS                               -->
+          <!-- ======================================================== -->
+          <div *ngIf="spreadsheetSheet() === 'purchases'" class="space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">N° Facturas / Compras</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ filteredPurchases().length }}</p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Cantidad Total</span>
+                <p class="text-lg font-black text-orange-600 dark:text-orange-400">
+                  {{ getPurchasesQuantityTotal() | number }} <span class="text-xs font-normal text-zinc-400">u.</span>
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Subtotal Neto</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">
+                  \${{ getPurchasesSubtotalTotal() | number:'1.2-2' }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Total IVA Pagado</span>
+                <p class="text-lg font-black text-orange-600 dark:text-orange-400">
+                  +\${{ getPurchasesTaxTotal() | number:'1.2-2' }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl col-span-2 sm:col-span-1">
+                <span class="text-[11px] font-semibold text-zinc-500">Total General Facturado</span>
+                <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  \${{ getPurchasesTotalFacturado() | number:'1.2-2' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-zinc-200 dark:border-zinc-700">
+                    <tr>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 whitespace-nowrap">Factura / Folio</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 whitespace-nowrap">Fecha</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Ferretería / Proveedor</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Artículo Comprado</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Almacén</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Cantidad</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Costo Unit.</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Subtotal</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right whitespace-nowrap">IVA (%)</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right whitespace-nowrap">Monto IVA</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right whitespace-nowrap">Total Factura</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center">Foto Factura</th>
+                      <th class="px-3.5 py-2.5 text-center whitespace-nowrap">Estado / Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono">
+                    <tr *ngFor="let p of filteredPurchases()" class="hover:bg-emerald-500/5 transition">
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-bold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        {{ p.invoice_number || 'S/N' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+                        {{ p.purchase_date }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans font-bold text-zinc-900 dark:text-white">
+                        {{ p.supplier_name }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans font-semibold text-zinc-800 dark:text-zinc-200">
+                        {{ p.item_name }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ p.warehouse_name || 'Bodega Central' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-zinc-900 dark:text-white whitespace-nowrap">
+                        {{ p.quantity | number }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right text-zinc-700 dark:text-zinc-300">
+                        \${{ p.unit_cost | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right text-zinc-700 dark:text-zinc-300">
+                        \${{ p.subtotal_cost | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right text-zinc-500">
+                        {{ p.tax_rate }}%
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-medium text-orange-600 dark:text-orange-400">
+                        +\${{ p.tax_amount | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                        \${{ p.total_cost | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-center font-sans">
+                        <button
+                          *ngIf="p.invoice_image_url"
+                          type="button"
+                          (click)="abrirVisorFactura(p.invoice_image_url, 'Factura ' + (p.invoice_number || 'S/N'), p.supplier_name + ' • ' + p.purchase_date)"
+                          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-[11px] border border-orange-500/30 transition shadow-sm group cursor-pointer"
+                          title="Click para ver comprobante / factura en pantalla completa"
+                        >
+                          <img
+                            [src]="p.invoice_image_url"
+                            alt="Factura"
+                            class="w-5 h-5 rounded object-cover border border-orange-500/30"
+                          />
+                          <span>Ver Foto</span>
+                          <lucide-icon [name]="EyeIcon" size="12" class="group-hover:scale-110 transition"></lucide-icon>
+                        </button>
+                        <span *ngIf="!p.invoice_image_url" class="text-[11px] text-zinc-400 italic">Sin foto</span>
+                      </td>
+                      <td class="px-3.5 py-2 text-center font-sans">
+                        <span 
+                          [class]="p.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20'"
+                          class="px-2 py-0.5 rounded text-[10px] font-bold border"
+                        >
+                          {{ p.payment_status === 'paid' ? 'Pagado' : 'A Crédito' }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-zinc-100 dark:bg-zinc-800 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+                    <tr>
+                      <td colspan="5" class="px-3.5 py-2.5 text-right font-sans uppercase">TOTALES:</td>
+                      <td class="px-3.5 py-2.5 text-right font-mono font-black text-zinc-900 dark:text-white border-r border-zinc-200 dark:border-zinc-700">
+                        {{ getPurchasesQuantityTotal() | number }}
+                      </td>
+                      <td class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center font-mono text-zinc-400 text-xs">—</td>
+                      <td class="px-3.5 py-2.5 text-right font-mono border-r border-zinc-200 dark:border-zinc-700">
+                        \${{ getPurchasesSubtotalTotal() | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center font-mono text-zinc-400 text-xs">—</td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-orange-600 dark:text-orange-400 border-r border-zinc-200 dark:border-zinc-700">
+                        +\${{ getPurchasesTaxTotal() | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-emerald-600 dark:text-emerald-400 border-r border-zinc-200 dark:border-zinc-700">
+                        \${{ getPurchasesTotalFacturado() | number:'1.2-2' }}
+                      </td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- HOJA 5: SALIDAS Y CONSUMOS DE MATERIAL                   -->
+          <!-- ======================================================== -->
+          <div *ngIf="spreadsheetSheet() === 'consumptions'" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Salidas Registradas</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ filteredConsumptions().length }}</p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Valor Total Descontado del Almacén</span>
+                <p class="text-lg font-black text-red-500">
+                  \${{ getConsumptionsTotalValue() | number:'1.2-2' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-zinc-200 dark:border-zinc-700">
+                    <tr>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Fecha</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Material Consumido</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Cantidad</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Costo Unit.</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-right">Valor Total</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Almacén</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Responsable</th>
+                      <th class="px-3.5 py-2.5">Motivo / Proyecto</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono">
+                    <tr *ngFor="let c of filteredConsumptions()" class="hover:bg-emerald-500/5 transition">
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400">
+                        {{ c.consumption_date }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans font-bold text-zinc-900 dark:text-white">
+                        {{ c.consumable_name }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-zinc-900 dark:text-white whitespace-nowrap">
+                        {{ c.quantity | number }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right text-zinc-700 dark:text-zinc-300">
+                        \${{ c.unit_cost | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-right font-bold text-red-500">
+                        \${{ c.total_value | number:'1.2-2' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ c.warehouse_name || 'Bodega Central' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-sans text-zinc-700 dark:text-zinc-300">
+                        {{ c.contact_name || 'General' }}
+                      </td>
+                      <td class="px-3.5 py-2 font-sans text-zinc-600 dark:text-zinc-400">
+                        {{ c.reason || 'Consumo operativo' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-zinc-100 dark:bg-zinc-800 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+                    <tr>
+                      <td colspan="4" class="px-3.5 py-2.5 text-right font-sans uppercase">TOTAL SALIDAS:</td>
+                      <td class="px-3.5 py-2.5 text-right font-mono text-red-500 border-r border-zinc-200 dark:border-zinc-700">
+                        \${{ getConsumptionsTotalValue() | number:'1.2-2' }}
+                      </td>
+                      <td colspan="3"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- HOJA 6: PRÉSTAMOS ACTIVOS                                -->
+          <!-- ======================================================== -->
+          <div *ngIf="spreadsheetSheet() === 'loans'" class="space-y-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Préstamos Totales</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ filteredLoans().length }}</p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Activos en Obra</span>
+                <p class="text-lg font-black text-orange-500">
+                  {{ getLoansActiveCount() }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Vencidos</span>
+                <p class="text-lg font-black text-red-500">
+                  {{ getLoansOverdueCount() }}
+                </p>
+              </div>
+              <div class="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                <span class="text-[11px] font-semibold text-zinc-500">Devueltos</span>
+                <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                  {{ getLoansReturnedCount() }}
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+              <div class="overflow-x-auto max-h-[600px] scrollbar-thin">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-zinc-200 dark:border-zinc-700">
+                    <tr>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Herramienta</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Responsable</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center">Cantidad</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Fecha Préstamo</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700">Fecha Límite</th>
+                      <th class="px-3.5 py-2.5 border-r border-zinc-200 dark:border-zinc-700 text-center">Estado</th>
+                      <th class="px-3.5 py-2.5">Destino / Obra</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-sans">
+                    <tr *ngFor="let l of filteredLoans()" class="hover:bg-emerald-500/5 transition">
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-bold text-zinc-900 dark:text-white">
+                        {{ l.tool_name }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-semibold text-zinc-800 dark:text-zinc-200">
+                        {{ l.contact_name }} <span class="text-xs text-zinc-400 font-normal">({{ l.contact_role }})</span>
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-center font-mono font-bold">
+                        {{ l.quantity }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-zinc-600 dark:text-zinc-400">
+                        {{ l.loan_date }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 font-mono text-zinc-600 dark:text-zinc-400">
+                        {{ l.due_date || '—' }}
+                      </td>
+                      <td class="px-3.5 py-2 border-r border-zinc-200 dark:border-zinc-800 text-center">
+                        <span 
+                          [class]="l.status === 'returned' ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600' : (l.status === 'overdue' ? 'bg-red-500/20 text-red-600 font-extrabold' : 'bg-orange-500/20 text-orange-600 font-bold')"
+                          class="px-2 py-0.5 rounded text-[10px]"
+                        >
+                          {{ l.status === 'returned' ? 'Devuelto' : (l.status === 'overdue' ? 'VENCIDO' : 'Activo') }}
+                        </span>
+                      </td>
+                      <td class="px-3.5 py-2 text-zinc-600 dark:text-zinc-400">
+                        {{ l.destination_location || '—' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-zinc-100 dark:bg-zinc-800 font-bold border-t-2 border-zinc-300 dark:border-zinc-700">
+                    <tr>
+                      <td colspan="2" class="px-3.5 py-2.5 text-right font-sans uppercase">TOTAL PRÉSTAMOS:</td>
+                      <td class="px-3.5 py-2.5 text-center font-mono border-r border-zinc-200 dark:border-zinc-700">
+                        {{ filteredLoans().length }}
+                      </td>
+                      <td colspan="4"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -1342,6 +2119,378 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
         </div>
       </div>
 
+      <!-- ======================================================== -->
+      <!-- MODAL: VISOR DE FOTO / FACTURA EN PANTALLA COMPLETA      -->
+      <!-- ======================================================== -->
+      <div 
+        *ngIf="invoicePreview()"
+        (click)="invoicePreview.set(null)"
+        class="fixed inset-0 z-[80] flex flex-col items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-in fade-in duration-150"
+      >
+        <div 
+          (click)="$event.stopPropagation()"
+          class="w-full max-w-4xl flex items-center justify-between gap-4 mb-3 px-2 z-10"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-orange-400 shrink-0">
+              <lucide-icon [name]="ZoomInIcon" size="16"></lucide-icon>
+            </div>
+            <div class="min-w-0">
+              <h3 *ngIf="invoicePreview()?.title" class="text-sm sm:text-base font-bold text-white truncate leading-tight">
+                {{ invoicePreview()?.title }}
+              </h3>
+              <p *ngIf="invoicePreview()?.subtitle" class="text-xs text-zinc-400 truncate mt-0.5">
+                {{ invoicePreview()?.subtitle }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <a
+              [href]="invoicePreview()?.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Abrir imagen original"
+              class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white transition"
+            >
+              <lucide-icon [name]="ExternalLinkIcon" size="16"></lucide-icon>
+            </a>
+            <button
+              type="button"
+              (click)="invoicePreview.set(null)"
+              title="Cerrar visor"
+              class="p-2 rounded-xl bg-white/10 hover:bg-red-500/80 text-zinc-300 hover:text-white transition cursor-pointer"
+            >
+              <lucide-icon [name]="XIcon" size="20"></lucide-icon>
+            </button>
+          </div>
+        </div>
+
+        <div 
+          (click)="$event.stopPropagation()"
+          class="relative max-w-4xl max-h-[80vh] flex items-center justify-center overflow-hidden rounded-2xl shadow-2xl border border-white/10 bg-black/40"
+        >
+          <img
+            [src]="invoicePreview()?.url"
+            [alt]="invoicePreview()?.title || 'Foto de Factura'"
+            class="max-w-full max-h-[80vh] w-auto h-auto object-contain rounded-xl select-none"
+          />
+        </div>
+
+        <p class="text-[11px] text-zinc-400 mt-3 text-center select-none">
+          Haz clic fuera de la foto o en la cruz para cerrar el visor
+        </p>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- MODAL: HISTORIAL DE PROVEEDORES Y COSTO PROMEDIO (CPP)   -->
+      <!-- ======================================================== -->
+      <div 
+        *ngIf="historyModalItem()"
+        class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
+        (click)="historyModalItem.set(null)"
+      >
+        <div 
+          class="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Header -->
+          <div class="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/60 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                <lucide-icon [name]="HistoryIcon" size="20"></lucide-icon>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-base sm:text-lg font-bold text-zinc-900 dark:text-white leading-tight">
+                    Historial de Proveedores y Precios
+                  </h2>
+                  <span *ngIf="historyModalItem()?.item?.barcode" class="px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-mono text-[11px] font-semibold border border-zinc-200 dark:border-zinc-700">
+                    Cód: {{ historyModalItem()?.item?.barcode }}
+                  </span>
+                </div>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
+                  <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ historyModalItem()?.item?.name }}</span>
+                  <span>•</span>
+                  <span><b>{{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).suppliersCount }}</b> proveedores registrados</span>
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="historyModalItem.set(null)"
+              class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+            >
+              <lucide-icon [name]="XIcon" size="20"></lucide-icon>
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+            <!-- Comparativa CPP -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-orange-500/5 via-amber-500/5 to-transparent border border-orange-500/20">
+              <div class="flex items-center justify-between mb-3.5">
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
+                  <lucide-icon [name]="CalculatorIcon" size="14"></lucide-icon>
+                  <span>Cálculo y Comparativa de Costo Promedio (CPP)</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium">
+                  Ponderado en Bodega
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <!-- Proveedor Actual -->
+                <div class="p-3.5 rounded-xl bg-white dark:bg-black/40 border border-zinc-200 dark:border-zinc-800">
+                  <div class="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
+                    <span>Último Proveedor</span>
+                    <span class="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                      Actual
+                    </span>
+                  </div>
+                  <div class="font-bold text-sm text-zinc-900 dark:text-white truncate">
+                    {{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).currentSupplier }}
+                  </div>
+                  <div class="mt-1 flex items-baseline gap-1">
+                    <span class="text-base font-extrabold text-zinc-900 dark:text-white">
+                      \${{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).currentCost | number:'1.2-2' }}
+                    </span>
+                    <span class="text-xs text-zinc-400 font-normal">/ {{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).unit }}</span>
+                  </div>
+                </div>
+
+                <!-- Proveedor Anterior -->
+                <div class="p-3.5 rounded-xl bg-white dark:bg-black/40 border border-zinc-200 dark:border-zinc-800">
+                  <div class="text-[11px] text-zinc-500 mb-1">Proveedor Anterior</div>
+                  <div class="font-bold text-sm text-zinc-900 dark:text-white truncate">
+                    {{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).previousSupplier || 'Sin registrar' }}
+                  </div>
+                  <div class="mt-1 flex items-baseline gap-2">
+                    <span *ngIf="getItemHistory(historyModalItem()!.item, historyModalItem()!.type).previousCost !== null" class="text-base font-extrabold text-zinc-900 dark:text-white">
+                      \${{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).previousCost | number:'1.2-2' }}
+                    </span>
+                    <span *ngIf="getItemHistory(historyModalItem()!.item, historyModalItem()!.type).previousCost === null" class="text-xs text-zinc-400 italic">
+                      —
+                    </span>
+                    <!-- Diferencia de Precio -->
+                    <span 
+                      *ngIf="getItemHistory(historyModalItem()!.item, historyModalItem()!.type).priceDiff !== null"
+                      [class]="(getItemHistory(historyModalItem()!.item, historyModalItem()!.type).priceDiff || 0) <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
+                      class="text-xs font-bold inline-flex items-center gap-0.5"
+                    >
+                      <lucide-icon *ngIf="(getItemHistory(historyModalItem()!.item, historyModalItem()!.type).priceDiff || 0) <= 0" [name]="TrendingDownIcon" size="12"></lucide-icon>
+                      <lucide-icon *ngIf="(getItemHistory(historyModalItem()!.item, historyModalItem()!.type).priceDiff || 0) > 0" [name]="TrendingUpIcon" size="12"></lucide-icon>
+                      <span>{{ (getItemHistory(historyModalItem()!.item, historyModalItem()!.type).priceDiff || 0) > 0 ? '+' : '' }}\${{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).priceDiff | number:'1.2-2' }}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Costo Promedio Ponderado -->
+                <div class="p-3.5 rounded-xl bg-white dark:bg-black/40 border border-zinc-200 dark:border-zinc-800">
+                  <div class="flex items-center justify-between text-[11px] text-zinc-500 mb-1">
+                    <span>Promedio Ponderado (CPP)</span>
+                    <lucide-icon [name]="CalculatorIcon" size="12" class="text-orange-500"></lucide-icon>
+                  </div>
+                  <div class="font-bold text-sm text-zinc-900 dark:text-white">
+                    Historial Compras
+                  </div>
+                  <div class="mt-1 flex items-baseline gap-1">
+                    <span class="text-base font-extrabold text-orange-600 dark:text-orange-400">
+                      \${{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).avgCost | number:'1.2-2' }}
+                    </span>
+                    <span class="text-xs text-zinc-400 font-normal">/ {{ getItemHistory(historyModalItem()!.item, historyModalItem()!.type).unit }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de Compras Anteriores -->
+            <div>
+              <h4 class="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
+                Registro de Facturas & Entradas
+              </h4>
+              <div class="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-bold uppercase text-[10px]">
+                    <tr>
+                      <th class="py-2 px-3">Factura</th>
+                      <th class="py-2 px-3">Fecha</th>
+                      <th class="py-2 px-3">Proveedor</th>
+                      <th class="py-2 px-3 text-right">Cantidad</th>
+                      <th class="py-2 px-3 text-right">Costo Unit.</th>
+                      <th class="py-2 px-3 text-right">Total</th>
+                      <th class="py-2 px-3 text-center">Foto</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono text-xs">
+                    <tr *ngFor="let rec of getItemHistory(historyModalItem()!.item, historyModalItem()!.type).records" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                      <td class="py-2 px-3 font-bold text-orange-600">{{ rec.invoice_number || 'S/N' }}</td>
+                      <td class="py-2 px-3 text-zinc-500">{{ rec.purchase_date }}</td>
+                      <td class="py-2 px-3 font-sans font-semibold text-zinc-900 dark:text-white">{{ rec.supplier_name }}</td>
+                      <td class="py-2 px-3 text-right font-bold">{{ rec.quantity }}</td>
+                      <td class="py-2 px-3 text-right">\${{ rec.unit_cost | number:'1.2-2' }}</td>
+                      <td class="py-2 px-3 text-right font-bold text-emerald-600">\${{ rec.total_cost | number:'1.2-2' }}</td>
+                      <td class="py-2 px-3 text-center font-sans">
+                        <button
+                          *ngIf="rec.invoice_image_url"
+                          type="button"
+                          (click)="abrirVisorFactura(rec.invoice_image_url, 'Factura ' + rec.invoice_number, rec.supplier_name + ' • ' + rec.purchase_date)"
+                          class="p-1 rounded bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 text-[10px] font-bold cursor-pointer"
+                        >
+                          Ver Foto
+                        </button>
+                        <span *ngIf="!rec.invoice_image_url" class="text-zinc-400 text-[10px]">—</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Modal -->
+          <div class="px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/60 shrink-0">
+            <button
+              type="button"
+              (click)="abrirModalNuevaCompra({ type: historyModalItem()!.type, id: historyModalItem()!.item.id }); historyModalItem.set(null)"
+              class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow-md transition cursor-pointer"
+            >
+              + Registrar Nueva Compra
+            </button>
+            <button
+              type="button"
+              (click)="historyModalItem.set(null)"
+              class="px-4 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-xs transition cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- MODAL: FACTURAS Y COMPRAS DEL PROVEEDOR                  -->
+      <!-- ======================================================== -->
+      <div 
+        *ngIf="selectedSupplierForPurchases()"
+        class="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150"
+        (click)="selectedSupplierForPurchases.set(null)"
+      >
+        <div 
+          class="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          (click)="$event.stopPropagation()"
+        >
+          <!-- Header -->
+          <div class="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/60 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                <lucide-icon [name]="Building2Icon" size="20"></lucide-icon>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-base sm:text-lg font-bold text-zinc-900 dark:text-white leading-tight">
+                    {{ selectedSupplierForPurchases()?.name }}
+                  </h2>
+                  <span *ngIf="selectedSupplierForPurchases()?.tax_id" class="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 font-mono text-[11px] font-bold border border-orange-500/20">
+                    RUC: {{ selectedSupplierForPurchases()?.tax_id }}
+                  </span>
+                </div>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  {{ selectedSupplierForPurchases()?.phone || 'Sin teléfono' }} • {{ selectedSupplierForPurchases()?.address || 'Manabí, Ecuador' }}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="selectedSupplierForPurchases.set(null)"
+              class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+            >
+              <lucide-icon [name]="XIcon" size="20"></lucide-icon>
+            </button>
+          </div>
+
+          <!-- Body -->
+          <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+            <!-- Mini KPIs -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
+                <span class="text-[11px] text-zinc-500 font-semibold">Total Compras</span>
+                <p class="text-lg font-black text-zinc-900 dark:text-white">{{ getSupplierPurchases(selectedSupplierForPurchases()!).length }} facturas</p>
+              </div>
+              <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800">
+                <span class="text-[11px] text-zinc-500 font-semibold">Total Facturado</span>
+                <p class="text-lg font-black text-emerald-600">\${{ getSupplierStats(selectedSupplierForPurchases()!).total | number:'1.2-2' }}</p>
+              </div>
+              <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 col-span-2 sm:col-span-1">
+                <span class="text-[11px] text-zinc-500 font-semibold">Condición</span>
+                <p class="text-lg font-black text-orange-600 uppercase">{{ selectedSupplierForPurchases()?.payment_terms || 'Contado' }}</p>
+              </div>
+            </div>
+
+            <!-- Tabla de Compras -->
+            <div>
+              <h4 class="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
+                Facturas emitidas por esta Ferretería / Proveedor
+              </h4>
+              <div class="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-bold uppercase text-[10px]">
+                    <tr>
+                      <th class="py-2 px-3">Factura</th>
+                      <th class="py-2 px-3">Fecha</th>
+                      <th class="py-2 px-3">Artículo / Ítem</th>
+                      <th class="py-2 px-3 text-right">Cant.</th>
+                      <th class="py-2 px-3 text-right">Costo Unit.</th>
+                      <th class="py-2 px-3 text-right">Total</th>
+                      <th class="py-2 px-3 text-center">Foto Factura</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 font-mono text-xs">
+                    <tr *ngFor="let p of getSupplierPurchases(selectedSupplierForPurchases()!)" class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
+                      <td class="py-2 px-3 font-bold text-orange-600">{{ p.invoice_number || 'S/N' }}</td>
+                      <td class="py-2 px-3 text-zinc-500">{{ p.purchase_date }}</td>
+                      <td class="py-2 px-3 font-sans font-semibold text-zinc-900 dark:text-white">{{ p.item_name }}</td>
+                      <td class="py-2 px-3 text-right font-bold">{{ p.quantity }}</td>
+                      <td class="py-2 px-3 text-right">\${{ p.unit_cost | number:'1.2-2' }}</td>
+                      <td class="py-2 px-3 text-right font-bold text-emerald-600">\${{ p.total_cost | number:'1.2-2' }}</td>
+                      <td class="py-2 px-3 text-center font-sans">
+                        <button
+                          *ngIf="p.invoice_image_url"
+                          type="button"
+                          (click)="abrirVisorFactura(p.invoice_image_url, 'Factura ' + p.invoice_number, selectedSupplierForPurchases()!.name + ' • ' + p.purchase_date)"
+                          class="p-1 rounded bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 text-[10px] font-bold cursor-pointer"
+                        >
+                          Ver Foto
+                        </button>
+                        <span *ngIf="!p.invoice_image_url" class="text-zinc-400 text-[10px]">—</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/60 shrink-0">
+            <button
+              type="button"
+              (click)="compraForm.supplier_id = selectedSupplierForPurchases()!.id; abrirModalNuevaCompra(); selectedSupplierForPurchases.set(null)"
+              class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs shadow-md transition cursor-pointer"
+            >
+              + Nueva Compra con este Proveedor
+            </button>
+            <button
+              type="button"
+              (click)="selectedSupplierForPurchases.set(null)"
+              class="px-4 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold text-xs transition cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   `
 })
@@ -1354,11 +2503,342 @@ export class WarehouseViewComponent implements OnInit {
   currentTab = signal<WarehouseSubTab>('dashboard');
   inventarioSubTab = signal<'herramientas' | 'consumibles'>('herramientas');
   proveedoresSubTab = signal<'proveedores' | 'compras'>('proveedores');
-  spreadsheetSheet = signal<'materiales' | 'herramientas' | 'prestamos' | 'compras'>('materiales');
-  readonly spreadsheetTabs: ('materiales' | 'herramientas' | 'prestamos' | 'compras')[] = ['materiales', 'herramientas', 'prestamos', 'compras'];
+  spreadsheetSheet = signal<'materials' | 'suppliers' | 'tools' | 'purchases' | 'consumptions' | 'loans'>('materials');
+  spreadsheetSearchTerm = signal<string>('');
+  spreadsheetWarehouse = signal<string>('all');
 
-  setSpreadsheetSheet(sheet: 'materiales' | 'herramientas' | 'prestamos' | 'compras') {
+  // Modales adicionales para Spreadsheet
+  invoicePreview = signal<{ url: string; title: string; subtitle?: string } | null>(null);
+  historyModalItem = signal<{ item: Consumable | Tool; type: 'consumable' | 'tool' } | null>(null);
+  selectedSupplierForPurchases = signal<Supplier | null>(null);
+
+  get spreadsheetSheetsList() {
+    return [
+      { id: 'materials' as const, label: 'Materiales y Consumibles', icon: this.PackageIcon, count: this.service.consumables().length },
+      { id: 'suppliers' as const, label: 'Ferreterías y Proveedores', icon: this.Building2Icon, count: this.service.suppliers().length },
+      { id: 'tools' as const, label: 'Herramientas y Maquinaria', icon: this.WrenchIcon, count: this.service.tools().length },
+      { id: 'purchases' as const, label: 'Facturas y Compras', icon: this.ShoppingCartIcon, count: this.service.purchases().length },
+      { id: 'consumptions' as const, label: 'Salidas y Consumos', icon: this.PackageOpenIcon, count: this.service.consumptions().length },
+      { id: 'loans' as const, label: 'Préstamos Activos', icon: this.ArrowLeftRightIcon, count: this.service.loans().length },
+    ];
+  }
+
+  setSpreadsheetSheet(sheet: 'materials' | 'suppliers' | 'tools' | 'purchases' | 'consumptions' | 'loans') {
     this.spreadsheetSheet.set(sheet);
+    this.spreadsheetSearchTerm.set('');
+  }
+
+  getSpreadsheetSearchPlaceholder(): string {
+    const s = this.spreadsheetSheet();
+    if (s === 'materials') return 'Buscar en materiales, tornillos, remaches, categorías...';
+    if (s === 'suppliers') return 'Buscar en ferreterías, proveedores, RUC, teléfono...';
+    if (s === 'tools') return 'Buscar en herramientas, marcas, modelos...';
+    if (s === 'purchases') return 'Buscar en facturas, proveedor, artículo...';
+    if (s === 'consumptions') return 'Buscar en salidas, materiales, responsables, obras...';
+    return 'Buscar en préstamos, herramientas, responsables...';
+  }
+
+  // Filtered computed getters
+  filteredMaterials = computed(() => {
+    const term = this.spreadsheetSearchTerm().toLowerCase().trim();
+    const wh = this.spreadsheetWarehouse();
+    return this.service.consumables().filter(c => {
+      const matchSearch = !term ||
+        c.name.toLowerCase().includes(term) ||
+        (c.barcode && c.barcode.toLowerCase().includes(term)) ||
+        c.category.toLowerCase().includes(term) ||
+        (c.supplier && c.supplier.toLowerCase().includes(term)) ||
+        (c.warehouse_name && c.warehouse_name.toLowerCase().includes(term));
+      const matchWh = wh === 'all' || (c.warehouse_id && c.warehouse_id.toString() === wh);
+      return matchSearch && matchWh;
+    });
+  });
+
+  filteredSuppliers = computed(() => {
+    const term = this.spreadsheetSearchTerm().toLowerCase().trim();
+    return this.service.suppliers().filter(s => {
+      return !term ||
+        s.name.toLowerCase().includes(term) ||
+        (s.tax_id && s.tax_id.toLowerCase().includes(term)) ||
+        (s.phone && s.phone.toLowerCase().includes(term)) ||
+        (s.address && s.address.toLowerCase().includes(term)) ||
+        (s.contact_name && s.contact_name.toLowerCase().includes(term));
+    });
+  });
+
+  filteredTools = computed(() => {
+    const term = this.spreadsheetSearchTerm().toLowerCase().trim();
+    const wh = this.spreadsheetWarehouse();
+    return this.service.tools().filter(t => {
+      const matchSearch = !term ||
+        t.name.toLowerCase().includes(term) ||
+        (t.barcode && t.barcode.toLowerCase().includes(term)) ||
+        (t.brand && t.brand.toLowerCase().includes(term)) ||
+        (t.model && t.model.toLowerCase().includes(term)) ||
+        t.category.toLowerCase().includes(term) ||
+        (t.supplier_name && t.supplier_name.toLowerCase().includes(term)) ||
+        (t.warehouse_name && t.warehouse_name.toLowerCase().includes(term));
+      const matchWh = wh === 'all' || (t.warehouse_id && t.warehouse_id.toString() === wh);
+      return matchSearch && matchWh;
+    });
+  });
+
+  filteredPurchases = computed(() => {
+    const term = this.spreadsheetSearchTerm().toLowerCase().trim();
+    const wh = this.spreadsheetWarehouse();
+    return this.service.purchases().filter(p => {
+      const matchSearch = !term ||
+        (p.invoice_number && p.invoice_number.toLowerCase().includes(term)) ||
+        p.item_name.toLowerCase().includes(term) ||
+        (p.supplier_name && p.supplier_name.toLowerCase().includes(term)) ||
+        (p.warehouse_name && p.warehouse_name.toLowerCase().includes(term));
+      const matchWh = wh === 'all' || (p.warehouse_id && p.warehouse_id.toString() === wh);
+      return matchSearch && matchWh;
+    });
+  });
+
+  filteredConsumptions = computed(() => {
+    const term = this.spreadsheetSearchTerm().toLowerCase().trim();
+    const wh = this.spreadsheetWarehouse();
+    return this.service.consumptions().filter(c => {
+      const matchSearch = !term ||
+        c.consumable_name.toLowerCase().includes(term) ||
+        (c.contact_name && c.contact_name.toLowerCase().includes(term)) ||
+        (c.reason && c.reason.toLowerCase().includes(term)) ||
+        (c.warehouse_name && c.warehouse_name.toLowerCase().includes(term));
+      const matchWh = wh === 'all' || (c.warehouse_id && c.warehouse_id.toString() === wh);
+      return matchSearch && matchWh;
+    });
+  });
+
+  filteredLoans = computed(() => {
+    const term = this.spreadsheetSearchTerm().toLowerCase().trim();
+    return this.service.loans().filter(l => {
+      return !term ||
+        l.tool_name.toLowerCase().includes(term) ||
+        (l.contact_name && l.contact_name.toLowerCase().includes(term)) ||
+        (l.destination_location && l.destination_location.toLowerCase().includes(term)) ||
+        l.status.toLowerCase().includes(term);
+    });
+  });
+
+  getConsumableMeta(c: Consumable) {
+    const allPurchases = this.service.purchases().filter(p => 
+      (p.consumable_id && Number(p.consumable_id) === Number(c.id)) ||
+      p.item_name.toLowerCase().trim() === c.name.toLowerCase().trim()
+    );
+    const sorted = [...allPurchases].sort((a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime());
+    const latest = sorted[0];
+    const previous = sorted.length > 1 ? sorted[1] : null;
+
+    const supplier = latest?.supplier_name || c.supplier || 'Proveedor General';
+    const invoiceNumber = latest?.invoice_number || c.invoice_number || '';
+    const purchaseDate = latest?.purchase_date || (c.created_at ? c.created_at.split('T')[0] : '');
+
+    const currentCost = latest?.unit_cost ?? c.unit_cost;
+    const previousCost = previous ? previous.unit_cost : null;
+    const previousSupplier = previous ? previous.supplier_name : null;
+    const priceDiff = previousCost !== null ? Number((currentCost - previousCost).toFixed(2)) : null;
+
+    const uniqueSuppliers = new Set(sorted.map(p => p.supplier_name).filter(Boolean));
+    if (supplier) uniqueSuppliers.add(supplier);
+    const suppliersCount = uniqueSuppliers.size > 0 ? uniqueSuppliers.size : 1;
+
+    return {
+      supplier,
+      invoiceNumber,
+      purchaseDate,
+      currentCost,
+      previousCost,
+      previousSupplier,
+      priceDiff,
+      suppliersCount
+    };
+  }
+
+  getToolMeta(t: Tool) {
+    const allPurchases = this.service.purchases().filter(p => 
+      (p.tool_id && Number(p.tool_id) === Number(t.id)) ||
+      p.item_name.toLowerCase().trim() === t.name.toLowerCase().trim()
+    );
+    const sorted = [...allPurchases].sort((a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime());
+    const latest = sorted[0];
+    const previous = sorted.length > 1 ? sorted[1] : null;
+
+    const supplier = latest?.supplier_name || t.supplier_name || 'Proveedor General';
+    const invoiceNumber = latest?.invoice_number || t.invoice_number || '';
+    const purchaseDate = latest?.purchase_date || t.purchase_date || (t.created_at ? t.created_at.split('T')[0] : '');
+
+    const currentCost = latest?.unit_cost ?? (t.purchase_price || 0);
+    const previousCost = previous ? previous.unit_cost : null;
+    const previousSupplier = previous ? previous.supplier_name : null;
+    const priceDiff = previousCost !== null ? Number((currentCost - previousCost).toFixed(2)) : null;
+
+    const uniqueSuppliers = new Set(sorted.map(p => p.supplier_name).filter(Boolean));
+    if (supplier) uniqueSuppliers.add(supplier);
+    const suppliersCount = uniqueSuppliers.size > 0 ? uniqueSuppliers.size : 1;
+
+    return {
+      supplier,
+      invoiceNumber,
+      purchaseDate,
+      currentCost,
+      previousCost,
+      previousSupplier,
+      priceDiff,
+      suppliersCount
+    };
+  }
+
+  getSupplierStats(s: Supplier) {
+    const purchases = this.service.purchases().filter(p => 
+      (p.supplier_id && Number(p.supplier_id) === Number(s.id)) ||
+      (p.supplier_name && p.supplier_name.toLowerCase().trim() === s.name.toLowerCase().trim())
+    );
+    const count = purchases.length > 0 ? purchases.length : (s.purchases_count || 0);
+    const total = purchases.reduce((acc, p) => acc + (p.total_cost || 0), 0) || (s.total_purchased || 0);
+    return { count, total };
+  }
+
+  getItemHistory(item: Consumable | Tool, type: 'consumable' | 'tool') {
+    const isConsumable = type === 'consumable';
+    const purchases = this.service.purchases().filter(p => 
+      isConsumable 
+        ? ((p.consumable_id && Number(p.consumable_id) === Number(item.id)) || p.item_name.toLowerCase().trim() === item.name.toLowerCase().trim())
+        : ((p.tool_id && Number(p.tool_id) === Number(item.id)) || p.item_name.toLowerCase().trim() === item.name.toLowerCase().trim())
+    );
+    const sorted = [...purchases].sort((a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime());
+    const latest = sorted[0];
+    const previous = sorted.length > 1 ? sorted[1] : null;
+
+    const currentCost = latest ? latest.unit_cost : (isConsumable ? (item as Consumable).unit_cost : (item as Tool).purchase_price || 0);
+    const previousCost = previous ? previous.unit_cost : null;
+    const priceDiff = previousCost !== null ? Number((currentCost - previousCost).toFixed(2)) : null;
+    const currentSupplier = latest?.supplier_name || (isConsumable ? (item as Consumable).supplier : (item as Tool).supplier_name) || 'Proveedor General';
+    const previousSupplier = previous ? previous.supplier_name : null;
+
+    const totalSpent = sorted.reduce((acc, p) => acc + (p.total_cost || 0), 0);
+    const totalQty = sorted.reduce((acc, p) => acc + (p.quantity || 0), 0);
+    const avgCost = totalQty > 0 ? Number((totalSpent / totalQty).toFixed(2)) : currentCost;
+
+    const uniqueSuppliers = Array.from(new Set(sorted.map(p => p.supplier_name).filter(Boolean)));
+    if (uniqueSuppliers.length === 0 && currentSupplier) uniqueSuppliers.push(currentSupplier);
+
+    return {
+      itemId: item.id,
+      itemName: item.name,
+      itemType: type,
+      unit: isConsumable ? (item as Consumable).unit : 'pz',
+      barcode: (item as any).barcode || '',
+      currentSupplier,
+      currentCost,
+      previousSupplier,
+      previousCost,
+      priceDiff,
+      avgCost,
+      suppliersCount: uniqueSuppliers.length,
+      records: sorted
+    };
+  }
+
+  getSupplierPurchases(supplier: Supplier) {
+    return this.service.purchases().filter(p => 
+      (p.supplier_id && Number(p.supplier_id) === Number(supplier.id)) ||
+      (p.supplier_name && p.supplier_name.toLowerCase().trim() === supplier.name.toLowerCase().trim())
+    );
+  }
+
+  getMaterialsUnitsTotal(): number {
+    return this.filteredMaterials().reduce((acc, m) => acc + (Number(m.stock_quantity) || 0), 0);
+  }
+
+  getMaterialsValueTotal(): number {
+    return this.filteredMaterials().reduce((acc, m) => acc + (Number(m.stock_quantity) || 0) * (Number(m.unit_cost) || 0), 0);
+  }
+
+  getMaterialsLowStockCount(): number {
+    return this.filteredMaterials().filter(m => (Number(m.stock_quantity) || 0) <= (Number(m.min_stock_alert) || 0)).length;
+  }
+
+  getSuppliersTotalFacturado(): number {
+    return this.filteredSuppliers().reduce((acc, s) => acc + this.getSupplierStats(s).total, 0);
+  }
+
+  getSuppliersTotalOperations(): number {
+    return this.filteredSuppliers().reduce((acc, s) => acc + this.getSupplierStats(s).count, 0);
+  }
+
+  getToolsTotalUnits(): number {
+    return this.filteredTools().reduce((acc, t) => acc + (Number(t.total_quantity) || 0), 0);
+  }
+
+  getToolsLentUnits(): number {
+    return this.filteredTools().reduce((acc, t) => acc + ((Number(t.total_quantity) || 0) - (Number(t.available_quantity) || 0)), 0);
+  }
+
+  getToolsTotalValue(): number {
+    return this.filteredTools().reduce((acc, t) => acc + (Number(t.total_quantity) || 0) * (Number(t.purchase_price) || 0), 0);
+  }
+
+  getPurchasesQuantityTotal(): number {
+    return this.filteredPurchases().reduce((acc, p) => acc + (Number(p.quantity) || 0), 0);
+  }
+
+  getPurchasesSubtotalTotal(): number {
+    return this.filteredPurchases().reduce((acc, p) => acc + (Number(p.subtotal_cost) || 0), 0);
+  }
+
+  getPurchasesTaxTotal(): number {
+    return this.filteredPurchases().reduce((acc, p) => acc + (Number(p.tax_amount) || 0), 0);
+  }
+
+  getPurchasesTotalFacturado(): number {
+    return this.filteredPurchases().reduce((acc, p) => acc + (Number(p.total_cost) || 0), 0);
+  }
+
+  getConsumptionsTotalValue(): number {
+    return this.filteredConsumptions().reduce((acc, c) => acc + (Number(c.total_value) || 0), 0);
+  }
+
+  getLoansActiveCount(): number {
+    return this.filteredLoans().filter(l => l.status === 'active').length;
+  }
+
+  getLoansOverdueCount(): number {
+    return this.filteredLoans().filter(l => l.status === 'overdue').length;
+  }
+
+  getLoansReturnedCount(): number {
+    return this.filteredLoans().filter(l => l.status === 'returned').length;
+  }
+
+  abrirModalNuevaCompra(item?: { type: 'tool' | 'consumable'; id?: number }) {
+    if (item && item.type === 'consumable' && item.id) {
+      const c = this.service.consumables().find(m => m.id === item.id);
+      if (c) {
+        this.compraForm.item_name = c.name;
+        this.compraForm.unit_cost = c.unit_cost;
+      }
+    } else if (item && item.type === 'tool' && item.id) {
+      const t = this.service.tools().find(m => m.id === item.id);
+      if (t) {
+        this.compraForm.item_name = t.name;
+        this.compraForm.unit_cost = t.purchase_price || 150;
+      }
+    }
+    this.mostrarModalCompra.set(true);
+  }
+
+  abrirVisorFactura(url: string, title: string, subtitle?: string) {
+    this.invoicePreview.set({ url, title, subtitle });
+  }
+
+  abrirHistorialItem(item: Consumable | Tool, type: 'consumable' | 'tool') {
+    this.historyModalItem.set({ item, type });
+  }
+
+  abrirDetalleProveedor(supplier: Supplier) {
+    this.selectedSupplierForPurchases.set(supplier);
   }
 
   getWhatsAppUrl(phone?: string): string {
@@ -1459,6 +2939,20 @@ export class WarehouseViewComponent implements OnInit {
   readonly TagIcon = Tag;
   readonly FileTextIcon = FileText;
   readonly LayersIcon = Layers;
+  readonly Building2Icon = Building2;
+  readonly ShoppingCartIcon = ShoppingCart;
+  readonly PackageOpenIcon = PackageOpen;
+  readonly PencilIcon = Pencil;
+  readonly HistoryIcon = History;
+  readonly TrendingUpIcon = TrendingUp;
+  readonly TrendingDownIcon = TrendingDown;
+  readonly CalculatorIcon = Calculator;
+  readonly ShieldCheckIcon = ShieldCheck;
+  readonly BuildingIcon = Building;
+  readonly ExternalLinkIcon = ExternalLink;
+  readonly ZoomInIcon = ZoomIn;
+  readonly ReceiptIcon = Receipt;
+  readonly FilterIcon = Filter;
 
   get tabsList() {
     return [
@@ -1481,7 +2975,7 @@ export class WarehouseViewComponent implements OnInit {
     this.volver.emit();
   }
 
-  filteredTools() {
+  inventarioFilteredTools() {
     const list = this.service.tools();
     if (!this.busquedaInventario) return list;
     const term = this.busquedaInventario.toLowerCase();
@@ -1502,7 +2996,7 @@ export class WarehouseViewComponent implements OnInit {
     );
   }
 
-  filteredLoans() {
+  prestamosFilteredLoans() {
     const list = this.service.loans();
     const f = this.filtroPrestamos();
     if (f === 'activos') return list.filter(l => l.status === 'active');
@@ -1646,19 +3140,6 @@ export class WarehouseViewComponent implements OnInit {
     alert(`Se despacharon ${qty} ${item.unit} de ${item.name} exitosamente.`);
   }
 
-  abrirModalNuevaCompra(pre?: { type: 'tool' | 'consumable', id?: number }) {
-    this.compraForm = {
-      invoice_number: `FAC-001-${Math.floor(1000 + Math.random() * 9000)}`,
-      purchase_date: new Date().toISOString().split('T')[0],
-      supplier_id: 1,
-      item_name: pre?.type === 'consumable' ? 'Reposición Material' : 'Herramienta Nueva',
-      quantity: 50,
-      unit_cost: 7.50,
-      payment_status: 'paid'
-    };
-    this.mostrarModalCompra.set(true);
-  }
-
   guardarCompra() {
     this.service.addPurchase({
       invoice_number: this.compraForm.invoice_number,
@@ -1726,39 +3207,147 @@ export class WarehouseViewComponent implements OnInit {
     this.herramientaQR.set(null);
   }
 
-  descargarCsvActual() {
+  exportCurrentSheetCsv() {
     const sheet = this.spreadsheetSheet();
     let csv = '';
-    let filename = `ferrecompara_${sheet}_${new Date().toISOString().split('T')[0]}.csv`;
+    const dateStr = new Date().toISOString().split('T')[0];
+    let filename = `ferrecompara_${sheet}_${dateStr}.csv`;
 
-    if (sheet === 'materiales') {
-      csv = 'ID,Nombre,Categoria,Stock,Unidad,CostoUnit,ValorTotal,Bodega\n';
-      this.service.consumables().forEach(c => {
-        csv += `${c.id},"${c.name}","${c.category}",${c.stock_quantity},"${c.unit}",${c.unit_cost},${c.stock_quantity * c.unit_cost},"${c.warehouse_name}"\n`;
+    const escapeCell = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const s = String(val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    if (sheet === 'materials') {
+      const headers = ['Material / Insumo', 'Código / Barras', 'Proveedor', 'N° Factura', 'Fecha Compra', 'Categoría', 'Almacén', 'Ubicación', 'Stock', 'Unidad', 'Costo Unit.', 'Valor Total', 'Estado'];
+      csv = headers.map(escapeCell).join(',') + '\r\n';
+      this.filteredMaterials().forEach(m => {
+        const meta = this.getConsumableMeta(m);
+        const row = [
+          m.name,
+          m.barcode || '',
+          meta.supplier,
+          meta.invoiceNumber,
+          meta.purchaseDate,
+          m.category,
+          m.warehouse_name || '',
+          m.location_name || '',
+          m.stock_quantity,
+          m.unit,
+          m.unit_cost.toFixed(2),
+          (m.stock_quantity * m.unit_cost).toFixed(2),
+          m.stock_quantity <= m.min_stock_alert ? 'Bajo Stock' : 'Disponible'
+        ];
+        csv += row.map(escapeCell).join(',') + '\r\n';
       });
-    } else if (sheet === 'herramientas') {
-      csv = 'ID,Herramienta,Marca,Modelo,Total,Disponibles,Condicion,PrecioCompra,Bodega\n';
-      this.service.tools().forEach(t => {
-        csv += `${t.id},"${t.name}","${t.brand || ''}","${t.model || ''}",${t.total_quantity},${t.available_quantity},"${t.condition}",${t.purchase_price || 0},"${t.warehouse_name}"\n`;
+    } else if (sheet === 'suppliers') {
+      const headers = ['Ferretería / Proveedor', 'RUC / Identificación', 'Dirección', 'Teléfono', 'Representante', 'Condiciones Pago', 'N° Compras', 'Total Facturado'];
+      csv = headers.map(escapeCell).join(',') + '\r\n';
+      this.filteredSuppliers().forEach(s => {
+        const stats = this.getSupplierStats(s);
+        const row = [
+          s.name,
+          s.tax_id || '',
+          s.address || '',
+          s.phone || '',
+          s.contact_name || '',
+          s.payment_terms || 'Contado',
+          stats.count,
+          stats.total.toFixed(2)
+        ];
+        csv += row.map(escapeCell).join(',') + '\r\n';
       });
-    } else if (sheet === 'prestamos') {
-      csv = 'ID,Herramienta,Prestatario,Rol,Cantidad,FechaSalida,FechaRetorno,Estado,Destino\n';
-      this.service.loans().forEach(l => {
-        csv += `${l.id},"${l.tool_name}","${l.contact_name}","${l.contact_role || ''}",${l.quantity},"${l.loan_date}","${l.due_date || ''}","${l.status}","${l.destination_location || ''}"\n`;
+    } else if (sheet === 'tools') {
+      const headers = ['Herramienta', 'Código', 'Proveedor', 'N° Factura', 'Fecha Compra', 'Marca', 'Modelo', 'Categoría', 'Almacén', 'Ubicación', 'Total', 'Disponibles', 'Condición', 'Precio Unit.', 'Valor Total'];
+      csv = headers.map(escapeCell).join(',') + '\r\n';
+      this.filteredTools().forEach(t => {
+        const meta = this.getToolMeta(t);
+        const row = [
+          t.name,
+          t.barcode || '',
+          meta.supplier,
+          meta.invoiceNumber,
+          meta.purchaseDate,
+          t.brand || '',
+          t.model || '',
+          t.category,
+          t.warehouse_name || '',
+          t.location_name || '',
+          t.total_quantity,
+          t.available_quantity,
+          t.condition,
+          (t.purchase_price || 0).toFixed(2),
+          (t.total_quantity * (t.purchase_price || 0)).toFixed(2)
+        ];
+        csv += row.map(escapeCell).join(',') + '\r\n';
+      });
+    } else if (sheet === 'purchases') {
+      const headers = ['N° Factura', 'Fecha', 'Proveedor', 'Artículo', 'Almacén', 'Cantidad', 'Costo Unit.', 'Subtotal', 'IVA (%)', 'Monto IVA', 'Total Factura', 'Estado Pago'];
+      csv = headers.map(escapeCell).join(',') + '\r\n';
+      this.filteredPurchases().forEach(p => {
+        const row = [
+          p.invoice_number || 'S/N',
+          p.purchase_date,
+          p.supplier_name || '',
+          p.item_name,
+          p.warehouse_name || '',
+          p.quantity,
+          p.unit_cost.toFixed(2),
+          p.subtotal_cost.toFixed(2),
+          p.tax_rate,
+          p.tax_amount.toFixed(2),
+          p.total_cost.toFixed(2),
+          p.payment_status === 'paid' ? 'Pagado' : 'A Crédito'
+        ];
+        csv += row.map(escapeCell).join(',') + '\r\n';
+      });
+    } else if (sheet === 'consumptions') {
+      const headers = ['Fecha', 'Material', 'Cantidad', 'Costo Unit.', 'Valor Total', 'Almacén', 'Responsable', 'Motivo / Proyecto'];
+      csv = headers.map(escapeCell).join(',') + '\r\n';
+      this.filteredConsumptions().forEach(c => {
+        const row = [
+          c.consumption_date,
+          c.consumable_name,
+          c.quantity,
+          c.unit_cost.toFixed(2),
+          c.total_value.toFixed(2),
+          c.warehouse_name || '',
+          c.contact_name || '',
+          c.reason || ''
+        ];
+        csv += row.map(escapeCell).join(',') + '\r\n';
       });
     } else {
-      csv = 'Factura,Fecha,Proveedor,Item,Cantidad,Total,Estado\n';
-      this.service.purchases().forEach(p => {
-        csv += `"${p.invoice_number}","${p.purchase_date}","${p.supplier_name}","${p.item_name}",${p.quantity},${p.total_cost},"${p.payment_status}"\n`;
+      const headers = ['Herramienta', 'Responsable', 'Cantidad', 'Fecha Préstamo', 'Fecha Límite', 'Estado', 'Destino'];
+      csv = headers.map(escapeCell).join(',') + '\r\n';
+      this.filteredLoans().forEach(l => {
+        const row = [
+          l.tool_name,
+          l.contact_name,
+          l.quantity,
+          l.loan_date,
+          l.due_date || '',
+          l.status,
+          l.destination_location || ''
+        ];
+        csv += row.map(escapeCell).join(',') + '\r\n';
       });
     }
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = '\uFEFF' + csv;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    link.href = url;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  descargarCsvActual() {
+    this.exportCurrentSheetCsv();
   }
 }

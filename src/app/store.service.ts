@@ -155,8 +155,21 @@ export class StoreService {
 
   // Actions
   async cargarDatos() {
-    await this.supabase.cargarProductos(this._searchQuery(), this._userCity());
-    await this.supabase.cargarTiendas(this._userCity());
+    const isDemo = localStorage.getItem('ferrecompara_demo_session') !== null;
+    if (isDemo) {
+      if (this.supabase.productos().length === 0) {
+        this.supabase.productos.set(this.supabase.obtenerProductosDemo());
+      }
+      if (this.supabase.tiendas().length === 0) {
+        this.supabase.tiendas.set(this.supabase.obtenerTiendasDemo());
+      }
+      this.supabase.cargando.set(false);
+      return;
+    }
+    await Promise.all([
+      this.supabase.cargarProductos(this._searchQuery(), this._userCity()),
+      this.supabase.cargarTiendas(this._userCity())
+    ]).catch(err => console.warn('Sync err', err));
   }
 
   setTab(tab: 'home' | 'search' | 'experts' | 'favorites' | 'profile' | 'stores' | 'cart') {

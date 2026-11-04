@@ -16,8 +16,8 @@ import { StoreService } from '../store.service';
   `],
   template: `
     <div class="pb-12 animate-in fade-in duration-500 relative">
-      <!-- GLOBAL FULLSCREEN LOADER -->
-      <div *ngIf="store.cargando()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
+      <!-- GLOBAL FULLSCREEN LOADER (Solo si aún no hay productos) -->
+      <div *ngIf="store.cargando() && store.products().length === 0" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
         <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
         <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Cargando...</p>
       </div>

@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../environments/environment';
 import { Product , CommitResultDto } from './types';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 // Tipos que mapean directamente con las tablas de Supabase
 export interface SupabaseTienda {
@@ -88,7 +88,10 @@ export class SupabaseService {
       environment.supabase.url,
       environment.supabase.publishableKey
     );
-    console.log('✅ Supabase conectado');
+    // Inicializar inmediatamente con datos disponibles para render instantáneo
+    this.tiendas.set(this.obtenerTiendasDemo());
+    this.productos.set(this.obtenerProductosDemo());
+    console.log('✅ Supabase conectado & catálogo demo listo');
   }
 
   getClient(): SupabaseClient {
@@ -96,6 +99,15 @@ export class SupabaseService {
   }
 
   async cargarTiendas(city?: string): Promise<void> {
+    const isDemo = localStorage.getItem('ferrecompara_demo_session') !== null;
+    if (isDemo) {
+      if (this.tiendas().length === 0) {
+        this.tiendas.set(this.obtenerTiendasDemo());
+      }
+      this.cargando.set(false);
+      return;
+    }
+
     this.cargando.set(true);
     this.error.set(null);
     try {
@@ -103,8 +115,12 @@ export class SupabaseService {
       if (city) params = params.set('city', city);
 
       const url = `${environment.apiUrl}/Stores`;
-      const tiendas = await firstValueFrom(this.http.get<TiendaUI[]>(url, { params }));
-      this.tiendas.set(tiendas ?? []);
+      const tiendas = await firstValueFrom(this.http.get<TiendaUI[]>(url, { params }).pipe(timeout(3500)));
+      if (tiendas && tiendas.length > 0) {
+        this.tiendas.set(tiendas);
+      } else {
+        await this.cargarTiendasFallback();
+      }
     } catch (err: any) {
       console.warn('⚠️ Cargando tiendas fallback...');
       await this.cargarTiendasFallback();
@@ -114,6 +130,15 @@ export class SupabaseService {
   }
 
   async cargarProductos(query?: string, city?: string): Promise<void> {
+    const isDemo = localStorage.getItem('ferrecompara_demo_session') !== null;
+    if (isDemo) {
+      if (this.productos().length === 0) {
+        this.productos.set(this.obtenerProductosDemo());
+      }
+      this.cargando.set(false);
+      return;
+    }
+
     console.log('🚀 Iniciando carga de productos...', query || 'sin query', city || 'sin ciudad');
     this.cargando.set(true);
     this.error.set(null);
@@ -126,9 +151,13 @@ export class SupabaseService {
       const url = `${environment.apiUrl}/Products`;
       console.log('🔗 Petición a:', url);
       
-      const productos = await firstValueFrom(this.http.get<Product[]>(url, { params }));
+      const productos = await firstValueFrom(this.http.get<Product[]>(url, { params }).pipe(timeout(3500)));
       console.log('✅ Productos recibidos:', productos?.length || 0);
-      this.productos.set(productos ?? []);
+      if (productos && productos.length > 0) {
+        this.productos.set(productos);
+      } else {
+        await this.cargarProductosFallback();
+      }
     } catch (err: any) {
       console.error('❌ Error cargando productos API:', err);
       console.warn('⚠️ Cargando productos fallback...');

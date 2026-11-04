@@ -640,7 +640,7 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
               <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
                 <a 
                   *ngIf="loan.contact_phone"
-                  [href]="'https://wa.me/593' + loan.contact_phone.replace('0', '').replace(/\\s/g, '')"
+                  [href]="getWhatsAppUrl(loan.contact_phone)"
                   target="_blank"
                   class="flex-1 py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition flex items-center justify-center gap-1.5"
                 >
@@ -861,8 +861,8 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
 
             <div class="flex items-center gap-2 flex-wrap">
               <button 
-                *ngFor="let s of ['materiales', 'herramientas', 'prestamos', 'compras']"
-                (click)="spreadsheetSheet.set(s)"
+                *ngFor="let s of spreadsheetTabs"
+                (click)="setSpreadsheetSheet(s)"
                 [class]="spreadsheetSheet() === s ? 'bg-emerald-600 text-white font-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold'"
                 class="px-3 py-1.5 rounded-xl text-xs capitalize transition cursor-pointer"
               >
@@ -1355,6 +1355,18 @@ export class WarehouseViewComponent implements OnInit {
   inventarioSubTab = signal<'herramientas' | 'consumibles'>('herramientas');
   proveedoresSubTab = signal<'proveedores' | 'compras'>('proveedores');
   spreadsheetSheet = signal<'materiales' | 'herramientas' | 'prestamos' | 'compras'>('materiales');
+  readonly spreadsheetTabs: ('materiales' | 'herramientas' | 'prestamos' | 'compras')[] = ['materiales', 'herramientas', 'prestamos', 'compras'];
+
+  setSpreadsheetSheet(sheet: 'materiales' | 'herramientas' | 'prestamos' | 'compras') {
+    this.spreadsheetSheet.set(sheet);
+  }
+
+  getWhatsAppUrl(phone?: string): string {
+    if (!phone) return '#';
+    const clean = phone.replace(/^0/, '').replace(/\s+/g, '');
+    return `https://wa.me/593${clean}`;
+  }
+
   filtroPrestamos = signal<string>('todos');
   busquedaInventario = '';
 

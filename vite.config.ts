@@ -15,12 +15,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 3000,
+      port: 53259,
       host: '0.0.0.0',
       hmr: process.env['DISABLE_HMR'] !== 'true',
     },
     optimizeDeps: {
-      include: ['@angular/common', '@angular/forms', '@angular/router', 'motion/react'],
+      include: ['@angular/compiler', '@angular/common', '@angular/forms', '@angular/router', 'motion/react'],
     },
   };
 });

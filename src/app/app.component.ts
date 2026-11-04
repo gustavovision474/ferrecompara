@@ -41,6 +41,24 @@ type AuthScreen = 'welcome' | 'auth';
       {{ globalError() }}
       <button (click)="globalError.set(null)" class="mt-2 bg-black/30 px-3 py-1 rounded">Cerrar</button>
     </div>
+
+    <!-- BANNER MODO DEMO -->
+    <div *ngIf="auth.isLoggedIn() && auth.isDemo()" class="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-gray-950 px-4 py-1.5 text-xs font-black flex items-center justify-between sticky top-0 z-[150] shadow-md">
+      <div class="flex items-center gap-2">
+        <span class="bg-gray-950 text-amber-300 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-black">⚡ MODO DEMO</span>
+        <span class="text-xs font-bold text-gray-900">
+          Vista de <b>{{ auth.currentRol() === 'tienda' ? 'Ferretería (Panel Administrativo)' : 'Cliente (Comparador & Tiendas)' }}</b>
+        </span>
+      </div>
+      <button 
+        type="button"
+        (click)="auth.signOut()" 
+        class="bg-gray-900 hover:bg-black text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm"
+      >
+        Salir del Demo ✕
+      </button>
+    </div>
+
     <div class="min-h-screen bg-white">
       @if (auth.isLoggedIn()) {
         @if (auth.currentRol() === 'tienda') {
@@ -79,6 +97,7 @@ type AuthScreen = 'welcome' | 'auth';
           <app-welcome-view
             (rolElegido)="onRolElegido($event)"
             (iniciarSesion)="onIniciarSesion()"
+            (demoElegida)="onEntrarDemo($event)"
           ></app-welcome-view>
         } @else {
           <app-auth-view
@@ -127,6 +146,11 @@ export class AppComponent implements OnInit {
   volverAWelcome() {
     this.authScreen.set('welcome');
     this.rolSeleccionado.set(null);
+  }
+
+  onEntrarDemo(rol: UserRole) {
+    this.auth.iniciarDemo(rol);
+    this.onLoginExitoso();
   }
 
   onLoginExitoso() {

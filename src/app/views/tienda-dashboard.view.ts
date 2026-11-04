@@ -1619,13 +1619,73 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
 
   async cargarPedidos() {
     const shop = this.auth.profile();
-    if (!shop || !shop.tienda_id) return;
+    if (!shop || !shop.tienda_id) {
+      if (this.auth.isDemo()) {
+        this.pedidos.set(this.obtenerPedidosDemoTienda());
+      }
+      return;
+    }
     try {
       const res = await this.supabase.obtenerPedidosTienda(shop.tienda_id);
-      this.pedidos.set(res);
+      if ((!res || res.length === 0) && this.auth.isDemo()) {
+        this.pedidos.set(this.obtenerPedidosDemoTienda());
+      } else {
+        this.pedidos.set(res || []);
+      }
     } catch (e) {
       console.error(e);
+      if (this.auth.isDemo()) {
+        this.pedidos.set(this.obtenerPedidosDemoTienda());
+      }
     }
+  }
+
+  obtenerPedidosDemoTienda(): any[] {
+    return [
+      {
+        id: 'ord-1042',
+        fecha_pedido: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+        estado: 'pendiente',
+        total: 64.50,
+        direccion: 'Calle Olmedo y Sucre, Obra Edificio Azul',
+        profiles: {
+          nombre_completo: 'Ing. Marcos Villavicencio',
+          telefono: '0987654321'
+        },
+        pedidos_items: [
+          { cantidad: 4, nombre_producto: 'Cemento Holcim Fuerte 50kg', precio_unitario: 8.25 },
+          { cantidad: 3, nombre_producto: 'Varilla Corrugada 12mm x 12m', precio_unitario: 10.50 }
+        ]
+      },
+      {
+        id: 'ord-1039',
+        fecha_pedido: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+        estado: 'confirmado',
+        total: 145.00,
+        direccion: 'Av. América #302, Urbanización Las Colinas',
+        profiles: {
+          nombre_completo: 'Maestro Jorge Cedeño',
+          telefono: '0991122334'
+        },
+        pedidos_items: [
+          { cantidad: 1, nombre_producto: 'Taladro Percutor DeWalt 20V Max XR', precio_unitario: 145.00 }
+        ]
+      },
+      {
+        id: 'ord-1025',
+        fecha_pedido: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        estado: 'entregado',
+        total: 130.00,
+        direccion: 'Retiro directo en local',
+        profiles: {
+          nombre_completo: 'Lucía Moreira (Cliente)',
+          telefono: '0955443322'
+        },
+        pedidos_items: [
+          { cantidad: 2, nombre_producto: 'Pintura Látex Exterior Super Kem-Tone 5 Gal', precio_unitario: 65.00 }
+        ]
+      }
+    ];
   }
 
   nombreTiendaActual(): string {
@@ -1699,13 +1759,85 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
     this.cdr.detectChanges();
     try {
       const productos = await this.supabase.cargarMisProductosApi();
-      this.misProductos.set(productos);
+      if ((!productos || productos.length === 0) && this.auth.isDemo()) {
+        this.misProductos.set(this.obtenerProductosDemoTienda());
+      } else {
+        this.misProductos.set(productos || []);
+      }
     } catch (e) {
       console.error('Error cargando catálogo', e);
+      if (this.auth.isDemo()) {
+        this.misProductos.set(this.obtenerProductosDemoTienda());
+      }
     } finally {
       this.cargandoCatalogo.set(false);
       this.cdr.detectChanges();
     }
+  }
+
+  obtenerProductosDemoTienda(): Product[] {
+    return [
+      {
+        id: '101',
+        name: 'Cemento Holcim Fuerte 50kg',
+        brand: 'Holcim',
+        minPrice: 8.25,
+        maxPrice: 8.25,
+        image: 'assets/products/cemento_holcim_bag_1777907525047.png',
+        status: 'available',
+        category: 'Cemento y Morteros'
+      },
+      {
+        id: '102',
+        name: 'Varilla de Acero Corrugada 12mm x 12m',
+        brand: 'Novacero',
+        minPrice: 9.90,
+        maxPrice: 9.90,
+        image: 'assets/products/rebar_steel_rods_1777907600147.png',
+        status: 'available',
+        category: 'Hierro y Acero'
+      },
+      {
+        id: '103',
+        name: 'Taladro Percutor DeWalt 20V Max XR Brushless',
+        brand: 'DeWalt',
+        minPrice: 145.00,
+        maxPrice: 145.00,
+        image: 'assets/products/taladro_dewalt_product_1777907550093.png',
+        status: 'available',
+        category: 'Herramientas Eléctricas'
+      },
+      {
+        id: '104',
+        name: 'Pintura Látex Exterior Galón Blanca',
+        brand: 'Sherwin Williams',
+        minPrice: 18.50,
+        maxPrice: 18.50,
+        image: 'assets/products/pintura_sherwin_bucket_1777907574364.png',
+        status: 'available',
+        category: 'Pinturas'
+      },
+      {
+        id: '105',
+        name: 'Tubo PVC Sanitario 4" x 3m Desagüe',
+        brand: 'Rival',
+        minPrice: 8.75,
+        maxPrice: 8.75,
+        image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=600&auto=format&fit=crop',
+        status: 'available',
+        category: 'Plomería'
+      },
+      {
+        id: '106',
+        name: 'Amoladora Angular 4 1/2" 750W',
+        brand: 'Bosch',
+        minPrice: 54.00,
+        maxPrice: 54.00,
+        image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=600&auto=format&fit=crop',
+        status: 'available',
+        category: 'Herramientas Eléctricas'
+      }
+    ];
   }
 
   async abrirMensajes() {

@@ -57,6 +57,7 @@ export class AuthService {
 
   // Helpers computados
   readonly isLoggedIn = computed(() => this._user() !== null);
+  readonly isDemo = computed(() => this._user()?.id?.startsWith('demo-') ?? false);
   readonly currentRol = computed(() => this._profile()?.rol ?? null);
   readonly currentEstado = computed(() => this._profile()?.estado ?? null);
   readonly esTiendaAprobada = computed(() => 
@@ -71,9 +72,70 @@ export class AuthService {
   }
 
   // ============================================
+  // MODO DEMO (Cliente y Ferretería)
+  // ============================================
+  iniciarDemo(rol: UserRole) {
+    if (rol === 'cliente') {
+      const demoUser: any = {
+        id: 'demo-cliente-001',
+        email: 'cliente.demo@ferrecompara.com',
+        app_metadata: { provider: 'demo' },
+        user_metadata: { rol: 'cliente' },
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      };
+      const demoProfile: Profile = {
+        id: 'demo-cliente-001',
+        email: 'cliente.demo@ferrecompara.com',
+        rol: 'cliente',
+        estado: 'activo',
+        nombre_completo: 'Carlos Mendoza (Demo)',
+        telefono: '0991234567',
+        ciudad: 'Portoviejo',
+        avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'
+      };
+      localStorage.setItem('ferrecompara_demo_session', 'cliente');
+      this._user.set(demoUser);
+      this._profile.set(demoProfile);
+    } else {
+      const demoUser: any = {
+        id: 'demo-tienda-001',
+        email: 'ferreteria.demo@ferrecompara.com',
+        app_metadata: { provider: 'demo' },
+        user_metadata: { rol: 'tienda' },
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      };
+      const demoProfile: Profile = {
+        id: 'demo-tienda-001',
+        email: 'ferreteria.demo@ferrecompara.com',
+        rol: 'tienda',
+        estado: 'aprobado',
+        nombre_completo: 'Ferretería Zambrano (Demo)',
+        nombre_tienda: 'Ferretería Zambrano',
+        telefono: '0983195610',
+        ciudad: 'Portoviejo',
+        direccion: 'Av. Los Álamos y Reales Tamarindos',
+        tienda_id: 1,
+        avatar_url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=200&auto=format&fit=crop'
+      };
+      localStorage.setItem('ferrecompara_demo_session', 'tienda');
+      this._user.set(demoUser);
+      this._profile.set(demoProfile);
+    }
+  }
+
+  // ============================================
   // INICIALIZAR (recuperar sesión guardada)
   // ============================================
   async inicializar() {
+    // 1. Revisar si hay sesión demo guardada
+    const demoMode = localStorage.getItem('ferrecompara_demo_session');
+    if (demoMode === 'cliente' || demoMode === 'tienda') {
+      this.iniciarDemo(demoMode as UserRole);
+      return;
+    }
+
     const { data: { session } } = await this.client.auth.getSession();
     if (session?.user) {
       await this.cargarProfile(session.user.id);
@@ -87,8 +149,10 @@ export class AuthService {
         await this.cargarProfile(session.user.id);
         this._user.set(session.user);
       } else {
-        this._user.set(null);
-        this._profile.set(null);
+        if (!localStorage.getItem('ferrecompara_demo_session')) {
+          this._user.set(null);
+          this._profile.set(null);
+        }
       }
     });
   }
@@ -182,6 +246,7 @@ export class AuthService {
   // LOGOUT
   // ============================================
   async signOut(): Promise<void> {
+    localStorage.removeItem('ferrecompara_demo_session');
     try {
       await this.client.auth.signOut();
     } catch (err) {

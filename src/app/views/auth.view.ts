@@ -188,6 +188,31 @@ type AuthMode = 'login' | 'register';
 
           </form>
 
+          <!-- DEMO ACCESS BUTTONS -->
+          <div class="mt-6 pt-5 border-t border-gray-200">
+            <p class="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">
+              O entra en modo demostración
+            </p>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                (click)="entrarDemo('cliente')"
+                class="py-2.5 px-3 rounded-xl border border-orange-200 bg-orange-50/70 hover:bg-orange-100 text-orange-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              >
+                <span>🛒</span>
+                <span>Demo Cliente</span>
+              </button>
+              <button
+                type="button"
+                (click)="entrarDemo('tienda')"
+                class="py-2.5 px-3 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              >
+                <span>🏬</span>
+                <span>Demo Ferretería</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Toggle mode -->
           <p class="mt-8 text-center text-sm text-gray-500">
             {{ mode() === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?' }}
@@ -256,6 +281,11 @@ export class AuthViewComponent {
   toggleMode() {
     this.errorMensaje.set(null);
     this.mode.update(m => m === 'login' ? 'register' : 'login');
+  }
+
+  entrarDemo(rol: UserRole) {
+    this.auth.iniciarDemo(rol);
+    this.exitoso.emit();
   }
 
   async onSubmit() {

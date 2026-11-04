@@ -1,21 +1,23 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send, UploadCloud, FileSpreadsheet, FileText, Printer, DollarSign, CheckCircle, XCircle, Settings, ShoppingBag, Wrench, Truck, Bike } from 'lucide-angular';
+import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send, UploadCloud, FileSpreadsheet, FileText, Printer, DollarSign, CheckCircle, XCircle, Settings, ShoppingBag, Wrench, Truck, Bike, Warehouse, Boxes, ArrowLeftRight, Clock, ShieldAlert } from 'lucide-angular';
 import { AuthService } from '../auth.service';
 import { SupabaseService } from '../supabase.service';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ChatService, ChatConversation } from '../chat.service';
-import { UploadResultDto, PreviewResultDto } from '../types';
+import { UploadResultDto, PreviewResultDto, Product } from '../types';
+import { WarehouseViewComponent, WarehouseSubTab } from './warehouse-view.component';
+import { WarehouseService } from '../warehouse.service';
 
-type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' | 'revision-catalogo' | 'cotizacion' | 'creditos' | 'pedidos' | 'expertos';
+type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' | 'revision-catalogo' | 'cotizacion' | 'creditos' | 'pedidos' | 'expertos' | 'almacen-wms';
 
 @Component({
   selector: 'app-tienda-dashboard',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule],
+  imports: [CommonModule, LucideAngularModule, FormsModule, WarehouseViewComponent],
   styles: [`
     @keyframes loading-bar {
       0%   { transform: scaleX(0.1); transform-origin: left; opacity: 1; }
@@ -55,7 +57,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
       <!-- VISTA: DASHBOARD PRINCIPAL -->
       <div *ngIf="activeTab() === 'dashboard'" class="p-6">
-        <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="grid grid-cols-2 gap-4 mb-6">
           <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors" (click)="abrirPedidos()">
             <div class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center mb-3">
               <lucide-icon [name]="ShoppingBagIcon" size="16"></lucide-icon>
@@ -69,6 +71,75 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             </div>
             <p class="text-2xl font-black text-gray-900">{{ misProductos().length }}</p>
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Productos</p>
+          </div>
+        </div>
+
+        <!-- BANNER DESTACADO: CONTROL DE ALMACÉN & WMS -->
+        <div class="mb-8 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black text-white p-5 rounded-3xl border border-zinc-800 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-orange-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-black">
+                <lucide-icon [name]="WarehouseIcon" size="20"></lucide-icon>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm font-black text-white tracking-tight">WMS & Control de Almacén</h2>
+                  <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">
+                    Módulo Pro
+                  </span>
+                </div>
+                <p class="text-[11px] text-zinc-400">
+                  Existencias, préstamos de maquinaria a expertos y bodegas físicas
+                </p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              (click)="abrirAlmacen('dashboard')" 
+              class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md shadow-orange-500/20 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+            >
+              <span>Abrir WMS Completo</span>
+              <lucide-icon [name]="ArrowLeftIcon" size="14" class="rotate-180"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10">
+            <div (click)="abrirAlmacen('inventario')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
+              <span class="text-[10px] text-zinc-400 uppercase font-black block">Herramientas</span>
+              <p class="text-base sm:text-lg font-black text-white mt-0.5">
+                {{ warehouseService.stats().tools.total_units }} 
+                <span class="text-[10px] font-normal text-emerald-400">({{ warehouseService.stats().tools.available_units }} Disp.)</span>
+              </p>
+            </div>
+
+            <div (click)="abrirAlmacen('prestamos')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
+              <span class="text-[10px] text-zinc-400 uppercase font-black block">Préstamos Activos</span>
+              <p class="text-base sm:text-lg font-black text-orange-400 mt-0.5">
+                {{ warehouseService.stats().loans.active_loans_out }}
+                <span *ngIf="warehouseService.stats().loans.overdue_loans_out > 0" class="text-[10px] font-bold text-red-400 ml-1">
+                  ({{ warehouseService.stats().loans.overdue_loans_out }} Vencidos)
+                </span>
+              </p>
+            </div>
+
+            <div (click)="abrirAlmacen('inventario')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
+              <span class="text-[10px] text-zinc-400 uppercase font-black block">Materiales</span>
+              <p class="text-base sm:text-lg font-black text-white mt-0.5">
+                {{ warehouseService.stats().consumables.total_distinct }}
+                <span *ngIf="warehouseService.stats().consumables.low_stock_count > 0" class="text-[10px] font-bold text-amber-400 ml-1">
+                  (⚠️ {{ warehouseService.stats().consumables.low_stock_count }})
+                </span>
+              </p>
+            </div>
+
+            <div (click)="abrirAlmacen('tablas')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
+              <span class="text-[10px] text-zinc-400 uppercase font-black block">Tablas Rápidas</span>
+              <p class="text-xs font-bold text-emerald-400 mt-1 flex items-center gap-1">
+                <lucide-icon [name]="FileSpreadsheetIcon" size="13"></lucide-icon>
+                <span>Vista Excel</span>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -201,6 +272,79 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             </div>
           </button>
 
+          <!-- ACCIONES WMS Y ALMACÉN -->
+          <button 
+            (click)="abrirAlmacen('dashboard')"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="WarehouseIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Control de Almacén & WMS</h3>
+                <p class="text-[10px] text-gray-400">Existencias, bodegas, préstamos y consumibles</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+          <button 
+            (click)="abrirAlmacen('prestamos')"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500 transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="ArrowLeftRightIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Préstamos y Alquileres de Maquinaria</h3>
+                <p class="text-[10px] text-gray-400">Entrega de equipos a expertos y clientes</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+          <button 
+            (click)="abrirAlmacen('bodegas')"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-blue-500 transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="BoxesIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Bodegas y Ubicaciones Físicas</h3>
+                <p class="text-[10px] text-gray-400">Racks, estanterías, patios y camioneta de reparto</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
+          <button 
+            (click)="abrirAlmacen('tablas')"
+            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-emerald-500 transition-all shadow-sm active:scale-[0.98]"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [name]="FileSpreadsheetIcon" size="24"></lucide-icon>
+              </div>
+              <div class="text-left">
+                <h3 class="font-bold text-sm text-gray-900">Tablas Rápidas (Vista Excel)</h3>
+                <p class="text-[10px] text-gray-400">Edición en lote y descarga de CSV</p>
+              </div>
+            </div>
+            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
+            </div>
+          </button>
+
           <button 
             (click)="abrirPerfil()"
             class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
@@ -220,6 +364,14 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           </button>
 
         </div>
+      </div>
+
+      <!-- VISTA: CONTROL DE ALMACÉN & WMS -->
+      <div *ngIf="activeTab() === 'almacen-wms'">
+        <app-warehouse-view 
+          [initialTab]="almacenSubTab()" 
+          (volver)="volverAlDashboard()"
+        ></app-warehouse-view>
       </div>
 
       <!-- VISTA: EXPERTOS -->
@@ -1478,10 +1630,12 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 export class TiendaDashboardView implements OnInit, OnDestroy {
   auth = inject(AuthService);
   supabase = inject(SupabaseService);
+  warehouseService = inject(WarehouseService);
   protected http = inject(HttpClient);
   protected chatService = inject(ChatService);
   protected cdr = inject(ChangeDetectorRef);
   activeTab = signal<Tab>('dashboard');
+  almacenSubTab = signal<WarehouseSubTab>('dashboard');
   
   misProductos = signal<any[]>([]);
   categorias = signal<any[]>([]);
@@ -1585,6 +1739,17 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   readonly ShoppingBagIcon = ShoppingBag;
   readonly TruckIcon = Truck;
   readonly BikeIcon = Bike;
+  readonly WarehouseIcon = Warehouse;
+  readonly BoxesIcon = Boxes;
+  readonly ArrowLeftRightIcon = ArrowLeftRight;
+  readonly ClockIcon = Clock;
+  readonly ShieldAlertIcon = ShieldAlert;
+
+  abrirAlmacen(subTab: WarehouseSubTab = 'dashboard') {
+    window.scrollTo(0, 0);
+    this.almacenSubTab.set(subTab);
+    this.activeTab.set('almacen-wms');
+  }
 
   realtimeChannel: any;
 

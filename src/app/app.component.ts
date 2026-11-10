@@ -42,22 +42,29 @@ type AuthScreen = 'welcome' | 'auth';
       <button (click)="globalError.set(null)" class="mt-2 bg-black/30 px-3 py-1 rounded">Cerrar</button>
     </div>
 
-    <!-- FLOATING DEMO PILL (Discreet Luxury Dock) -->
-    <div *ngIf="auth.isLoggedIn() && auth.isDemo()" class="fixed top-3 right-4 z-[150] hidden sm:flex items-center gap-2 bg-[#0c0e14]/90 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-full shadow-2xl text-[11px] font-mono">
-      <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-      <span class="text-zinc-400">DEMO:</span>
+    <!-- FLOATING VIEW SWITCHER PILL (Vessa Dashboard <-> Cliente Comparador) -->
+    <div class="fixed top-3 right-4 z-[200] flex items-center gap-1.5 bg-[#0e1411]/90 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-full shadow-2xl text-xs font-mono">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
       <button 
-        (click)="auth.iniciarDemo(auth.currentRol() === 'tienda' ? 'cliente' : 'tienda')"
-        class="text-orange-400 hover:text-orange-300 font-bold underline transition-colors"
+        type="button"
+        (click)="auth.iniciarDemo('tienda')"
+        [class.bg-[#0e3b2e]]="auth.currentRol() === 'tienda'"
+        [class.text-white]="auth.currentRol() === 'tienda'"
+        [class.text-zinc-400]="auth.currentRol() !== 'tienda'"
+        class="px-2.5 py-1 rounded-full font-bold transition-all hover:text-white"
       >
-        {{ auth.currentRol() === 'tienda' ? 'Ferretería' : 'Cliente' }}
+        Vessa Dashboard
       </button>
       <span class="text-zinc-600">|</span>
       <button 
-        (click)="auth.signOut()" 
-        class="text-zinc-400 hover:text-white transition-colors"
+        type="button"
+        (click)="auth.iniciarDemo('cliente')"
+        [class.bg-orange-500/20]="auth.currentRol() === 'cliente'"
+        [class.text-orange-400]="auth.currentRol() === 'cliente'"
+        [class.text-zinc-400]="auth.currentRol() !== 'cliente'"
+        class="px-2.5 py-1 rounded-full font-bold transition-all hover:text-white"
       >
-        Salir
+        Modo Cliente
       </button>
     </div>
 

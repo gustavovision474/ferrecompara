@@ -43,27 +43,27 @@ export class AuthService {
   }
 
   // ============================================
-  // STATE (Signals) - Inicializado por defecto en Demo Cliente
+  // STATE (Signals) - Inicializado por defecto en Demo Tienda (Vessa Dashboard)
   // ============================================
   private _user = signal<User | null>({
-    id: 'demo-cliente-001',
-    email: 'cliente.demo@ferrecompara.com',
+    id: 'demo-tienda-001',
+    email: 'ferreteria.demo@ferrecompara.com',
     app_metadata: { provider: 'demo' },
-    user_metadata: { rol: 'cliente' },
+    user_metadata: { rol: 'tienda' },
     aud: 'authenticated',
     created_at: new Date().toISOString()
   } as any);
 
   private _profile = signal<Profile | null>({
-    id: 'demo-cliente-001',
-    email: 'cliente.demo@ferrecompara.com',
-    rol: 'cliente',
-    nombre: 'Gustavo Vélez (Demo)',
-    telefono: '+593 99 123 4567',
-    ciudad: 'Quito',
-    direccion: 'Av. Amazonas y Naciones Unidas',
+    id: 'demo-tienda-001',
+    email: 'ferreteria.demo@ferrecompara.com',
+    rol: 'tienda',
     estado: 'aprobado',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
+    nombre_completo: 'Ferretería & Bodega Central (Demo)',
+    telefono: '0997654321',
+    ciudad: 'Guayaquil',
+    nombre_tienda: 'Ferretería Central Guayaquil',
+    avatar_url: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=200&auto=format&fit=crop'
   });
 
   private _loading = signal<boolean>(false);
@@ -162,8 +162,8 @@ export class AuthService {
       return;
     }
 
-    // Por defecto, inicializar en modo Demo Cliente para ver la interfaz de inmediato
-    this.iniciarDemo('cliente');
+    // Por defecto, inicializar en modo Demo Tienda para ver el Vessa Dashboard de inmediato
+    this.iniciarDemo('tienda');
 
     this.client.auth.onAuthStateChange(async (event, session) => {
       console.log('[Auth] Event:', event);

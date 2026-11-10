@@ -1,7 +1,13 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, Plus, Package, Edit, TrendingUp, LogOut, Camera, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, MessageSquare, Send, UploadCloud, FileSpreadsheet, FileText, Printer, DollarSign, CheckCircle, XCircle, Settings, ShoppingBag, Wrench, Truck, Bike, Warehouse, Boxes, ArrowLeftRight, Clock, ShieldAlert } from 'lucide-angular';
+import { 
+  LucideAngularModule, 
+  LayoutGrid, Sun, Moon, Bell, ChevronDown, ExternalLink, MoreVertical, AlertTriangle, ArrowDownRight, ArrowUpRight, Users,
+  Plus, Package, Edit, TrendingUp, LogOut, Camera, Save, X, ArrowLeft, Menu, MapPin, List, Search, Trash2, 
+  MessageSquare, Send, UploadCloud, FileSpreadsheet, FileText, Printer, DollarSign, CheckCircle, XCircle, 
+  Settings, ShoppingBag, Wrench, Truck, Bike, Warehouse, Boxes, ArrowLeftRight, Clock, ShieldAlert 
+} from 'lucide-angular';
 import { AuthService } from '../auth.service';
 import { SupabaseService } from '../supabase.service';
 import { HttpClient } from '@angular/common/http';
@@ -26,346 +32,583 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
     }
   `],
   template: `
-    <div class="min-h-screen bg-[#07080b] text-zinc-100 block relative" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
+    <div [class.dark]="vessaDarkMode()" [ngClass]="vessaDarkMode() ? 'bg-[#080b09] text-zinc-100' : 'bg-[#edf2ee] text-[#13261e]'" class="min-h-screen transition-colors duration-300 font-sans p-2 sm:p-4 lg:p-5 flex flex-row gap-3 sm:gap-4 relative overflow-x-hidden" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
       
-
-
-      <!-- HEADER GLOBAL -->
-      <header class="bg-[#07080b]/90 backdrop-blur-2xl px-6 py-4 flex items-center justify-between border-b border-white/[0.08] sticky top-0 z-20 shadow-xl">
-        <!-- Barra de progreso sutil para operaciones de escritura -->
-        <div *ngIf="cargandoGlobal()" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8541C]/30">
-          <div class="h-full bg-[#E8541C] w-1/2 animate-pulse rounded-full"></div>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-orange-100 text-[#E8541C] rounded-xl flex items-center justify-center">
-            <lucide-icon [name]="PackageIcon" size="20"></lucide-icon>
+      <!-- ======================================================== -->
+      <!-- VESSA LEFT VERTICAL DOCK / SIDEBAR                       -->
+      <!-- ======================================================== -->
+      <aside [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08] shadow-2xl' : 'bg-white/80 border-white/80 shadow-[0_4px_30px_rgba(15,48,36,0.04)]'" class="w-14 sm:w-16 rounded-[28px] border backdrop-blur-2xl flex flex-col items-center py-4 px-2 justify-between flex-shrink-0 sticky top-3 sm:top-5 h-[calc(100vh-2rem)] sm:h-[calc(100vh-2.5rem)] z-30 transition-all">
+        <!-- Top: Logo & Day/Night Toggle -->
+        <div class="flex flex-col items-center gap-3 w-full">
+          <!-- Vessa Logo Emblem -->
+          <div (click)="activeTab.set('dashboard')" class="w-10 h-10 rounded-2xl bg-[#0e3b2e] hover:bg-[#134d3c] text-emerald-300 flex items-center justify-center cursor-pointer transition-all shadow-md shadow-[#0e3b2e]/30 active:scale-95 group" title="Vessa / FerreCompara Dashboard">
+            <lucide-icon [name]="PackageIcon" size="20" class="text-emerald-400 group-hover:scale-110 transition-transform"></lucide-icon>
           </div>
-          <div>
-            <h1 class="text-sm font-black text-gray-900 leading-none">Mi Tienda</h1>
-            <p class="text-[10px] text-gray-400 font-bold uppercase mt-0.5">{{ nombreTiendaActual() }}</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button (click)="abrirPerfil()" class="w-10 h-10 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-[#E8541C] transition-colors" title="Perfil de Tienda">
-            <lucide-icon [name]="SettingsIcon" size="18"></lucide-icon>
-          </button>
-          <button (click)="onLogout()" class="w-10 h-10 bg-gray-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors" title="Cerrar Sesión">
-            <lucide-icon [name]="LogoutIcon" size="18"></lucide-icon>
-          </button>
-        </div>
-      </header>
 
-      <!-- VISTA: DASHBOARD PRINCIPAL -->
-      <div *ngIf="activeTab() === 'dashboard'" class="p-6">
-        <div class="grid grid-cols-2 gap-4 mb-6">
-          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors" (click)="abrirPedidos()">
-            <div class="w-8 h-8 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center mb-3">
-              <lucide-icon [name]="ShoppingBagIcon" size="16"></lucide-icon>
-            </div>
-            <p class="text-2xl font-black text-gray-900">{{ pedidos().length }}</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pedidos</p>
-          </div>
-          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
-            <div class="w-8 h-8 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center mb-3">
-              <lucide-icon [name]="PackageIcon" size="16"></lucide-icon>
-            </div>
-            <p class="text-2xl font-black text-gray-900">{{ misProductos().length }}</p>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Productos</p>
-          </div>
-        </div>
-
-        <!-- BANNER DESTACADO: CONTROL DE ALMACÉN & WMS -->
-        <div class="mb-8 bg-gradient-to-br from-zinc-900 via-zinc-950 to-black text-white p-5 rounded-3xl border border-zinc-800 shadow-xl relative overflow-hidden">
-          <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-orange-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-black">
-                <lucide-icon [name]="WarehouseIcon" size="20"></lucide-icon>
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h2 class="text-sm font-black text-white tracking-tight">WMS & Control de Almacén</h2>
-                  <span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">
-                    Módulo Pro
-                  </span>
-                </div>
-                <p class="text-[11px] text-zinc-400">
-                  Existencias, préstamos de maquinaria a expertos y bodegas físicas
-                </p>
-              </div>
-            </div>
-            <button 
-              type="button"
-              (click)="abrirAlmacen('dashboard')" 
-              class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-md shadow-orange-500/20 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-            >
-              <span>Abrir WMS Completo</span>
-              <lucide-icon [name]="ArrowLeftIcon" size="14" class="rotate-180"></lucide-icon>
+          <!-- Sun / Moon Theme Toggle Pill -->
+          <div (click)="vessaDarkMode.set(!vessaDarkMode())" [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10' : 'bg-[#e2ebe4] border-white/80'" class="w-8 p-1 rounded-full border flex flex-col items-center gap-1.5 cursor-pointer transition-all shadow-inner" title="Cambiar Tema (Claro / Oscuro)">
+            <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-white]="!vessaDarkMode()" [class.shadow-sm]="!vessaDarkMode()" [class.text-amber-500]="!vessaDarkMode()" [class.text-zinc-500]="vessaDarkMode()">
+              <lucide-icon [name]="SunIcon" size="13"></lucide-icon>
+            </button>
+            <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-[#0e3b2e]]="vessaDarkMode()" [class.text-emerald-300]="vessaDarkMode()" [class.text-zinc-400]="!vessaDarkMode()">
+              <lucide-icon [name]="MoonIcon" size="13"></lucide-icon>
             </button>
           </div>
+        </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 relative z-10">
-            <div (click)="abrirAlmacen('inventario')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
-              <span class="text-[10px] text-zinc-400 uppercase font-black block">Herramientas</span>
-              <p class="text-base sm:text-lg font-black text-white mt-0.5">
-                {{ warehouseService.stats().tools.total_units }} 
-                <span class="text-[10px] font-normal text-emerald-400">({{ warehouseService.stats().tools.available_units }} Disp.)</span>
-              </p>
+        <!-- Middle: Nav Icons Stack -->
+        <nav class="flex flex-col items-center gap-2 w-full my-auto">
+          <!-- Overview -->
+          <button 
+            (click)="activeTab.set('dashboard')" 
+            [class.bg-[#0e3b2e]]="activeTab() === 'dashboard'" 
+            [class.text-white]="activeTab() === 'dashboard'" 
+            [class.shadow-lg]="activeTab() === 'dashboard'" 
+            [ngClass]="activeTab() === 'dashboard' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Overview"
+          >
+            <lucide-icon [name]="LayoutGridIcon" size="18"></lucide-icon>
+          </button>
+
+          <!-- Inventory / Stock -->
+          <button 
+            (click)="abrirCatalogo()" 
+            [class.bg-[#0e3b2e]]="activeTab() === 'catalogo'" 
+            [class.text-white]="activeTab() === 'catalogo'" 
+            [ngClass]="activeTab() === 'catalogo' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Inventario & SKUs"
+          >
+            <lucide-icon [name]="BoxesIcon" size="18"></lucide-icon>
+          </button>
+
+          <!-- Orders -->
+          <button 
+            (click)="abrirPedidos()" 
+            [class.bg-[#0e3b2e]]="activeTab() === 'pedidos'" 
+            [class.text-white]="activeTab() === 'pedidos'" 
+            [ngClass]="activeTab() === 'pedidos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Pedidos & Despachos"
+          >
+            <lucide-icon [name]="FileTextIcon" size="18"></lucide-icon>
+          </button>
+
+          <!-- Sales / Cart -->
+          <button 
+            (click)="abrirCotizacion()" 
+            [class.bg-[#0e3b2e]]="activeTab() === 'cotizacion'" 
+            [class.text-white]="activeTab() === 'cotizacion'" 
+            [ngClass]="activeTab() === 'cotizacion' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Ventas & Cotizaciones"
+          >
+            <lucide-icon [name]="ShoppingBagIcon" size="18"></lucide-icon>
+          </button>
+
+          <!-- WMS Warehouses -->
+          <button 
+            (click)="abrirAlmacen('dashboard')" 
+            [class.bg-[#0e3b2e]]="activeTab() === 'almacen-wms'" 
+            [class.text-white]="activeTab() === 'almacen-wms'" 
+            [ngClass]="activeTab() === 'almacen-wms' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Bodegas & WMS"
+          >
+            <lucide-icon [name]="WarehouseIcon" size="18"></lucide-icon>
+          </button>
+
+          <!-- Logistics / Shipping -->
+          <button 
+            (click)="abrirAlmacen('prestamos')" 
+            [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10'"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Préstamos & Maquinaria"
+          >
+            <lucide-icon [name]="TruckIcon" size="18"></lucide-icon>
+          </button>
+
+          <!-- Experts / Team -->
+          <button 
+            (click)="abrirExpertos()" 
+            [class.bg-[#0e3b2e]]="activeTab() === 'expertos'" 
+            [class.text-white]="activeTab() === 'expertos'" 
+            [ngClass]="activeTab() === 'expertos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
+            title="Expertos & Equipo"
+          >
+            <lucide-icon [name]="UsersIcon" size="18"></lucide-icon>
+          </button>
+        </nav>
+
+        <!-- Bottom: Settings -->
+        <div class="flex flex-col items-center gap-2 w-full">
+          <button 
+            (click)="abrirPerfil()" 
+            [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#0e3b2e]'"
+            class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all hover:bg-white/10" 
+            title="Configuración"
+          >
+            <lucide-icon [name]="SettingsIcon" size="18"></lucide-icon>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ======================================================== -->
+      <!-- MAIN VESSA DASHBOARD CONTENT AREA                       -->
+      <!-- ======================================================== -->
+      <main class="flex-1 min-w-0 flex flex-col gap-4">
+        
+        <!-- VESSA TOP NAVIGATION BAR -->
+        <header [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/80 border-white/80'" class="rounded-[28px] border backdrop-blur-2xl px-4 sm:px-6 py-3 flex items-center justify-between shadow-sm transition-all">
+          
+          <!-- Left: Brand Title & Organization -->
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-[#0e3b2e] text-emerald-300 flex items-center justify-center font-black text-sm shadow-sm">
+              V
             </div>
-
-            <div (click)="abrirAlmacen('prestamos')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
-              <span class="text-[10px] text-zinc-400 uppercase font-black block">Préstamos Activos</span>
-              <p class="text-base sm:text-lg font-black text-orange-400 mt-0.5">
-                {{ warehouseService.stats().loans.active_loans_out }}
-                <span *ngIf="warehouseService.stats().loans.overdue_loans_out > 0" class="text-[10px] font-bold text-red-400 ml-1">
-                  ({{ warehouseService.stats().loans.overdue_loans_out }} Vencidos)
-                </span>
-              </p>
-            </div>
-
-            <div (click)="abrirAlmacen('inventario')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
-              <span class="text-[10px] text-zinc-400 uppercase font-black block">Materiales</span>
-              <p class="text-base sm:text-lg font-black text-white mt-0.5">
-                {{ warehouseService.stats().consumables.total_distinct }}
-                <span *ngIf="warehouseService.stats().consumables.low_stock_count > 0" class="text-[10px] font-bold text-amber-400 ml-1">
-                  ({{ warehouseService.stats().consumables.low_stock_count }} alerta)
-                </span>
-              </p>
-            </div>
-
-            <div (click)="abrirAlmacen('tablas')" class="bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 p-3 rounded-2xl cursor-pointer transition">
-              <span class="text-[10px] text-zinc-400 uppercase font-black block">Tablas Rápidas</span>
-              <p class="text-xs font-bold text-emerald-400 mt-1 flex items-center gap-1">
-                <lucide-icon [name]="FileSpreadsheetIcon" size="13"></lucide-icon>
-                <span>Vista Excel</span>
+            <div>
+              <h1 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-sm sm:text-base font-bold leading-tight flex items-center gap-2">
+                <span>Vessa</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold uppercase">Stockroom</span>
+              </h1>
+              <p [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#71867c]'" class="text-[11px] font-medium leading-none mt-0.5">
+                {{ nombreTiendaActual() || 'Marlow & Fern · Bodega Central' }}
               </p>
             </div>
           </div>
+
+          <!-- Center: Segmented Navigation Pills -->
+          <div class="hidden md:flex items-center">
+            <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10' : 'bg-[#e2ebe4] border-white/80'" class="p-1 rounded-full border flex items-center gap-1 shadow-inner text-xs font-semibold">
+              <button 
+                (click)="vessaNavTab.set('overview'); activeTab.set('dashboard')"
+                [ngClass]="vessaNavTab() === 'overview' && activeTab() === 'dashboard' ? (vessaDarkMode() ? 'bg-[#0e3b2e] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#111915]')"
+                class="px-4 py-1.5 rounded-full transition-all"
+              >
+                Overview
+              </button>
+              <button 
+                (click)="vessaNavTab.set('activity'); abrirMensajes()"
+                [ngClass]="activeTab() === 'mensajes' ? (vessaDarkMode() ? 'bg-[#0e3b2e] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#111915]')"
+                class="px-4 py-1.5 rounded-full transition-all"
+              >
+                Activity
+              </button>
+              <button 
+                (click)="vessaNavTab.set('alerts'); abrirAlmacen('inventario')"
+                [ngClass]="activeTab() === 'almacen-wms' ? (vessaDarkMode() ? 'bg-[#0e3b2e] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#111915]')"
+                class="px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5"
+              >
+                <span>Alerts</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Search Capsule, Notifications, + New, Profile -->
+          <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Search Capsule -->
+            <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10 text-zinc-300' : 'bg-white border-white/80 text-[#50665c] shadow-sm'" class="hidden lg:flex items-center gap-2 border px-3 py-1.5 rounded-full text-xs font-medium">
+              <lucide-icon [name]="SearchIcon" size="14" class="opacity-70"></lucide-icon>
+              <input 
+                type="text" 
+                placeholder="Search stock, SKUs..." 
+                class="bg-transparent border-none outline-none text-xs w-36 placeholder:text-zinc-400"
+              />
+              <kbd class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600">⌘K</kbd>
+            </div>
+
+            <!-- Bell Notification -->
+            <button 
+              (click)="abrirMensajes()"
+              [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10 text-zinc-300' : 'bg-white border-white/80 text-[#50665c] shadow-sm'"
+              class="w-8 h-8 rounded-full border flex items-center justify-center relative hover:scale-105 transition-all"
+            >
+              <lucide-icon [name]="BellIcon" size="15"></lucide-icon>
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-zinc-800"></span>
+            </button>
+
+            <!-- + New Button -->
+            <button 
+              (click)="abrirFormularioNuevo()" 
+              class="bg-[#0e3b2e] hover:bg-[#154e3d] text-white px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-md shadow-[#0e3b2e]/20 transition-all active:scale-95"
+            >
+              <lucide-icon [name]="PlusIcon" size="14"></lucide-icon>
+              <span>New</span>
+            </button>
+
+            <!-- Profile Badge & Client Switcher -->
+            <div class="flex items-center gap-2 pl-1 border-l border-zinc-300/60 dark:border-white/10">
+              <button 
+                (click)="auth.iniciarDemo('cliente')" 
+                class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border border-orange-500/20 transition-all"
+                title="Cambiar a vista de cliente / comparador"
+              >
+                <lucide-icon [name]="ShoppingBagIcon" size="12"></lucide-icon>
+                <span>Ver Tienda</span>
+              </button>
+
+              <div (click)="abrirPerfil()" class="flex items-center gap-2 cursor-pointer group" title="Mi Perfil">
+                <div class="w-8 h-8 rounded-full bg-[#11231a] text-white flex items-center justify-center text-xs font-bold border-2 border-white/80 dark:border-white/20 shadow-sm group-hover:scale-105 transition-transform">
+                  {{ nombreTiendaActual() ? nombreTiendaActual().charAt(0) : 'I' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- ======================================================== -->
+        <!-- VISTA: DASHBOARD PRINCIPAL (1:1 VESSA REPLICA)           -->
+        <!-- ======================================================== -->
+        <div *ngIf="activeTab() === 'dashboard'" class="flex flex-col gap-4 animate-in fade-in duration-300">
+          
+          <!-- TOP ROW: HERO GREETING (5 cols) + 3 KPI CARDS (7 cols) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            
+            <!-- HERO GREETING CARD (Left 5 Cols) -->
+            <div [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="lg:col-span-5 rounded-[32px] border backdrop-blur-2xl p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden">
+              <div class="relative z-10">
+                <!-- Date Pill -->
+                <div [ngClass]="vessaDarkMode() ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-[#e4ede7] text-[#2d473b] border-white/80'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border shadow-inner">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Monday, Oct 19 · 10:40 AM</span>
+                </div>
+
+                <!-- Main Greeting -->
+                <h2 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-3">
+                  Welcome back,<br class="hidden sm:inline"/> Imani!
+                </h2>
+                <p [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs sm:text-sm mt-2 leading-relaxed max-w-sm">
+                  Here's what's moving in the stockroom today - 2 orders to ship and 2 batches waiting on QA.
+                </p>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center gap-3 mt-6 relative z-10">
+                <button 
+                  (click)="abrirPedidos()" 
+                  class="bg-[#0e3b2e] hover:bg-[#144f3e] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-md shadow-[#0e3b2e]/20 active:scale-95"
+                >
+                  + New order
+                </button>
+                <button 
+                  (click)="abrirFormularioNuevo()" 
+                  [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 hover:bg-zinc-700 text-white border-white/10' : 'bg-white hover:bg-zinc-50 text-[#1e3328] border-[#d2ded6] shadow-sm'" 
+                  class="border px-5 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95"
+                >
+                  Make a batch
+                </button>
+              </div>
+
+              <!-- Ambient Glow Backdrop -->
+              <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            </div>
+
+            <!-- 3 KPI CARDS (Right 7 Cols) -->
+            <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              <!-- KPI 1: Units on hand -->
+              <div (click)="abrirCatalogo()" [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="rounded-[32px] border backdrop-blur-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer hover:-translate-y-0.5 transition-all">
+                <div class="flex items-start justify-between relative z-10">
+                  <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs font-semibold">Units on hand</span>
+                  <div class="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <lucide-icon [name]="PackageIcon" size="18"></lucide-icon>
+                  </div>
+                </div>
+
+                <div class="my-3 relative z-10">
+                  <div class="flex items-baseline gap-2">
+                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-black tracking-tight">3,163</span>
+                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                      <lucide-icon [name]="ArrowDownRightIcon" size="11"></lucide-icon>
+                      <span>3.2%</span>
+                    </span>
+                  </div>
+                  <p [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-medium mt-1">12 SKUs · 3 sites</p>
+                </div>
+
+                <!-- Concentric Ripple Rings SVG -->
+                <svg class="absolute -right-5 -bottom-5 w-28 h-28 opacity-15 pointer-events-none text-emerald-500" viewBox="0 0 100 100" fill="none">
+                  <circle cx="80" cy="80" r="25" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="80" cy="80" r="45" stroke="currentColor" stroke-width="1.2" />
+                  <circle cx="80" cy="80" r="65" stroke="currentColor" stroke-width="1" />
+                  <circle cx="80" cy="80" r="85" stroke="currentColor" stroke-width="0.8" />
+                </svg>
+              </div>
+
+              <!-- KPI 2: Total stock value -->
+              <div (click)="abrirAlmacen('inventario')" [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="rounded-[32px] border backdrop-blur-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer hover:-translate-y-0.5 transition-all">
+                <div class="flex items-start justify-between relative z-10">
+                  <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs font-semibold">Total stock value</span>
+                  <div class="w-9 h-9 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center">
+                    <lucide-icon [name]="DollarSignIcon" size="18"></lucide-icon>
+                  </div>
+                </div>
+
+                <div class="my-3 relative z-10">
+                  <div class="flex items-baseline gap-2">
+                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-black tracking-tight">$23,323</span>
+                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <lucide-icon [name]="ArrowUpRightIcon" size="11"></lucide-icon>
+                      <span>4.9%</span>
+                    </span>
+                  </div>
+                  <p [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-medium mt-1">At cost</p>
+                </div>
+
+                <!-- Concentric Ripple Rings SVG -->
+                <svg class="absolute -right-5 -bottom-5 w-28 h-28 opacity-15 pointer-events-none text-teal-500" viewBox="0 0 100 100" fill="none">
+                  <circle cx="80" cy="80" r="25" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="80" cy="80" r="45" stroke="currentColor" stroke-width="1.2" />
+                  <circle cx="80" cy="80" r="65" stroke="currentColor" stroke-width="1" />
+                  <circle cx="80" cy="80" r="85" stroke="currentColor" stroke-width="0.8" />
+                </svg>
+              </div>
+
+              <!-- KPI 3: Low stock items -->
+              <div (click)="abrirAlmacen('inventario')" [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="rounded-[32px] border backdrop-blur-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer hover:-translate-y-0.5 transition-all">
+                <div class="flex items-start justify-between relative z-10">
+                  <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs font-semibold">Low stock items</span>
+                  <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                    <lucide-icon [name]="AlertTriangleIcon" size="18"></lucide-icon>
+                  </div>
+                </div>
+
+                <div class="my-3 relative z-10">
+                  <div class="flex items-baseline gap-2">
+                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-black tracking-tight">5</span>
+                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                      <span>1 out</span>
+                    </span>
+                  </div>
+                  <p [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-medium mt-1">3 products · 4 materials</p>
+                </div>
+
+                <!-- Concentric Ripple Rings SVG -->
+                <svg class="absolute -right-5 -bottom-5 w-28 h-28 opacity-15 pointer-events-none text-amber-500" viewBox="0 0 100 100" fill="none">
+                  <circle cx="80" cy="80" r="25" stroke="currentColor" stroke-width="1.5" />
+                  <circle cx="80" cy="80" r="45" stroke="currentColor" stroke-width="1.2" />
+                  <circle cx="80" cy="80" r="65" stroke="currentColor" stroke-width="1" />
+                  <circle cx="80" cy="80" r="85" stroke="currentColor" stroke-width="0.8" />
+                </svg>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- BOTTOM ROW: INVENTORY STATISTICS (8 cols) + SALES OVERVIEW (4 cols) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            
+            <!-- INVENTORY STATISTICS CARD (Left 8 Cols) -->
+            <div [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="lg:col-span-8 rounded-[32px] border backdrop-blur-2xl p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden">
+              
+              <!-- Card Header -->
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                  <h3 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="font-extrabold text-base sm:text-lg tracking-tight">
+                    Inventory statistics
+                  </h3>
+                  <!-- Legends -->
+                  <div class="hidden sm:flex items-center gap-3 text-xs font-medium ml-2">
+                    <span class="flex items-center gap-1.5 text-amber-500">
+                      <span class="w-2 h-2 rounded-full bg-amber-400"></span> Stock in
+                    </span>
+                    <span class="flex items-center gap-1.5 text-slate-400">
+                      <span class="w-2 h-2 rounded-full bg-slate-400"></span> Stock out
+                    </span>
+                    <span class="flex items-center gap-1.5 text-emerald-500">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Value
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="flex items-center gap-2">
+                  <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800 border-white/10 text-zinc-300' : 'bg-[#eef4f0] border-white/80 text-[#2d473b]'" class="flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer">
+                    <span>Monthly</span>
+                    <lucide-icon [name]="ChevronDownIcon" size="13"></lucide-icon>
+                  </div>
+                  <button (click)="abrirAlmacen('tablas')" [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-[#5a7166] hover:text-[#11231a] hover:bg-[#eef4f0]'" class="w-7 h-7 rounded-full flex items-center justify-center transition-all">
+                    <lucide-icon [name]="ExternalLinkIcon" size="14"></lucide-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bar Chart with October Floating Tooltip -->
+              <div class="relative w-full h-56 sm:h-64 pt-4 flex flex-col justify-end">
+                
+                <!-- Floating Tooltip for October -->
+                <div class="absolute top-2 left-[58%] sm:left-[62%] -translate-x-1/2 z-20 pointer-events-none">
+                  <div [ngClass]="vessaDarkMode() ? 'bg-[#141d18]/95 border-emerald-500/30 text-white shadow-2xl' : 'bg-white/95 border-white/80 text-[#11231a] shadow-[0_12px_32px_rgba(15,48,36,0.12)]'" class="backdrop-blur-xl rounded-2xl p-3 border text-xs font-mono min-w-[170px] animate-in fade-in duration-300">
+                    <p class="font-bold text-[11px] uppercase tracking-wider mb-1.5 pb-1 border-b border-zinc-200/60 dark:border-white/10">Octobre · 2026</p>
+                    <div class="space-y-1 text-[11px]">
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="flex items-center gap-1.5 text-amber-500 font-semibold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Stock in:
+                        </span>
+                        <span class="font-bold">$6,232</span>
+                      </div>
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="flex items-center gap-1.5 text-slate-400 font-semibold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Stock out:
+                        </span>
+                        <span class="font-bold">$4,732</span>
+                      </div>
+                      <div class="flex items-center justify-between gap-3 pt-0.5 border-t border-zinc-100 dark:border-white/5">
+                        <span class="flex items-center gap-1.5 text-emerald-500 font-semibold">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Stock value:
+                        </span>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400">$32,041</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Little caret -->
+                  <div class="w-3 h-3 bg-white/95 dark:bg-[#141d18] border-r border-b border-zinc-200/80 dark:border-emerald-500/30 rotate-45 mx-auto -mt-1.5"></div>
+                </div>
+
+                <!-- Grid Horizontal Lines -->
+                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-25">
+                  <div class="border-b border-dashed border-zinc-400 w-full"></div>
+                  <div class="border-b border-dashed border-zinc-400 w-full"></div>
+                  <div class="border-b border-dashed border-zinc-400 w-full"></div>
+                  <div class="border-b border-dashed border-zinc-400 w-full"></div>
+                </div>
+
+                <!-- Monthly Bars Group -->
+                <div class="grid grid-cols-6 gap-2 sm:gap-6 items-end h-44 sm:h-48 relative z-10 px-2 sm:px-4">
+                  
+                  <!-- Jul -->
+                  <div class="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="flex items-end gap-1.5 h-36">
+                      <div class="w-3 sm:w-5 bg-amber-400/80 group-hover:bg-amber-400 rounded-t-full h-16 transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-slate-300 dark:bg-slate-700 group-hover:bg-slate-400 rounded-t-full h-24 transition-all"></div>
+                    </div>
+                    <span [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-semibold">Jul</span>
+                  </div>
+
+                  <!-- Aug -->
+                  <div class="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="flex items-end gap-1.5 h-36">
+                      <div class="w-3 sm:w-5 bg-amber-400/80 group-hover:bg-amber-400 rounded-t-full h-24 transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-slate-300 dark:bg-slate-700 group-hover:bg-slate-400 rounded-t-full h-14 transition-all"></div>
+                    </div>
+                    <span [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-semibold">Aug</span>
+                  </div>
+
+                  <!-- Sep -->
+                  <div class="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="flex items-end gap-1.5 h-36">
+                      <div class="w-3 sm:w-5 bg-amber-400/80 group-hover:bg-amber-400 rounded-t-full h-28 transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-slate-300 dark:bg-slate-700 group-hover:bg-slate-400 rounded-t-full h-20 transition-all"></div>
+                    </div>
+                    <span [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-semibold">Sep</span>
+                  </div>
+
+                  <!-- Oct (Active with glow) -->
+                  <div class="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="flex items-end gap-1.5 h-36 relative">
+                      <div class="w-3 sm:w-5 bg-amber-500 rounded-t-full h-32 shadow-[0_0_12px_rgba(245,158,11,0.5)] transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-[#0e3b2e] dark:bg-emerald-500 rounded-t-full h-26 shadow-[0_0_12px_rgba(14,59,46,0.3)] transition-all"></div>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Oct</span>
+                  </div>
+
+                  <!-- Nov -->
+                  <div class="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="flex items-end gap-1.5 h-36">
+                      <div class="w-3 sm:w-5 bg-amber-400/80 group-hover:bg-amber-400 rounded-t-full h-20 transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-slate-300 dark:bg-slate-700 group-hover:bg-slate-400 rounded-t-full h-30 transition-all"></div>
+                    </div>
+                    <span [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-semibold">Nov</span>
+                  </div>
+
+                  <!-- Dec -->
+                  <div class="flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="flex items-end gap-1.5 h-36">
+                      <div class="w-3 sm:w-5 bg-amber-400/80 group-hover:bg-amber-400 rounded-t-full h-22 transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-slate-300 dark:bg-slate-700 group-hover:bg-slate-400 rounded-t-full h-18 transition-all"></div>
+                    </div>
+                    <span [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-semibold">Dec</span>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+
+            <!-- SALES OVERVIEW SPEEDOMETER GAUGE CARD (Right 4 Cols) -->
+            <div [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="lg:col-span-4 rounded-[32px] border backdrop-blur-2xl p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden">
+              
+              <!-- Header -->
+              <div class="flex items-center justify-between mb-2">
+                <h3 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="font-extrabold text-base sm:text-lg tracking-tight">
+                  Sales overview
+                </h3>
+                <button [ngClass]="vessaDarkMode() ? 'text-zinc-500 hover:text-white' : 'text-zinc-400 hover:text-zinc-700'" class="w-7 h-7 rounded-full flex items-center justify-center">
+                  <lucide-icon [name]="MoreVerticalIcon" size="16"></lucide-icon>
+                </button>
+              </div>
+
+              <!-- Centered Speedometer Radial Gauge (1:1 from Vessa reference) -->
+              <div class="relative flex flex-col items-center justify-center my-3">
+                <svg class="w-64 h-36 overflow-visible" viewBox="0 0 300 160">
+                  <defs>
+                    <!-- Gradient for Active Speedometer Ticks -->
+                    <linearGradient id="vessaGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#34d399" />
+                      <stop offset="50%" stop-color="#10b981" />
+                      <stop offset="100%" stop-color="#0e3b2e" />
+                    </linearGradient>
+                  </defs>
+
+                  <!-- 40 Radial Tick Rays -->
+                  <g>
+                    @for (tick of gaugeTicks(); track $index) {
+                      <line 
+                        [attr.x1]="tick.x1" 
+                        [attr.y1]="tick.y1" 
+                        [attr.x2]="tick.x2" 
+                        [attr.y2]="tick.y2" 
+                        [attr.stroke]="tick.isActive ? 'url(#vessaGaugeGradient)' : (vessaDarkMode() ? '#1a2920' : '#d8e5dd')"
+                        [attr.stroke-width]="tick.isActive ? '2.8' : '2'"
+                        stroke-linecap="round"
+                        class="transition-all duration-500"
+                      />
+                    }
+                  </g>
+                </svg>
+
+                <!-- Speedometer Readout in Center of Arc -->
+                <div class="absolute bottom-2 text-center flex flex-col items-center">
+                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-3xl sm:text-4xl font-black tracking-tight leading-none">
+                    47.0%
+                  </span>
+                  <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#788e84]'" class="text-[11px] font-bold uppercase tracking-wider mt-1">
+                    Sales goal
+                  </span>
+                </div>
+              </div>
+
+              <!-- Bottom Stats Row -->
+              <div class="flex items-center justify-between pt-4 border-t border-zinc-200/60 dark:border-white/10 mt-2">
+                <div class="flex flex-col">
+                  <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#788e84]'" class="text-[11px] font-medium">Number of sales</span>
+                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-lg font-black mt-0.5">29</span>
+                </div>
+                <div class="flex flex-col text-right">
+                  <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#788e84]'" class="text-[11px] font-medium">Total sales</span>
+                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-lg font-black mt-0.5">$10,282</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
-
-        <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Acciones Rápidas</h2>
-        <div class="space-y-3">
-          <button 
-            (click)="abrirFormularioNuevo()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="PlusIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Añadir Producto</h3>
-                <p class="text-[10px] text-gray-400">Publicar un nuevo artículo</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirCatalogo()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-emerald-500 transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="ListIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Mi Catálogo</h3>
-                <p class="text-[10px] text-gray-400">Ver y editar tus productos</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirPedidos()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="PackageIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Gestión de Pedidos</h3>
-                <p class="text-[10px] text-gray-400">Revisa las compras de tus clientes</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirMensajes()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500 transition-all shadow-sm active:scale-[0.98] relative"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="ChatIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Mensajes</h3>
-                <p class="text-[10px] text-gray-400">Chat en vivo con clientes</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirCotizacion()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-teal-500 transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-teal-50 text-teal-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="FileTextIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Generar Cotización</h3>
-                <p class="text-[10px] text-gray-400">Crear presupuesto para un cliente</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-teal-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-
-          <button 
-            (click)="abrirCreditos()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="DollarSignIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Gestión de Créditos</h3>
-                <p class="text-[10px] text-gray-400">Administra solicitudes y líneas de crédito</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirExpertos()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500 transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="WrenchIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Panel de Expertos</h3>
-                <p class="text-[10px] text-gray-400">Sube y gestiona tus referidos</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <!-- ACCIONES WMS Y ALMACÉN -->
-          <button 
-            (click)="abrirAlmacen('dashboard')"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="WarehouseIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Control de Almacén & WMS</h3>
-                <p class="text-[10px] text-gray-400">Existencias, bodegas, préstamos y consumibles</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirAlmacen('prestamos')"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500 transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="ArrowLeftRightIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Préstamos y Alquileres de Maquinaria</h3>
-                <p class="text-[10px] text-gray-400">Entrega de equipos a expertos y clientes</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirAlmacen('bodegas')"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-blue-500 transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="BoxesIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Bodegas y Ubicaciones Físicas</h3>
-                <p class="text-[10px] text-gray-400">Racks, estanterías, patios y camioneta de reparto</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirAlmacen('tablas')"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-emerald-500 transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="FileSpreadsheetIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Tablas Rápidas (Vista Excel)</h3>
-                <p class="text-[10px] text-gray-400">Edición en lote y descarga de CSV</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-          <button 
-            (click)="abrirPerfil()"
-            class="w-full bg-white border border-gray-100 p-4 rounded-2xl flex items-center justify-between group hover:border-[#E8541C] transition-all shadow-sm active:scale-[0.98]"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-orange-50 text-[#E8541C] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <lucide-icon [name]="SettingsIcon" size="24"></lucide-icon>
-              </div>
-              <div class="text-left">
-                <h3 class="font-bold text-sm text-gray-900">Perfil de Tienda</h3>
-                <p class="text-[10px] text-gray-400">Configura horarios, dirección y logo de tu negocio</p>
-              </div>
-            </div>
-            <div class="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 group-hover:bg-[#E8541C] group-hover:text-white transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" size="16" class="rotate-180"></lucide-icon>
-            </div>
-          </button>
-
-        </div>
-      </div>
-
       <!-- VISTA: CONTROL DE ALMACÉN & WMS -->
       <div *ngIf="activeTab() === 'almacen-wms'">
         <app-warehouse-view 
@@ -1747,6 +1990,43 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
   readonly ArrowLeftRightIcon = ArrowLeftRight;
   readonly ClockIcon = Clock;
   readonly ShieldAlertIcon = ShieldAlert;
+  readonly LayoutGridIcon = LayoutGrid;
+  readonly SunIcon = Sun;
+  readonly MoonIcon = Moon;
+  readonly BellIcon = Bell;
+  readonly ChevronDownIcon = ChevronDown;
+  readonly ExternalLinkIcon = ExternalLink;
+  readonly MoreVerticalIcon = MoreVertical;
+  readonly AlertTriangleIcon = AlertTriangle;
+  readonly ArrowDownRightIcon = ArrowDownRight;
+  readonly ArrowUpRightIcon = ArrowUpRight;
+  readonly UsersIcon = Users;
+
+  // Vessa Luxury Theme & Navigation Signals
+  vessaDarkMode = signal<boolean>(false);
+  vessaNavTab = signal<'overview' | 'activity' | 'alerts'>('overview');
+  activeBarMonth = signal<'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec'>('Oct');
+
+  // Computed Radial Speedometer ticks for 47% goal (Exact match to Vessa dashboard)
+  gaugeTicks = computed(() => {
+    const totalTicks = 40;
+    const activeCount = Math.round(totalTicks * 0.47);
+    const cx = 150;
+    const cy = 135;
+    const r1 = 66;
+    const r2 = 94;
+    const ticks: { x1: number; y1: number; x2: number; y2: number; isActive: boolean }[] = [];
+    for (let i = 0; i < totalTicks; i++) {
+      const angle = Math.PI - (i / (totalTicks - 1)) * Math.PI;
+      const x1 = Number((cx + r1 * Math.cos(angle)).toFixed(2));
+      const y1 = Number((cy - r1 * Math.sin(angle)).toFixed(2));
+      const x2 = Number((cx + r2 * Math.cos(angle)).toFixed(2));
+      const y2 = Number((cy - r2 * Math.sin(angle)).toFixed(2));
+      const isActive = i <= activeCount;
+      ticks.push({ x1, y1, x2, y2, isActive });
+    }
+    return ticks;
+  });
 
   abrirAlmacen(subTab: WarehouseSubTab = 'dashboard') {
     window.scrollTo(0, 0);

@@ -11,37 +11,37 @@ import { SupabaseService } from '../supabase.service';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, FormsModule],
   template: `
-    <div class="pb-28 bg-[#07080b] text-zinc-100 min-h-screen relative max-w-4xl mx-auto">
-      <!-- GLOBAL FULLSCREEN LOADER -->
-      <div *ngIf="cargandoGlobal() && pedidosData().length === 0 && !auth.isDemo()" class="fixed inset-0 z-[999] bg-[#07080b] flex flex-col items-center justify-center">
-        <div class="w-14 h-14 border-2 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
-        <p class="text-xs font-mono font-bold text-zinc-400 mt-4 tracking-widest uppercase animate-pulse">Sincronizando perfil...</p>
+    <div class="pb-24 bg-gray-50 min-h-screen relative">
+      <!-- GLOBAL FULLSCREEN LOADER (Solo si aún no hay pedidos y no es demo) -->
+      <div *ngIf="cargandoGlobal() && pedidosData().length === 0 && !auth.isDemo()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Cargando...</p>
       </div>
       @if (activeView() === 'main') {
         <div class="animate-in slide-in-from-bottom duration-500">
           <!-- Profile Header -->
-          <section class="px-6 pt-6 pb-8 bg-[#0e1118]/85 backdrop-blur-xl border-b border-white/[0.08] shadow-lg">
+          <section class="px-6 pt-6 pb-10 bg-white border-b border-gray-100 shadow-sm">
             <div class="flex items-center gap-5">
               <div class="relative shrink-0">
                 <img 
                   [src]="auth.profile()?.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'" 
-                  class="w-18 h-18 rounded-3xl object-cover ring-2 ring-white/10 shadow-lg" 
+                  class="w-20 h-20 rounded-3xl object-cover ring-4 ring-orange-50 shadow-lg" 
                 />
                 <button 
                   (click)="abrirEdicion()"
-                  class="absolute -bottom-1 -right-1 bg-orange-500 text-white p-1.5 rounded-xl shadow-md hover:scale-110 transition-transform"
+                  class="absolute -bottom-1 -right-1 bg-[#E8541C] text-white p-1.5 rounded-xl shadow-md hover:scale-110 transition-transform"
                 >
                   <lucide-icon [name]="SettingsIcon" size="14"></lucide-icon>
                 </button>
               </div>
               <div class="min-w-0">
-                <h1 class="text-xl sm:text-2xl font-black text-white leading-tight truncate">
+                <h1 class="text-2xl font-black text-gray-900 leading-tight truncate">
                   {{ auth.profile()?.nombre_completo || 'Usuario' }}
                 </h1>
-                <p class="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-1 truncate">Cliente Registrado</p>
-                <div class="flex items-center gap-1.5 mt-2 text-orange-400 truncate text-xs font-mono">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1 truncate">Cliente</p>
+                <div class="flex items-center gap-1.5 mt-2 text-emerald-600 truncate">
                   <lucide-icon [name]="PinIcon" size="12" class="shrink-0"></lucide-icon>
-                  <span class="font-bold uppercase truncate">{{ auth.profile()?.ciudad || 'Ecuador' }}</span>
+                  <span class="text-[10px] font-bold uppercase truncate">{{ auth.profile()?.ciudad || 'Ecuador' }}</span>
                 </div>
               </div>
             </div>
@@ -444,8 +444,7 @@ import { SupabaseService } from '../supabase.service';
                       Obtener mi Ubicación GPS (Precisión Alta)
                     </button>
                     
-                    <p *ngIf="nuevaDireccion.lat && nuevaDireccion.lng" class="text-[10px] font-bold text-emerald-400 text-center mt-2 bg-emerald-950/40 py-1.5 rounded-lg border border-emerald-500/30 flex items-center justify-center gap-1.5">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <p *ngIf="nuevaDireccion.lat && nuevaDireccion.lng" class="text-[10px] font-bold text-emerald-600 text-center mt-2 bg-emerald-50 py-1.5 rounded-lg border border-emerald-100">
                       Coordenadas: {{ nuevaDireccion.lat | number:'1.4-4' }}, {{ nuevaDireccion.lng | number:'1.4-4' }}
                     </p>
 
@@ -808,7 +807,7 @@ export class DashboardViewComponent implements OnInit, OnDestroy {
       .join('\n') || '';
 
     // Si está pendiente de cotización de envío
-    const direccionText = pedido.direccion ? `a la dirección:\n*${pedido.direccion}*` : `en su local`;
+    const direccionText = pedido.direccion ? `a la dirección:\n *${pedido.direccion}*` : `en su local`;
     
     let msg = `Hola *${pedido.tiendas?.nombre || 'Ferretería'}*, tengo un pedido *PENDIENTE (#${pedido.id.substring(0,6).toUpperCase()})*.\n\n*Artículos:*\n${listaProductos}\n\nPara entregar ${direccionText}.\n\n¿Me podrían confirmar el costo del envío para poder aprobarlo desde mi perfil?`;
     

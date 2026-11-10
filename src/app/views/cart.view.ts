@@ -11,103 +11,97 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, FormsModule],
   template: `
-    <div class="min-h-screen bg-[#07080b] text-zinc-100 pb-36 relative max-w-4xl mx-auto">
+    <div class="min-h-screen bg-gray-50 pb-32 relative">
       <!-- GLOBAL FULLSCREEN LOADER -->
-      <div *ngIf="isProcessing()" class="fixed inset-0 z-[999] bg-[#07080b] flex flex-col items-center justify-center">
-        <div class="w-14 h-14 border-2 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
-        <p class="text-xs font-mono font-bold text-zinc-400 mt-4 tracking-widest uppercase animate-pulse">Procesando orden...</p>
+      <div *ngIf="isProcessing()" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Procesando...</p>
       </div>
-
-      <!-- Header with macOS window dots -->
-      <div class="sticky top-0 z-40 bg-[#07080b]/85 backdrop-blur-2xl border-b border-white/[0.08] px-6 h-16 flex items-center justify-between shadow-lg">
+      <!-- Header -->
+      <div class="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 h-16 flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-3">
-          <div class="hidden sm:flex items-center gap-1.5 mr-1 py-1 px-2 rounded-full bg-white/[0.03] border border-white/[0.06]">
-            <span class="w-2 h-2 rounded-full bg-red-500/80"></span>
-            <span class="w-2 h-2 rounded-full bg-amber-500/80"></span>
-            <span class="w-2 h-2 rounded-full bg-emerald-500/80"></span>
-          </div>
-          <div class="w-9 h-9 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center">
-            <lucide-icon [name]="CartIcon" class="text-orange-400" size="18"></lucide-icon>
+          <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+            <lucide-icon [name]="CartIcon" class="text-[#E8541C]" size="22"></lucide-icon>
           </div>
           <div>
-            <h1 class="text-sm font-bold text-white leading-none">Mi Carrito de Compras</h1>
-            <p class="text-[10px] font-mono text-zinc-500 mt-0.5">{{ cart.totalItems() }} ítem{{ cart.totalItems() !== 1 ? 's' : '' }} en orden</p>
+            <h1 class="text-base font-black text-gray-900 leading-none">Mi Carrito</h1>
+            <p class="text-[10px] font-medium text-gray-400 mt-0.5">{{ cart.totalItems() }} producto{{ cart.totalItems() !== 1 ? 's' : '' }}</p>
           </div>
         </div>
         @if (!cart.isEmpty()) {
-          <button (click)="confirmClear()" class="text-zinc-500 hover:text-red-400 transition-colors p-2 rounded-xl hover:bg-white/[0.05]" [disabled]="isProcessing()">
-            <lucide-icon [name]="TrashIcon" size="18"></lucide-icon>
+          <button (click)="confirmClear()" class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50" [disabled]="isProcessing()">
+            <lucide-icon [name]="TrashIcon" size="20"></lucide-icon>
           </button>
         }
       </div>
 
       <!-- Empty State -->
       @if (cart.isEmpty()) {
-        <div class="flex flex-col items-center justify-center min-h-[65vh] px-8 text-center">
-          <div class="w-20 h-20 bg-orange-500/10 border border-orange-500/20 rounded-full flex items-center justify-center mb-5">
-            <lucide-icon [name]="BagIcon" class="text-orange-400" size="36"></lucide-icon>
+        <div class="flex flex-col items-center justify-center min-h-[70vh] px-8 text-center">
+          <div class="w-28 h-28 bg-orange-50 rounded-full flex items-center justify-center mb-6 animate-bounce-slow">
+            <lucide-icon [name]="BagIcon" class="text-[#E8541C]" size="52"></lucide-icon>
           </div>
-          <h2 class="text-xl font-bold text-white mb-2">Tu carrito está vacío</h2>
-          <p class="text-xs text-zinc-400 font-normal leading-relaxed mb-6 max-w-sm">
-            Explora las ferreterías locales y añade materiales o herramientas para cotizar.
+          <h2 class="text-2xl font-black text-gray-900 mb-3">Tu carrito está vacío</h2>
+          <p class="text-sm text-gray-400 font-medium leading-relaxed mb-8">
+            Explora el catálogo y agrega los productos que necesitas para tu obra.
           </p>
           <button
             (click)="store.setTab('home')"
-            class="bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/40 text-orange-400 px-6 py-3 rounded-full font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_15px_rgba(249,115,22,0.2)] active:scale-95 transition-all"
+            class="bg-[#E8541C] text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-500/30 active:scale-95 transition-all"
           >
-            Explorar catálogo
+            Explorar productos
           </button>
         </div>
       }
 
       <!-- Cart Items -->
       @if (!cart.isEmpty()) {
-        <div class="px-4 pt-6 space-y-3.5">
+        <div class="px-4 pt-6 space-y-4">
           @for (item of cart.items(); track item.product.id + item.storeName) {
-            <div class="bg-[#0e1118]/85 backdrop-blur-xl rounded-3xl overflow-hidden shadow-lg border border-white/[0.08] hover:border-white/20 transition-all">
+            <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 animate-in slide-in-from-bottom duration-300">
               <div class="p-4 flex gap-4">
                 <!-- Product Image -->
-                <div class="w-16 h-16 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div class="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                   <img [src]="item.product.image" [alt]="item.product.name" class="w-full h-full object-contain p-1" onerror="this.style.display='none'" />
                 </div>
                 <!-- Info -->
                 <div class="flex-1 min-w-0">
-                  <p class="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest">{{ item.product.category }}</p>
-                  <h3 class="text-sm font-bold text-white leading-tight mt-0.5 truncate">{{ item.product.name }}</h3>
-                  <p class="text-[10px] font-mono text-zinc-400 mt-1 flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block"></span>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ item.product.category }}</p>
+                  <h3 class="text-sm font-black text-gray-900 leading-tight mt-0.5 truncate">{{ item.product.name }}</h3>
+                  <p class="text-[10px] font-bold text-gray-400 mt-0.5 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-orange-400 inline-block"></span>
                     {{ item.storeName }}
                   </p>
-                  <p class="text-base font-mono font-bold text-white mt-1.5 leading-none">
+                  <p class="text-lg font-black text-[#E8541C] mt-2 leading-none">
                     \${{ (item.product.minPrice * item.quantity).toFixed(2) }}
                   </p>
                 </div>
                 <!-- Delete -->
                 <button
                   (click)="cart.removeItem(item.product.id, item.storeName)"
-                  class="self-start p-2 text-zinc-500 hover:text-red-400 hover:bg-white/[0.05] rounded-xl transition-colors"
+                  class="self-start p-2 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded-xl transition-colors"
                 >
                   <lucide-icon [name]="TrashIcon" size="16"></lucide-icon>
                 </button>
               </div>
               <!-- Quantity Controls -->
-              <div class="px-4 pb-4 flex items-center justify-between border-t border-white/[0.04] pt-3">
-                <div class="flex items-center gap-1 bg-zinc-900/90 border border-white/10 rounded-2xl p-1">
+              <div class="px-4 pb-4 flex items-center justify-between">
+                <div class="flex items-center gap-1 bg-gray-100 rounded-2xl p-1">
                   <button
                     (click)="cart.decreaseQty(item.product.id, item.storeName)"
-                    class="w-7 h-7 bg-white/[0.05] hover:bg-white/10 rounded-xl flex items-center justify-center text-zinc-300 font-bold active:scale-95 transition-all"
+                    class="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 font-black active:scale-95 transition-transform"
                   >
-                    <lucide-icon [name]="MinusIcon" size="12"></lucide-icon>
+                    <lucide-icon [name]="MinusIcon" size="14"></lucide-icon>
                   </button>
-                  <span class="w-8 text-center text-xs font-mono font-bold text-white">{{ item.quantity }}</span>
+                  <span class="w-10 text-center text-sm font-black text-gray-900">{{ item.quantity }}</span>
                   <button
                     (click)="cart.increaseQty(item.product.id, item.storeName)"
-                    class="w-7 h-7 bg-orange-500 hover:bg-orange-600 rounded-xl flex items-center justify-center text-white font-bold active:scale-95 transition-all shadow-[0_0_8px_rgba(249,115,22,0.6)]"
+                    class="w-8 h-8 bg-[#E8541C] rounded-xl flex items-center justify-center shadow-sm text-white font-black active:scale-95 transition-transform"
                   >
-                    <lucide-icon [name]="PlusIcon" size="12"></lucide-icon>
+                    <lucide-icon [name]="PlusIcon" size="14"></lucide-icon>
                   </button>
                 </div>
-                <p class="text-[10px] font-mono text-zinc-500">
+                <p class="text-[10px] font-bold text-gray-400">
                   \${{ item.product.minPrice.toFixed(2) }} c/u
                 </p>
               </div>
@@ -115,12 +109,12 @@ import { FormsModule } from '@angular/forms';
               <!-- Contact Actions -->
               @if (item.storePhone) {
                 <div class="mx-4 mb-4 flex gap-2">
-                  <a [href]="'tel:' + item.storePhone" class="flex-1 flex items-center justify-center gap-1.5 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 py-2 rounded-xl text-[10px] font-mono uppercase tracking-wider border border-white/[0.06] transition-all">
-                    <lucide-icon [name]="PhoneIcon" size="12"></lucide-icon>
+                  <a [href]="'tel:' + item.storePhone" class="flex-1 flex items-center justify-center gap-2 bg-green-50 text-green-700 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-wider hover:bg-green-100 transition-colors">
+                    <lucide-icon [name]="PhoneIcon" size="14"></lucide-icon>
                     Llamar
                   </a>
-                  <a [href]="getWhatsappLink(item)" target="_blank" class="flex-1 flex items-center justify-center gap-1.5 bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 py-2 rounded-xl text-[10px] font-mono uppercase tracking-wider border border-emerald-500/20 transition-all">
-                    <lucide-icon [name]="MsgIcon" size="12"></lucide-icon>
+                  <a [href]="getWhatsappLink(item)" target="_blank" class="flex-1 flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors">
+                    <lucide-icon [name]="MsgIcon" size="14"></lucide-icon>
                     WhatsApp
                   </a>
                 </div>
@@ -130,48 +124,50 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <!-- Order Summary -->
-        <div class="mx-4 mt-6 bg-[#0e1118]/85 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/[0.08]">
-          <h3 class="text-sm font-mono font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+        <div class="mx-4 mt-6 bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <h3 class="text-base font-black text-gray-900 mb-4 flex items-center gap-2">
+            <lucide-icon [name]="CheckIcon" class="text-green-500" size="18"></lucide-icon>
             Resumen del pedido
           </h3>
-          <div class="space-y-3 font-mono text-xs">
+          <div class="space-y-3">
             @for (item of cartByStore(); track item.storeName) {
-              <div class="flex items-center justify-between text-zinc-400">
+              <div class="flex items-center justify-between">
                 <div>
-                  <p class="font-bold text-zinc-200">{{ item.storeName }}</p>
-                  <p class="text-[10px] text-zinc-500">{{ item.totalItems }} producto{{ item.totalItems !== 1 ? 's' : '' }}</p>
+                  <p class="text-sm font-bold text-gray-700">{{ item.storeName }}</p>
+                  <p class="text-[10px] text-gray-400">{{ item.totalItems }} producto{{ item.totalItems !== 1 ? 's' : '' }}</p>
                 </div>
-                <p class="font-bold text-white">\${{ item.subtotal.toFixed(2) }}</p>
+                <p class="text-sm font-black text-gray-900">\${{ item.subtotal.toFixed(2) }}</p>
               </div>
             }
-            <div class="border-t border-white/[0.08] pt-3 mt-3 flex items-center justify-between">
-              <p class="text-sm font-bold text-white">Total estimado</p>
-              <p class="text-lg font-bold text-orange-400">\${{ cart.totalPrice().toFixed(2) }}</p>
+            <div class="border-t border-gray-100 pt-3 mt-3 flex items-center justify-between">
+              <p class="text-base font-black text-gray-900">Total estimado</p>
+              <p class="text-xl font-black text-[#E8541C]">\${{ cart.totalPrice().toFixed(2) }}</p>
             </div>
           </div>
         </div>
 
         <!-- Disclaimer -->
-        <p class="text-center text-[10px] font-mono text-zinc-500 px-8 mt-4">
-          Precios referenciales proporcionados por cada ferretería aliada.
+        <p class="text-center text-[10px] text-gray-400 font-medium px-8 mt-4">
+          * Los precios son referenciales. El precio final lo confirma cada ferretería al momento del pedido.
         </p>
       }
     </div>
 
     <!-- Sticky Bottom CTA -->
     @if (!cart.isEmpty()) {
-      <div class="fixed bottom-20 left-4 right-4 z-40 max-w-md mx-auto">
-        <div class="bg-[#0b0d14]/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 flex flex-col gap-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.1)]">
-          <div class="flex items-center justify-between px-3 pt-1">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Total Orden</p>
-            <p class="text-lg font-mono font-bold text-white leading-none">\${{ cart.totalPrice().toFixed(2) }}</p>
+      <div class="fixed bottom-[72px] left-4 right-4 z-40 flex flex-col gap-2">
+        <div class="bg-[#E8541C] rounded-[28px] p-2 flex flex-col gap-2 shadow-2xl shadow-orange-500/40">
+          <div class="flex items-center px-4 pt-2">
+            <div class="flex-1">
+              <p class="text-[10px] font-black text-white/70 uppercase tracking-widest">Total estimado</p>
+              <p class="text-xl font-black text-white leading-none">\${{ cart.totalPrice().toFixed(2) }}</p>
+            </div>
           </div>
-          <div class="flex gap-2">
-            <button (click)="compartirCarrito()" class="flex-1 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 px-3 py-2.5 rounded-2xl text-[11px] font-mono uppercase tracking-wider border border-white/10 active:scale-95 transition-all flex justify-center items-center gap-1.5">
+          <div class="flex gap-2 px-2 pb-2">
+            <button (click)="compartirCarrito()" class="flex-1 bg-white/20 text-white px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-wider active:scale-95 transition-transform flex justify-center items-center gap-2">
               <lucide-icon [name]="MsgIcon" size="14"></lucide-icon> Compartir
             </button>
-            <button (click)="iniciarProcesoPedido()" [disabled]="isProcessing()" class="flex-[2] bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-2xl text-[11px] font-mono font-bold uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50 flex justify-center items-center gap-1.5 shadow-[0_0_15px_rgba(249,115,22,0.35)]">
+            <button (click)="iniciarProcesoPedido()" [disabled]="isProcessing()" class="flex-[2] bg-white text-[#E8541C] px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-wider active:scale-95 transition-transform disabled:opacity-50 flex justify-center items-center gap-2">
               @if(isProcessing()) {
                 <span class="animate-pulse">Procesando...</span>
               } @else {
@@ -251,8 +247,7 @@ import { FormsModule } from '@angular/forms';
                   Obtener mi Ubicación GPS
                 </button>
                 
-                <p *ngIf="nuevaDireccion.lat && nuevaDireccion.lng" class="text-[10px] font-bold text-emerald-400 text-center mt-1 bg-emerald-950/40 py-1.5 rounded-lg border border-emerald-500/30 flex items-center justify-center gap-1.5">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <p *ngIf="nuevaDireccion.lat && nuevaDireccion.lng" class="text-[10px] font-bold text-emerald-600 text-center mt-1 bg-emerald-50 py-1.5 rounded-lg border border-emerald-100">
                   Coordenadas: {{ nuevaDireccion.lat | number:'1.4-4' }}, {{ nuevaDireccion.lng | number:'1.4-4' }}
                 </p>
                 <button 
@@ -552,7 +547,7 @@ export class CartViewComponent implements OnInit {
       .filter(i => i.storeName === item.storeName)
       .reduce((sum, i) => sum + (i.product.minPrice * i.quantity), 0);
       
-    const textoEnvio = this.direccionSeleccionada() ? `\nEnvío a domicilio: Por favor cotizar` : '';
+    const textoEnvio = this.direccionSeleccionada() ? `\nEnvio a domicilio: Por favor cotizar` : '';
 
     const msg = encodeURIComponent(
       `Hola, vi sus productos en FerreExpress y quiero cotizar:\n\n${lista}${textoEnvio}\n\nSubtotal Materiales: $${subtotalTienda.toFixed(2)}`
@@ -565,7 +560,7 @@ export class CartViewComponent implements OnInit {
       .map(i => `• ${i.product.name} (${i.storeName}) x${i.quantity} = $${(i.product.minPrice * i.quantity).toFixed(2)}`)
       .join('\n');
     
-    const textoEnvio = this.direccionSeleccionada() ? `\nEnvío a domicilio: (Cotizar precio)` : '';
+    const textoEnvio = this.direccionSeleccionada() ? `\nEnvio a domicilio: (Cotizar precio)` : '';
     const total = this.cart.totalPrice();
     
     const texto = `Mi lista de materiales - FerreExpress\n\n${lista}${textoEnvio}\n\nSubtotal Materiales: $${total.toFixed(2)}`;

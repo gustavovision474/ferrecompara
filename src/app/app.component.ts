@@ -42,33 +42,35 @@ type AuthScreen = 'welcome' | 'auth';
       <button (click)="globalError.set(null)" class="mt-2 bg-black/30 px-3 py-1 rounded">Cerrar</button>
     </div>
 
-    <!-- FLOATING VIEW SWITCHER PILL (Vessa Dashboard <-> Cliente Comparador) -->
-    <div class="fixed top-3 right-4 z-[200] flex items-center gap-1.5 bg-[#0e1411]/90 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-full shadow-2xl text-xs font-mono">
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-      <button 
-        type="button"
-        (click)="auth.iniciarDemo('tienda')"
-        [class.bg-vessa-emerald]="auth.currentRol() === 'tienda'"
-        [class.text-white]="auth.currentRol() === 'tienda'"
-        [class.text-zinc-400]="auth.currentRol() !== 'tienda'"
-        class="px-2.5 py-1 rounded-full font-bold transition-all hover:text-white"
-      >
-        Vessa Dashboard
-      </button>
-      <span class="text-zinc-600">|</span>
+    <!-- FLOATING VIEW SWITCHER PILL (Modo Cliente <-> Vessa Dashboard) -->
+    <div class="fixed top-3 right-4 z-[200] flex items-center gap-1 bg-white/95 backdrop-blur-xl border border-gray-200 px-3 py-1.5 rounded-full shadow-lg text-xs font-sans">
+      <span class="w-2 h-2 rounded-full bg-[#E8541C] animate-pulse"></span>
       <button 
         type="button"
         (click)="auth.iniciarDemo('cliente')"
-        [class.bg-orange-600]="auth.currentRol() === 'cliente'"
-        [class.text-white]="auth.currentRol() === 'cliente'"
-        [class.text-zinc-400]="auth.currentRol() !== 'cliente'"
-        class="px-2.5 py-1 rounded-full font-bold transition-all hover:text-white"
+        [class.bg-orange-600]="auth.currentRol() !== 'tienda'"
+        [class.text-white]="auth.currentRol() !== 'tienda'"
+        [class.shadow-sm]="auth.currentRol() !== 'tienda'"
+        [class.text-gray-600]="auth.currentRol() === 'tienda'"
+        class="px-3 py-1 rounded-full font-bold transition-all hover:text-gray-950"
       >
         Modo Cliente
       </button>
+      <span class="text-gray-300">|</span>
+      <button 
+        type="button"
+        (click)="auth.iniciarDemo('tienda')"
+        [class.bg-orange-600]="auth.currentRol() === 'tienda'"
+        [class.text-white]="auth.currentRol() === 'tienda'"
+        [class.shadow-sm]="auth.currentRol() === 'tienda'"
+        [class.text-gray-600]="auth.currentRol() !== 'tienda'"
+        class="px-3 py-1 rounded-full font-bold transition-all hover:text-gray-950"
+      >
+        Vessa Dashboard
+      </button>
     </div>
 
-    <div class="min-h-screen bg-[#07080b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
+    <div class="min-h-screen bg-[#f8f9ff] text-[#121c2a] selection:bg-orange-500/20 selection:text-orange-950 font-sans">
       @if (auth.currentRol() === 'tienda') {
         <app-tienda-dashboard></app-tienda-dashboard>
       } @else {
@@ -78,10 +80,7 @@ type AuthScreen = 'welcome' | 'auth';
         } @else if (store.selectedStore()) {
           <app-store-detail-view></app-store-detail-view>
         } @else {
-          <!-- Header visible only on secondary tabs (Stores, Experts, Dashboard, Cart) -->
-          @if (store.activeTab() !== 'home') {
-            <app-header></app-header>
-          }
+          <app-header></app-header>
           <div class="pb-[80px]">
             @if (store.activeTab() === 'home') {
               <app-home-view></app-home-view>

@@ -9,24 +9,19 @@ import { CartService } from '../cart.service';
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
   template: `
-    <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 sm:gap-2 px-3 py-2 bg-[#0b0d14]/90 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.12)] max-w-[94vw] sm:max-w-md">
+    <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 py-3 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(31,41,55,0.08)]">
       @for (tab of tabs; track tab.id) {
         <button
           (click)="store.setTab(tab.id)"
-          [class]="'relative flex items-center gap-1.5 py-2 px-3.5 rounded-full transition-all duration-300 font-mono active:scale-95 ' + 
-            (store.activeTab() === tab.id 
-              ? 'bg-white/[0.08] text-orange-400 border border-white/10 shadow-[0_0_15px_rgba(249,115,22,0.2)]' 
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent')"
+          [class]="'relative flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all active:opacity-80 ' + (store.activeTab() === tab.id ? 'text-[#E8541C] bg-orange-50' : 'text-gray-500')"
         >
           @if (tab.id === 'cart' && cart.totalItems() > 0) {
-            <div class="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(249,115,22,0.8)]">
-              <span class="text-white text-[9px] font-bold leading-none">{{ cart.totalItems() > 9 ? '9+' : cart.totalItems() }}</span>
+            <div class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-[#E8541C] rounded-full flex items-center justify-center">
+              <span class="text-white text-[10px] font-black leading-none">{{ cart.totalItems() > 9 ? '9+' : cart.totalItems() }}</span>
             </div>
           }
-          <lucide-icon [name]="tab.icon" size="18" [color]="store.activeTab() === tab.id ? '#f97316' : 'currentColor'"></lucide-icon>
-          <span class="text-[11px] font-bold uppercase tracking-wider" [class.hidden]="store.activeTab() !== tab.id && tabs.length > 4" class="sm:inline-block">
-            {{ tab.label }}
-          </span>
+          <lucide-icon [name]="tab.icon" size="24" [color]="store.activeTab() === tab.id ? '#E8541C' : 'currentColor'"></lucide-icon>
+          <span class="text-[11px] font-bold uppercase tracking-wider mt-1">{{ tab.label }}</span>
         </button>
       }
     </nav>

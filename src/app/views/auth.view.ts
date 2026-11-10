@@ -11,53 +11,54 @@ type AuthMode = 'login' | 'register';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
   template: `
-    <div class="min-h-screen bg-[#07080b] text-zinc-100 flex flex-col justify-center px-6 py-12 lg:px-8 relative overflow-hidden">
-      <!-- Back button -->
+    <div class="min-h-screen bg-gray-50 flex flex-col justify-center px-6 py-12 lg:px-8 relative overflow-hidden">
+      <!-- Back button (Global top-left) -->
       <button
         type="button"
         (click)="atras.emit()"
-        class="absolute top-6 left-6 z-50 flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 hover:text-white uppercase tracking-wider transition-colors"
+        class="absolute top-6 left-6 z-50 flex items-center gap-2 text-xs font-black text-gray-500 hover:text-gray-900 uppercase tracking-wide transition-colors"
       >
         <lucide-icon [name]="ArrowLeftIcon" size="16"></lucide-icon>
         Volver
       </button>
 
-      <!-- Ambient glow lights -->
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <!-- Decorative blobs -->
+      <div class="absolute -top-40 -right-40 w-96 h-96 bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
 
       <div class="sm:mx-auto sm:w-full sm:max-w-sm relative z-10">
         <!-- Logo -->
-        <div class="flex justify-center mb-4 mt-8">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center bg-orange-500/15 border border-orange-500/40 shadow-[0_0_20px_rgba(249,115,22,0.25)]">
-            <lucide-icon [name]="WrenchIcon" size="26" class="text-orange-400"></lucide-icon>
+        <div class="flex justify-center mb-6 mt-8">
+          <div [class]="'w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg rotate-3 ' + (rol() === 'cliente' ? 'bg-[#E8541C] shadow-orange-200' : 'bg-gray-900 shadow-gray-300')">
+            <lucide-icon [name]="WrenchIcon" size="32" class="text-white -rotate-3"></lucide-icon>
           </div>
         </div>
 
         <!-- Title -->
-        <h2 class="text-center text-xl sm:text-2xl font-black tracking-tight text-white uppercase">
+        <h2 class="text-center text-2xl font-black tracking-tight text-gray-900 uppercase">
           {{ tituloPrincipal() }}
         </h2>
-        <p class="mt-1 text-center text-xs font-mono text-zinc-400">
+        <p class="mt-2 text-center text-sm text-gray-500 font-medium">
           {{ subtitulo() }}
         </p>
 
       </div>
 
-      <!-- ESTADO: PENDIENTE -->
+      <!-- ESTADO: PENDIENTE (después de registro de tienda) -->
       @if (mostrandoPendiente()) {
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-sm relative z-10 animate-in fade-in zoom-in duration-500">
-          <div class="bg-[#0e1118]/90 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl border border-white/10 text-center">
-            <div class="w-14 h-14 bg-amber-500/15 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <lucide-icon [name]="ClockIcon" size="28" class="text-amber-400"></lucide-icon>
+        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm relative z-10 animate-in fade-in zoom-in duration-500">
+          <div class="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center">
+            <div class="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <lucide-icon [name]="ClockIcon" size="32" class="text-amber-500"></lucide-icon>
             </div>
-            <h3 class="text-base font-bold text-white uppercase tracking-tight">Solicitud recibida</h3>
-            <p class="mt-2 text-xs text-zinc-400 font-medium leading-relaxed">
+            <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Solicitud recibida</h3>
+            <p class="mt-3 text-sm text-gray-600 font-medium leading-relaxed">
               {{ mensajeExito() }}
             </p>
             <button
               type="button"
               (click)="atras.emit()"
-              class="mt-6 w-full bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-400 px-6 py-3 rounded-xl font-mono text-xs uppercase tracking-widest active:scale-[0.98] transition-all"
+              class="mt-6 w-full bg-[#E8541C] text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest active:scale-[0.98] transition-all"
             >
               Volver al inicio
             </button>
@@ -66,68 +67,68 @@ type AuthMode = 'login' | 'register';
       } @else {
 
         <!-- FORMULARIO -->
-        <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-sm relative z-10 bg-[#0e1118]/85 backdrop-blur-2xl p-6 sm:p-7 rounded-3xl border border-white/10 shadow-2xl">
+        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm relative z-10">
 
           <!-- Error message -->
           @if (errorMensaje()) {
-            <div class="mb-4 bg-red-950/40 border border-red-500/30 rounded-xl p-3 animate-in fade-in slide-in-from-top-2">
-              <p class="text-xs text-red-400 font-mono">{{ errorMensaje() }}</p>
+            <div class="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 animate-in fade-in slide-in-from-top-2">
+              <p class="text-xs text-red-700 font-bold">{{ errorMensaje() }}</p>
             </div>
           }
 
-          <form class="space-y-3.5" (ngSubmit)="onSubmit()">
+          <form class="space-y-4" (ngSubmit)="onSubmit()">
 
-            <!-- Nombre tienda -->
+            <!-- Nombre tienda (solo si rol = tienda Y modo = register) -->
             @if (mode() === 'register' && rol() === 'tienda') {
               <div>
-                <label class="block text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1">Nombre de la Ferretería</label>
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <lucide-icon [name]="MapPinIcon" size="16" class="text-zinc-500"></lucide-icon>
+                <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide ml-1">Nombre de la Ferretería</label>
+                <div class="mt-1 relative">
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <lucide-icon [name]="MapPinIcon" size="18" class="text-gray-400"></lucide-icon>
                   </div>
                   <input
                     [(ngModel)]="nombreTienda"
                     name="nombreTienda"
                     type="text"
                     required
-                    class="block w-full rounded-xl bg-zinc-950/80 border border-white/10 py-3 pl-10 pr-4 text-xs font-mono text-zinc-100 placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 outline-none transition-all"
+                    class="block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-900 sm:text-sm transition-all bg-white"
                     placeholder="Ferretería El Cóndor"
                   />
                 </div>
               </div>
             }
 
-            <!-- Nombre completo -->
+            <!-- Nombre completo (solo en register) -->
             @if (mode() === 'register') {
               <div>
-                <label class="block text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1">{{ rol() === 'tienda' ? 'Nombre del Responsable' : 'Tu Nombre' }}</label>
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <lucide-icon [name]="UserIcon" size="16" class="text-zinc-500"></lucide-icon>
+                <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide ml-1">{{ rol() === 'tienda' ? 'Nombre del Responsable' : 'Tu Nombre' }}</label>
+                <div class="mt-1 relative">
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <lucide-icon [name]="UserIcon" size="18" class="text-gray-400"></lucide-icon>
                   </div>
                   <input
                     [(ngModel)]="nombreCompleto"
                     name="nombreCompleto"
                     type="text"
                     required
-                    class="block w-full rounded-xl bg-zinc-950/80 border border-white/10 py-3 pl-10 pr-4 text-xs font-mono text-zinc-100 placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 outline-none transition-all"
+                    [class]="'block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm transition-all bg-white ' + (rol() === 'cliente' ? 'focus:ring-[#E8541C]' : 'focus:ring-gray-900')"
                     placeholder="Juan Pérez"
                   />
                 </div>
               </div>
 
               <div>
-                <label class="block text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1">Teléfono</label>
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <lucide-icon [name]="PhoneIcon" size="16" class="text-zinc-500"></lucide-icon>
+                <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide ml-1">Teléfono</label>
+                <div class="mt-1 relative">
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <lucide-icon [name]="PhoneIcon" size="18" class="text-gray-400"></lucide-icon>
                   </div>
                   <input
                     [(ngModel)]="telefono"
                     name="telefono"
                     type="tel"
                     required
-                    class="block w-full rounded-xl bg-zinc-950/80 border border-white/10 py-3 pl-10 pr-4 text-xs font-mono text-zinc-100 placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 outline-none transition-all"
+                    [class]="'block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm transition-all bg-white ' + (rol() === 'cliente' ? 'focus:ring-[#E8541C]' : 'focus:ring-gray-900')"
                     placeholder="0991234567"
                   />
                 </div>
@@ -136,17 +137,17 @@ type AuthMode = 'login' | 'register';
 
             <!-- Email -->
             <div>
-              <label class="block text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1">Correo Electrónico</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <lucide-icon [name]="MailIcon" size="16" class="text-zinc-500"></lucide-icon>
+              <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide ml-1">Correo Electrónico</label>
+              <div class="mt-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <lucide-icon [name]="MailIcon" size="18" class="text-gray-400"></lucide-icon>
                 </div>
                 <input
                   [(ngModel)]="email"
                   name="email"
                   type="email"
                   required
-                  class="block w-full rounded-xl bg-zinc-950/80 border border-white/10 py-3 pl-10 pr-4 text-xs font-mono text-zinc-100 placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 outline-none transition-all"
+                  [class]="'block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm transition-all bg-white ' + (rol() === 'cliente' ? 'focus:ring-[#E8541C]' : 'focus:ring-gray-900')"
                   placeholder="tu@correo.com"
                 />
               </div>
@@ -154,10 +155,10 @@ type AuthMode = 'login' | 'register';
 
             <!-- Password -->
             <div>
-              <label class="block text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1">Contraseña</label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <lucide-icon [name]="LockIcon" size="16" class="text-zinc-500"></lucide-icon>
+              <label class="block text-xs font-bold text-gray-900 uppercase tracking-wide ml-1">Contraseña</label>
+              <div class="mt-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <lucide-icon [name]="LockIcon" size="18" class="text-gray-400"></lucide-icon>
                 </div>
                 <input
                   [(ngModel)]="password"
@@ -165,7 +166,7 @@ type AuthMode = 'login' | 'register';
                   type="password"
                   required
                   minlength="6"
-                  class="block w-full rounded-xl bg-zinc-950/80 border border-white/10 py-3 pl-10 pr-4 text-xs font-mono text-zinc-100 placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/20 outline-none transition-all"
+                  [class]="'block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm transition-all bg-white ' + (rol() === 'cliente' ? 'focus:ring-[#E8541C]' : 'focus:ring-gray-900')"
                   placeholder="Mínimo 6 caracteres"
                 />
               </div>
@@ -175,38 +176,38 @@ type AuthMode = 'login' | 'register';
             <button
               type="submit"
               [disabled]="auth.loading()"
-              class="group relative flex w-full justify-center items-center rounded-xl px-3 py-3.5 text-xs font-mono font-bold uppercase tracking-widest text-white bg-orange-500 hover:bg-orange-600 shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              [class]="'group relative flex w-full justify-center items-center rounded-xl px-3 py-4 text-sm font-black uppercase tracking-widest text-white shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ' + (rol() === 'cliente' ? 'bg-[#E8541C] hover:bg-orange-600 shadow-orange-200' : 'bg-gray-900 hover:bg-black shadow-gray-200')"
             >
               @if (auth.loading()) {
                 <span>Procesando...</span>
               } @else {
                 <span>{{ mode() === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta' }}</span>
-                <lucide-icon [name]="ArrowRightIcon" size="16" class="absolute right-4 top-1/2 -translate-y-1/2 group-hover:translate-x-1 transition-transform"></lucide-icon>
+                <lucide-icon [name]="ArrowRightIcon" size="18" class="absolute right-4 top-1/2 -translate-y-1/2 group-hover:translate-x-1 transition-transform flex items-center"></lucide-icon>
               }
             </button>
 
           </form>
 
           <!-- DEMO ACCESS BUTTONS -->
-          <div class="mt-6 pt-5 border-t border-white/[0.08]">
-            <p class="text-center text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest mb-2.5">
+          <div class="mt-6 pt-5 border-t border-gray-200">
+            <p class="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">
               O entra en modo demostración
             </p>
             <div class="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 (click)="entrarDemo('cliente')"
-                class="py-2.5 px-3 rounded-xl border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+                class="py-2.5 px-3 rounded-xl border border-orange-200 bg-orange-50/70 hover:bg-orange-100 text-orange-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                <span></span>
                 <span>Demo Cliente</span>
               </button>
               <button
                 type="button"
                 (click)="entrarDemo('tienda')"
-                class="py-2.5 px-3 rounded-xl border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+                class="py-2.5 px-3 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
               >
-                <span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span>
+                <span></span>
                 <span>Demo Ferretería</span>
               </button>
             </div>

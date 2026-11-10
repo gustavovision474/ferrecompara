@@ -32,7 +32,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
     }
   `],
   template: `
-    <div [class.dark]="vessaDarkMode()" [ngClass]="vessaDarkMode() ? 'bg-[#080b09] text-zinc-100' : 'bg-[#edf2ee] text-[#13261e]'" class="min-h-screen transition-colors duration-300 font-sans p-2 sm:p-4 lg:p-5 flex flex-row gap-3 sm:gap-4 relative overflow-x-hidden" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
+    <div [class.dark]="vessaDarkMode()" [ngClass]="vessaDarkMode() ? 'bg-[#080b09] text-zinc-100' : 'bg-[#f8f9fc] text-[#0f172a]'" class="min-h-screen transition-colors duration-300 font-sans p-2 sm:p-4 lg:p-5 flex flex-row gap-3 sm:gap-4 relative overflow-x-hidden" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
       
       <!-- ======================================================== -->
       <!-- VESSA LEFT VERTICAL DOCK / SIDEBAR                       -->
@@ -41,16 +41,16 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
         <!-- Top: Logo & Day/Night Toggle -->
         <div class="flex flex-col items-center gap-3 w-full">
           <!-- Vessa Logo Emblem -->
-          <div (click)="activeTab.set('dashboard')" class="w-10 h-10 rounded-2xl bg-[#0e3b2e] hover:bg-[#134d3c] text-emerald-300 flex items-center justify-center cursor-pointer transition-all shadow-md shadow-[#0e3b2e]/30 active:scale-95 group" title="Vessa / FerreCompara Dashboard">
-            <lucide-icon [name]="PackageIcon" size="20" class="text-emerald-400 group-hover:scale-110 transition-transform"></lucide-icon>
+          <div (click)="activeTab.set('dashboard')" class="w-10 h-10 rounded-2xl bg-[#E8541C] hover:bg-[#c2410c] text-orange-200 flex items-center justify-center cursor-pointer transition-all shadow-md shadow-[#E8541C]/30 active:scale-95 group" title="Vessa / FerreCompara Dashboard">
+            <lucide-icon [name]="PackageIcon" size="20" class="text-orange-500 group-hover:scale-110 transition-transform"></lucide-icon>
           </div>
 
           <!-- Sun / Moon Theme Toggle Pill -->
-          <div (click)="vessaDarkMode.set(!vessaDarkMode())" [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10' : 'bg-[#e2ebe4] border-white/80'" class="w-8 p-1 rounded-full border flex flex-col items-center gap-1.5 cursor-pointer transition-all shadow-inner" title="Cambiar Tema (Claro / Oscuro)">
+          <div (click)="vessaDarkMode.set(!vessaDarkMode())" [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10' : 'bg-[#e2e8f0] border-white/80'" class="w-8 p-1 rounded-full border flex flex-col items-center gap-1.5 cursor-pointer transition-all shadow-inner" title="Cambiar Tema (Claro / Oscuro)">
             <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-white]="!vessaDarkMode()" [class.shadow-sm]="!vessaDarkMode()" [class.text-amber-500]="!vessaDarkMode()" [class.text-zinc-500]="vessaDarkMode()">
               <lucide-icon [name]="SunIcon" size="13"></lucide-icon>
             </button>
-            <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-vessa-emerald]="vessaDarkMode()" [class.text-emerald-300]="vessaDarkMode()" [class.text-zinc-400]="!vessaDarkMode()">
+            <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-vessa-orange]="vessaDarkMode()" [class.text-orange-200]="vessaDarkMode()" [class.text-zinc-400]="!vessaDarkMode()">
               <lucide-icon [name]="MoonIcon" size="13"></lucide-icon>
             </button>
           </div>
@@ -61,10 +61,10 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Overview -->
           <button 
             (click)="activeTab.set('dashboard')" 
-            [class.bg-vessa-emerald]="activeTab() === 'dashboard'" 
+            [class.bg-vessa-orange]="activeTab() === 'dashboard'" 
             [class.text-white]="activeTab() === 'dashboard'" 
             [class.shadow-lg]="activeTab() === 'dashboard'" 
-            [ngClass]="activeTab() === 'dashboard' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            [ngClass]="activeTab() === 'dashboard' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Overview"
           >
@@ -74,9 +74,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Inventory / Stock -->
           <button 
             (click)="abrirCatalogo()" 
-            [class.bg-vessa-emerald]="activeTab() === 'catalogo'" 
+            [class.bg-vessa-orange]="activeTab() === 'catalogo'" 
             [class.text-white]="activeTab() === 'catalogo'" 
-            [ngClass]="activeTab() === 'catalogo' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            [ngClass]="activeTab() === 'catalogo' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Inventario & SKUs"
           >
@@ -86,9 +86,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Orders -->
           <button 
             (click)="abrirPedidos()" 
-            [class.bg-vessa-emerald]="activeTab() === 'pedidos'" 
+            [class.bg-vessa-orange]="activeTab() === 'pedidos'" 
             [class.text-white]="activeTab() === 'pedidos'" 
-            [ngClass]="activeTab() === 'pedidos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            [ngClass]="activeTab() === 'pedidos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Pedidos & Despachos"
           >
@@ -98,9 +98,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Sales / Cart -->
           <button 
             (click)="abrirCotizacion()" 
-            [class.bg-vessa-emerald]="activeTab() === 'cotizacion'" 
+            [class.bg-vessa-orange]="activeTab() === 'cotizacion'" 
             [class.text-white]="activeTab() === 'cotizacion'" 
-            [ngClass]="activeTab() === 'cotizacion' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            [ngClass]="activeTab() === 'cotizacion' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Ventas & Cotizaciones"
           >
@@ -110,9 +110,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- WMS Warehouses -->
           <button 
             (click)="abrirAlmacen('dashboard')" 
-            [class.bg-vessa-emerald]="activeTab() === 'almacen-wms'" 
+            [class.bg-vessa-orange]="activeTab() === 'almacen-wms'" 
             [class.text-white]="activeTab() === 'almacen-wms'" 
-            [ngClass]="activeTab() === 'almacen-wms' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            [ngClass]="activeTab() === 'almacen-wms' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Bodegas & WMS"
           >
@@ -122,7 +122,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Logistics / Shipping -->
           <button 
             (click)="abrirAlmacen('prestamos')" 
-            [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10'"
+            [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10'"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Préstamos & Maquinaria"
           >
@@ -132,9 +132,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Experts / Team -->
           <button 
             (click)="abrirExpertos()" 
-            [class.bg-vessa-emerald]="activeTab() === 'expertos'" 
+            [class.bg-vessa-orange]="activeTab() === 'expertos'" 
             [class.text-white]="activeTab() === 'expertos'" 
-            [ngClass]="activeTab() === 'expertos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
+            [ngClass]="activeTab() === 'expertos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#64748b] hover:text-[#E8541C] hover:bg-orange-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
             title="Expertos & Equipo"
           >
@@ -146,7 +146,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
         <div class="flex flex-col items-center gap-2 w-full">
           <button 
             (click)="abrirPerfil()" 
-            [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#0e3b2e]'"
+            [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#64748b] hover:text-[#E8541C]'"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all hover:bg-white/10" 
             title="Configuración"
           >
@@ -165,40 +165,40 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           
           <!-- Left: Brand Title & Organization -->
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-[#0e3b2e] text-emerald-300 flex items-center justify-center font-black text-sm shadow-sm">
+            <div class="w-9 h-9 rounded-full bg-[#E8541C] text-orange-200 flex items-center justify-center font-black text-sm shadow-sm">
               V
             </div>
             <div>
-              <h1 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-sm sm:text-base font-bold leading-tight flex items-center gap-2">
+              <h1 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-sm sm:text-base font-bold leading-tight flex items-center gap-2">
                 <span>Vessa</span>
-                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold uppercase">Stockroom</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 font-bold uppercase">Stockroom</span>
               </h1>
               <p [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#71867c]'" class="text-[11px] font-medium leading-none mt-0.5">
-                {{ nombreTiendaActual() || 'Marlow & Fern · Bodega Central' }}
+                {{ nombreTiendaActual() || 'FerreExpress · Bodega Central' }}
               </p>
             </div>
           </div>
 
           <!-- Center: Segmented Navigation Pills -->
           <div class="hidden md:flex items-center">
-            <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10' : 'bg-[#e2ebe4] border-white/80'" class="p-1 rounded-full border flex items-center gap-1 shadow-inner text-xs font-semibold">
+            <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10' : 'bg-[#e2e8f0] border-white/80'" class="p-1 rounded-full border flex items-center gap-1 shadow-inner text-xs font-semibold">
               <button 
                 (click)="vessaNavTab.set('overview'); activeTab.set('dashboard')"
-                [ngClass]="vessaNavTab() === 'overview' && activeTab() === 'dashboard' ? (vessaDarkMode() ? 'bg-[#0e3b2e] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#111915]')"
+                [ngClass]="vessaNavTab() === 'overview' && activeTab() === 'dashboard' ? (vessaDarkMode() ? 'bg-[#E8541C] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#64748b] hover:text-[#111915]')"
                 class="px-4 py-1.5 rounded-full transition-all"
               >
                 Overview
               </button>
               <button 
                 (click)="vessaNavTab.set('activity'); abrirMensajes()"
-                [ngClass]="activeTab() === 'mensajes' ? (vessaDarkMode() ? 'bg-[#0e3b2e] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#111915]')"
+                [ngClass]="activeTab() === 'mensajes' ? (vessaDarkMode() ? 'bg-[#E8541C] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#64748b] hover:text-[#111915]')"
                 class="px-4 py-1.5 rounded-full transition-all"
               >
                 Activity
               </button>
               <button 
                 (click)="vessaNavTab.set('alerts'); abrirAlmacen('inventario')"
-                [ngClass]="activeTab() === 'almacen-wms' ? (vessaDarkMode() ? 'bg-[#0e3b2e] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#50665c] hover:text-[#111915]')"
+                [ngClass]="activeTab() === 'almacen-wms' ? (vessaDarkMode() ? 'bg-[#E8541C] text-white shadow-sm' : 'bg-[#111915] text-white shadow-sm') : (vessaDarkMode() ? 'text-zinc-400 hover:text-white' : 'text-[#64748b] hover:text-[#111915]')"
                 class="px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5"
               >
                 <span>Alerts</span>
@@ -210,7 +210,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Right: Search Capsule, Notifications, + New, Profile -->
           <div class="flex items-center gap-2 sm:gap-3">
             <!-- Search Capsule -->
-            <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10 text-zinc-300' : 'bg-white border-white/80 text-[#50665c] shadow-sm'" class="hidden lg:flex items-center gap-2 border px-3 py-1.5 rounded-full text-xs font-medium">
+            <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10 text-zinc-300' : 'bg-white border-white/80 text-[#64748b] shadow-sm'" class="hidden lg:flex items-center gap-2 border px-3 py-1.5 rounded-full text-xs font-medium">
               <lucide-icon [name]="SearchIcon" size="14" class="opacity-70"></lucide-icon>
               <input 
                 type="text" 
@@ -223,7 +223,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             <!-- Bell Notification -->
             <button 
               (click)="abrirMensajes()"
-              [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10 text-zinc-300' : 'bg-white border-white/80 text-[#50665c] shadow-sm'"
+              [ngClass]="vessaDarkMode() ? 'bg-zinc-800/80 border-white/10 text-zinc-300' : 'bg-white border-white/80 text-[#64748b] shadow-sm'"
               class="w-8 h-8 rounded-full border flex items-center justify-center relative hover:scale-105 transition-all"
             >
               <lucide-icon [name]="BellIcon" size="15"></lucide-icon>
@@ -233,7 +233,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             <!-- + New Button -->
             <button 
               (click)="abrirFormularioNuevo()" 
-              class="bg-[#0e3b2e] hover:bg-[#154e3d] text-white px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-md shadow-[#0e3b2e]/20 transition-all active:scale-95"
+              class="bg-[#E8541C] hover:bg-[#c2410c] text-white px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-md shadow-[#E8541C]/20 transition-all active:scale-95"
             >
               <lucide-icon [name]="PlusIcon" size="14"></lucide-icon>
               <span>New</span>
@@ -251,7 +251,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               </button>
 
               <div (click)="abrirPerfil()" class="flex items-center gap-2 cursor-pointer group" title="Mi Perfil">
-                <div class="w-8 h-8 rounded-full bg-[#11231a] text-white flex items-center justify-center text-xs font-bold border-2 border-white/80 dark:border-white/20 shadow-sm group-hover:scale-105 transition-transform">
+                <div class="w-8 h-8 rounded-full bg-[#0f172a] text-white flex items-center justify-center text-xs font-bold border-2 border-white/80 dark:border-white/20 shadow-sm group-hover:scale-105 transition-transform">
                   {{ nombreTiendaActual() ? nombreTiendaActual().charAt(0) : 'I' }}
                 </div>
               </div>
@@ -271,14 +271,14 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             <div [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="lg:col-span-5 rounded-[32px] border backdrop-blur-2xl p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden">
               <div class="relative z-10">
                 <!-- Date Pill -->
-                <div [ngClass]="vessaDarkMode() ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-[#e4ede7] text-[#2d473b] border-white/80'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border shadow-inner">
+                <div [ngClass]="vessaDarkMode() ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' : 'bg-[#ffedd5] text-[#9a3412] border-white/80'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border shadow-inner">
                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   <span>Monday, Oct 19 · 10:40 AM</span>
                 </div>
 
                 <!-- Main Greeting -->
-                <h2 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-3">
-                  Welcome back,<br class="hidden sm:inline"/> Imani!
+                <h2 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-3">
+                  Bienvenido,<br class="hidden sm:inline"/> {{ auth.profile()?.nombre || "Administrador" }}!
                 </h2>
                 <p [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs sm:text-sm mt-2 leading-relaxed max-w-sm">
                   Here's what's moving in the stockroom today - 2 orders to ship and 2 batches waiting on QA.
@@ -289,7 +289,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               <div class="flex items-center gap-3 mt-6 relative z-10">
                 <button 
                   (click)="abrirPedidos()" 
-                  class="bg-[#0e3b2e] hover:bg-[#144f3e] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-md shadow-[#0e3b2e]/20 active:scale-95"
+                  class="bg-[#E8541C] hover:bg-[#c2410c] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-md shadow-[#E8541C]/20 active:scale-95"
                 >
                   + New order
                 </button>
@@ -303,7 +303,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               </div>
 
               <!-- Ambient Glow Backdrop -->
-              <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
             </div>
 
             <!-- 3 KPI CARDS (Right 7 Cols) -->
@@ -313,14 +313,14 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               <div (click)="abrirCatalogo()" [ngClass]="vessaDarkMode() ? 'bg-[#0e1411]/90 border-white/[0.08]' : 'bg-white/85 border-white/80 shadow-[0_10px_35px_rgba(15,48,36,0.04)]'" class="rounded-[32px] border backdrop-blur-2xl p-5 flex flex-col justify-between relative overflow-hidden group cursor-pointer hover:-translate-y-0.5 transition-all">
                 <div class="flex items-start justify-between relative z-10">
                   <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs font-semibold">Units on hand</span>
-                  <div class="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                  <div class="w-9 h-9 rounded-full bg-orange-500/10 text-[#E8541C] flex items-center justify-center">
                     <lucide-icon [name]="PackageIcon" size="18"></lucide-icon>
                   </div>
                 </div>
 
                 <div class="my-3 relative z-10">
                   <div class="flex items-baseline gap-2">
-                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-black tracking-tight">3,163</span>
+                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-black tracking-tight">3,163</span>
                     <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
                       <lucide-icon [name]="ArrowDownRightIcon" size="11"></lucide-icon>
                       <span>3.2%</span>
@@ -330,7 +330,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                 </div>
 
                 <!-- Concentric Ripple Rings SVG -->
-                <svg class="absolute -right-5 -bottom-5 w-28 h-28 opacity-15 pointer-events-none text-emerald-500" viewBox="0 0 100 100" fill="none">
+                <svg class="absolute -right-5 -bottom-5 w-28 h-28 opacity-15 pointer-events-none text-orange-500" viewBox="0 0 100 100" fill="none">
                   <circle cx="80" cy="80" r="25" stroke="currentColor" stroke-width="1.5" />
                   <circle cx="80" cy="80" r="45" stroke="currentColor" stroke-width="1.2" />
                   <circle cx="80" cy="80" r="65" stroke="currentColor" stroke-width="1" />
@@ -349,8 +349,8 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
                 <div class="my-3 relative z-10">
                   <div class="flex items-baseline gap-2">
-                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-black tracking-tight">$23,323</span>
-                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-black tracking-tight">$23,323</span>
+                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-[#E8541C] border border-orange-500/20">
                       <lucide-icon [name]="ArrowUpRightIcon" size="11"></lucide-icon>
                       <span>4.9%</span>
                     </span>
@@ -378,7 +378,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
                 <div class="my-3 relative z-10">
                   <div class="flex items-baseline gap-2">
-                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-2xl sm:text-3xl font-black tracking-tight">5</span>
+                    <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-black tracking-tight">5</span>
                     <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
                       <span>1 out</span>
                     </span>
@@ -408,7 +408,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               <!-- Card Header -->
               <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div class="flex items-center gap-3">
-                  <h3 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="font-extrabold text-base sm:text-lg tracking-tight">
+                  <h3 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="font-extrabold text-base sm:text-lg tracking-tight">
                     Inventory statistics
                   </h3>
                   <!-- Legends -->
@@ -419,7 +419,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                     <span class="flex items-center gap-1.5 text-slate-400">
                       <span class="w-2 h-2 rounded-full bg-slate-400"></span> Stock out
                     </span>
-                    <span class="flex items-center gap-1.5 text-emerald-500">
+                    <span class="flex items-center gap-1.5 text-orange-500">
                       <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Value
                     </span>
                   </div>
@@ -427,11 +427,11 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
                 <!-- Header Actions -->
                 <div class="flex items-center gap-2">
-                  <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800 border-white/10 text-zinc-300' : 'bg-[#eef4f0] border-white/80 text-[#2d473b]'" class="flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer">
+                  <div [ngClass]="vessaDarkMode() ? 'bg-zinc-800 border-white/10 text-zinc-300' : 'bg-[#eef4f0] border-white/80 text-[#9a3412]'" class="flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer">
                     <span>Monthly</span>
                     <lucide-icon [name]="ChevronDownIcon" size="13"></lucide-icon>
                   </div>
-                  <button (click)="abrirAlmacen('tablas')" [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-[#5a7166] hover:text-[#11231a] hover:bg-[#eef4f0]'" class="w-7 h-7 rounded-full flex items-center justify-center transition-all">
+                  <button (click)="abrirAlmacen('tablas')" [ngClass]="vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'text-[#5a7166] hover:text-[#0f172a] hover:bg-[#eef4f0]'" class="w-7 h-7 rounded-full flex items-center justify-center transition-all">
                     <lucide-icon [name]="ExternalLinkIcon" size="14"></lucide-icon>
                   </button>
                 </div>
@@ -442,7 +442,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                 
                 <!-- Floating Tooltip for October -->
                 <div class="absolute top-2 left-[58%] sm:left-[62%] -translate-x-1/2 z-20 pointer-events-none">
-                  <div [ngClass]="vessaDarkMode() ? 'bg-[#141d18]/95 border-emerald-500/30 text-white shadow-2xl' : 'bg-white/95 border-white/80 text-[#11231a] shadow-[0_12px_32px_rgba(15,48,36,0.12)]'" class="backdrop-blur-xl rounded-2xl p-3 border text-xs font-mono min-w-[170px] animate-in fade-in duration-300">
+                  <div [ngClass]="vessaDarkMode() ? 'bg-[#141d18]/95 border-orange-500/30 text-white shadow-2xl' : 'bg-white/95 border-white/80 text-[#0f172a] shadow-[0_12px_32px_rgba(15,48,36,0.12)]'" class="backdrop-blur-xl rounded-2xl p-3 border text-xs font-mono min-w-[170px] animate-in fade-in duration-300">
                     <p class="font-bold text-[11px] uppercase tracking-wider mb-1.5 pb-1 border-b border-zinc-200/60 dark:border-white/10">Octobre · 2026</p>
                     <div class="space-y-1 text-[11px]">
                       <div class="flex items-center justify-between gap-3">
@@ -458,15 +458,15 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                         <span class="font-bold">$4,732</span>
                       </div>
                       <div class="flex items-center justify-between gap-3 pt-0.5 border-t border-zinc-100 dark:border-white/5">
-                        <span class="flex items-center gap-1.5 text-emerald-500 font-semibold">
+                        <span class="flex items-center gap-1.5 text-orange-500 font-semibold">
                           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Stock value:
                         </span>
-                        <span class="font-bold text-emerald-600 dark:text-emerald-400">$32,041</span>
+                        <span class="font-bold text-[#E8541C]">$32,041</span>
                       </div>
                     </div>
                   </div>
                   <!-- Little caret -->
-                  <div class="w-3 h-3 bg-white/95 dark:bg-[#141d18] border-r border-b border-zinc-200/80 dark:border-emerald-500/30 rotate-45 mx-auto -mt-1.5"></div>
+                  <div class="w-3 h-3 bg-white/95 dark:bg-[#141d18] border-r border-b border-zinc-200/80 dark:border-orange-500/30 rotate-45 mx-auto -mt-1.5"></div>
                 </div>
 
                 <!-- Grid Horizontal Lines -->
@@ -511,9 +511,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                   <div class="flex flex-col items-center gap-2 group cursor-pointer">
                     <div class="flex items-end gap-1.5 h-36 relative">
                       <div class="w-3 sm:w-5 bg-amber-500 rounded-t-full h-32 shadow-[0_0_12px_rgba(245,158,11,0.5)] transition-all"></div>
-                      <div class="w-3 sm:w-5 bg-[#0e3b2e] dark:bg-emerald-500 rounded-t-full h-26 shadow-[0_0_12px_rgba(14,59,46,0.3)] transition-all"></div>
+                      <div class="w-3 sm:w-5 bg-[#E8541C] dark:bg-orange-500 rounded-t-full h-26 shadow-[0_0_12px_rgba(14,59,46,0.3)] transition-all"></div>
                     </div>
-                    <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">Oct</span>
+                    <span class="text-[11px] font-bold text-[#E8541C] bg-orange-500/10 px-2 py-0.5 rounded-full">Oct</span>
                   </div>
 
                   <!-- Nov -->
@@ -544,7 +544,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               
               <!-- Header -->
               <div class="flex items-center justify-between mb-2">
-                <h3 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="font-extrabold text-base sm:text-lg tracking-tight">
+                <h3 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="font-extrabold text-base sm:text-lg tracking-tight">
                   Sales overview
                 </h3>
                 <button [ngClass]="vessaDarkMode() ? 'text-zinc-500 hover:text-white' : 'text-zinc-400 hover:text-zinc-700'" class="w-7 h-7 rounded-full flex items-center justify-center">
@@ -558,9 +558,9 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                   <defs>
                     <!-- Gradient for Active Speedometer Ticks -->
                     <linearGradient id="vessaGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stop-color="#34d399" />
-                      <stop offset="50%" stop-color="#10b981" />
-                      <stop offset="100%" stop-color="#0e3b2e" />
+                      <stop offset="0%" stop-color="#fdba74" />
+                      <stop offset="50%" stop-color="#fb923c" />
+                      <stop offset="100%" stop-color="#E8541C" />
                     </linearGradient>
                   </defs>
 
@@ -572,7 +572,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                         [attr.y1]="tick.y1" 
                         [attr.x2]="tick.x2" 
                         [attr.y2]="tick.y2" 
-                        [attr.stroke]="tick.isActive ? 'url(#vessaGaugeGradient)' : (vessaDarkMode() ? '#1a2920' : '#d8e5dd')"
+                        [attr.stroke]="tick.isActive ? 'url(#vessaGaugeGradient)' : (vessaDarkMode() ? '#27272a' : '#e2e8f0')"
                         [attr.stroke-width]="tick.isActive ? '2.8' : '2'"
                         stroke-linecap="round"
                         class="transition-all duration-500"
@@ -583,7 +583,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
                 <!-- Speedometer Readout in Center of Arc -->
                 <div class="absolute bottom-2 text-center flex flex-col items-center">
-                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-3xl sm:text-4xl font-black tracking-tight leading-none">
+                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-3xl sm:text-4xl font-black tracking-tight leading-none">
                     47.0%
                   </span>
                   <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#788e84]'" class="text-[11px] font-bold uppercase tracking-wider mt-1">
@@ -596,11 +596,11 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               <div class="flex items-center justify-between pt-4 border-t border-zinc-200/60 dark:border-white/10 mt-2">
                 <div class="flex flex-col">
                   <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#788e84]'" class="text-[11px] font-medium">Number of sales</span>
-                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-lg font-black mt-0.5">29</span>
+                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-lg font-black mt-0.5">29</span>
                 </div>
                 <div class="flex flex-col text-right">
                   <span [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#788e84]'" class="text-[11px] font-medium">Total sales</span>
-                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#11231a]'" class="text-lg font-black mt-0.5">$10,282</span>
+                  <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-lg font-black mt-0.5">$10,282</span>
                 </div>
               </div>
 
@@ -1056,7 +1056,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                 </p>
                 <div class="space-y-1 mb-3">
                   <div *ngFor="let entry of resultadoCarga()!.suggestedMapping | keyvalue" class="flex items-center gap-2">
-                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">{{ entry.key }}</span>
+                    <span class="text-[10px] font-bold text-[#E8541C] bg-emerald-100 px-2 py-0.5 rounded-md">{{ entry.key }}</span>
                     <span class="text-[10px] text-gray-400">→</span>
                     <span class="text-[10px] font-medium text-gray-700">{{ entry.value }}</span>
                   </div>
@@ -1213,7 +1213,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                       [ngClass]="{
                         'bg-yellow-50 text-yellow-600 border-yellow-200': pedido.estado === 'pendiente',
                         'bg-blue-50 text-blue-600 border-blue-200': pedido.estado === 'aprobado' || pedido.estado === 'confirmado',
-                        'bg-emerald-50 text-emerald-600 border-emerald-200': pedido.estado === 'entregado',
+                        'bg-emerald-50 text-[#E8541C] border-emerald-200': pedido.estado === 'entregado',
                         'bg-red-50 text-red-600 border-red-200': pedido.estado === 'rechazado'
                       }"
                       class="px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border inline-block"
@@ -1352,7 +1352,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             <div *ngFor="let prod of previewCatalogo()!.existentes" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-black text-gray-900 truncate">{{ prod.nombre }}</p>
-                <span *ngIf="prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Ya en tu inventario</span>
+                <span *ngIf="prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-[#E8541C] bg-emerald-50 px-2 py-0.5 rounded-md">Ya en tu inventario</span>
                 <span *ngIf="!prod.yaEnInventario" class="inline-block mt-1 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Producto global, sin precio tuyo</span>
               </div>
               <div class="text-right shrink-0">
@@ -1471,7 +1471,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                   <p class="text-5xl font-black text-white tracking-tighter">{{ (carteraCredito()?.totalPrestado || 0) | currency }}</p>
                   
                   <div class="mt-8 flex items-center gap-3">
-                    <div class="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold border border-emerald-500/20 flex items-center gap-1.5">
+                    <div class="px-3 py-1.5 bg-orange-500/20 text-orange-500 rounded-xl text-xs font-bold border border-orange-500/20 flex items-center gap-1.5">
                       <lucide-icon [name]="TrendingUpIcon" size="14"></lucide-icon> Rendimiento Óptimo
                     </div>
                   </div>
@@ -1673,7 +1673,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                       </div>
                       <div class="flex flex-col items-end">
                         <span class="text-[11px] font-black text-gray-900">{{ sol.monto_solicitado | currency:'USD':'symbol':'1.0-0' }}</span>
-                        <span [ngClass]="{'text-emerald-500': sol.estado === 'aprobada', 'text-red-500': sol.estado === 'rechazada'}" class="text-[9px] font-black uppercase tracking-widest mt-0.5">
+                        <span [ngClass]="{'text-orange-500': sol.estado === 'aprobada', 'text-red-500': sol.estado === 'rechazada'}" class="text-[9px] font-black uppercase tracking-widest mt-0.5">
                           {{ sol.estado }}
                         </span>
                       </div>
@@ -1778,7 +1778,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4">
               <div class="flex justify-between items-center mb-2">
                 <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                  <lucide-icon [name]="WrenchIcon" size="16" class="text-emerald-500"></lucide-icon> Horario Comercial
+                  <lucide-icon [name]="WrenchIcon" size="16" class="text-orange-500"></lucide-icon> Horario Comercial
                 </h3>
                 <span class="text-[9px] font-black text-gray-400 uppercase tracking-wider bg-gray-100 px-2 py-1 rounded-full">Zona Horaria Local</span>
               </div>
@@ -1793,7 +1793,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                       (click)="dia.estaCerrado = !dia.estaCerrado"
                       [class]="dia.estaCerrado 
                         ? 'bg-red-50 text-red-500 border-red-200' 
-                        : 'bg-emerald-50 text-emerald-600 border-emerald-200'"
+                        : 'bg-emerald-50 text-[#E8541C] border-emerald-200'"
                       class="px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all min-w-[70px] text-center"
                     >
                       {{ dia.estaCerrado ? 'Cerrado' : 'Abierto' }}
@@ -1842,7 +1842,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
         <div class="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-gray-100">
           <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
             <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
-              <lucide-icon [name]="CheckCircleIcon" size="18" class="text-emerald-500"></lucide-icon> Aprobar Crédito
+              <lucide-icon [name]="CheckCircleIcon" size="18" class="text-orange-500"></lucide-icon> Aprobar Crédito
             </h3>
             <button (click)="modalAprobarCreditoData = null" class="text-gray-400 hover:text-gray-900 transition-colors bg-gray-100 hover:bg-gray-200 rounded-full p-1"><lucide-icon [name]="XIcon" size="16"></lucide-icon></button>
           </div>

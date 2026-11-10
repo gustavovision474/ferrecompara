@@ -43,16 +43,16 @@ type AuthScreen = 'welcome' | 'auth';
     </div>
 
     <!-- FLOATING VIEW SWITCHER PILL (Modo Cliente <-> Vessa Dashboard) -->
-    <div class="fixed top-3 right-4 z-[200] flex items-center gap-1 bg-white/95 backdrop-blur-xl border border-gray-200 px-3 py-1.5 rounded-full shadow-lg text-xs font-sans">
+    <div class="fixed bottom-5 right-5 z-[200] flex items-center gap-1.5 bg-white/95 backdrop-blur-xl border border-gray-200 px-3.5 py-2 rounded-full shadow-2xl text-xs font-sans">
       <span class="w-2 h-2 rounded-full bg-[#E8541C] animate-pulse"></span>
       <button 
         type="button"
         (click)="auth.iniciarDemo('cliente')"
         [class.bg-orange-600]="auth.currentRol() !== 'tienda'"
         [class.text-white]="auth.currentRol() !== 'tienda'"
-        [class.shadow-sm]="auth.currentRol() !== 'tienda'"
+        [class.shadow-md]="auth.currentRol() !== 'tienda'"
         [class.text-gray-600]="auth.currentRol() === 'tienda'"
-        class="px-3 py-1 rounded-full font-bold transition-all hover:text-gray-950"
+        class="px-3.5 py-1.5 rounded-full font-bold transition-all hover:text-gray-950 cursor-pointer"
       >
         Modo Cliente
       </button>
@@ -62,9 +62,9 @@ type AuthScreen = 'welcome' | 'auth';
         (click)="auth.iniciarDemo('tienda')"
         [class.bg-orange-600]="auth.currentRol() === 'tienda'"
         [class.text-white]="auth.currentRol() === 'tienda'"
-        [class.shadow-sm]="auth.currentRol() === 'tienda'"
+        [class.shadow-md]="auth.currentRol() === 'tienda'"
         [class.text-gray-600]="auth.currentRol() !== 'tienda'"
-        class="px-3 py-1 rounded-full font-bold transition-all hover:text-gray-950"
+        class="px-3.5 py-1.5 rounded-full font-bold transition-all hover:text-gray-950 cursor-pointer"
       >
         Vessa Dashboard
       </button>

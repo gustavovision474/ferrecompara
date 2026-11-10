@@ -8,6 +8,8 @@ export interface Product {
   status: 'available' | 'low-stock' | 'out-of-stock';
   tag?: string;
   category: string;
+  stock?: number;
+  precio?: number;
 }
 
 export interface CommitResultDto {

@@ -168,18 +168,58 @@ export class SupabaseService {
     }
   }
 
-  async cargarMisProductosApi(): Promise<Product[]> {
+  async cargarMisProductosApi(tiendaId: string | number = '1'): Promise<Product[]> {
+    // 1. Intentar API backend si está activo
     try {
       let params = new HttpParams().set('_t', Date.now().toString());
       const productos = await firstValueFrom(
-        this.http.get<Product[]>(`${environment.apiUrl}/Products/my`, { params }).pipe(timeout(3500))
+        this.http.get<Product[]>(`${environment.apiUrl}/Products/my`, { params }).pipe(timeout(1200))
       );
       if (productos && productos.length > 0) return productos;
-      return this.obtenerProductosPorTiendaDemo('1');
-    } catch (err: any) {
-      console.warn('Backend o Supabase no disponible para cargarMisProductos, usando modo resiliente', err);
-      return this.obtenerProductosPorTiendaDemo('1');
+    } catch {
+      // Backend no disponible, consultar Supabase directamente
     }
+
+    // 2. Consultar inventario real directamente desde Supabase
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('inventario')
+        .select(`
+          id,
+          precio,
+          stock,
+          oferta,
+          productos (
+            id,
+            nombre,
+            descripcion,
+            marca,
+            imagen_url,
+            categoria_id
+          )
+        `)
+        .eq('tienda_id', Number(tiendaId) || 1);
+
+      if (!error && data && data.length > 0) {
+        return data.map((item: any) => ({
+          id: String(item.productos?.id || item.id),
+          name: item.productos?.nombre || 'Producto Ferretero',
+          brand: item.productos?.marca || 'Nacional',
+          minPrice: Number(item.precio) || 0,
+          maxPrice: Number(item.precio) || 0,
+          image: item.productos?.imagen_url || 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?q=80&w=600&auto=format&fit=crop',
+          status: ((item.stock || 0) > 0 ? 'available' : 'out-of-stock') as any,
+          category: 'Ferretería General',
+          stock: item.stock ?? 10,
+          precio: Number(item.precio) || 0
+        }));
+      }
+    } catch (e) {
+      console.warn('Error al consultar inventario en Supabase:', e);
+    }
+
+    // 3. Fallback a catálogo demo
+    return this.obtenerProductosPorTiendaDemo(String(tiendaId));
   }
 
   async obtenerTiendasPorProducto(productoId: string | number): Promise<any[]> {

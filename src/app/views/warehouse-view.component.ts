@@ -68,10 +68,10 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
   template: `
-    <div class="min-h-screen bg-gray-50 text-gray-900 pb-24">
+    <div class="min-h-screen bg-[#07080b] text-zinc-100 pb-28">
       
       <!-- SUB-HEADER DE CONTROL WMS -->
-      <div class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+      <div class="bg-[#0b0d14]/90 backdrop-blur-2xl border-b border-white/[0.08] sticky top-0 z-30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
           
           <div class="flex items-center gap-3">
@@ -222,11 +222,13 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
               </div>
               <p class="text-2xl font-black text-gray-900">{{ stats().consumables.total_distinct }} <span class="text-xs font-normal text-gray-500">ítems</span></p>
               <div class="flex items-center gap-2 mt-2 text-[11px]">
-                <span *ngIf="stats().consumables.low_stock_count > 0" class="text-amber-600 font-bold">
-                  ⚠️ {{ stats().consumables.low_stock_count }} en stock bajo
+                <span *ngIf="stats().consumables.low_stock_count > 0" class="text-amber-600 font-bold flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  {{ stats().consumables.low_stock_count }} en stock bajo
                 </span>
-                <span *ngIf="stats().consumables.low_stock_count === 0" class="text-emerald-600 font-bold">
-                  ✓ Stock óptimo
+                <span *ngIf="stats().consumables.low_stock_count === 0" class="text-emerald-600 font-bold flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Stock óptimo
                 </span>
               </div>
             </div>
@@ -502,8 +504,9 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
                     <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 text-gray-600">
                       {{ item.category }}
                     </span>
-                    <span *ngIf="item.is_low_stock" class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">
-                      ⚠️ Stock Bajo
+                    <span *ngIf="item.is_low_stock" class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-black uppercase inline-flex items-center gap-1">
+                      <span class="w-1 h-1 rounded-full bg-amber-500"></span>
+                      Stock Bajo
                     </span>
                   </div>
 
@@ -604,8 +607,9 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
               <div>
                 <div class="flex items-center justify-between gap-2 mb-2">
                   <span [class]="loan.status === 'overdue' ? 'bg-red-100 text-red-700 border-red-300' : (loan.status === 'returned' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-orange-100 text-orange-800 border-orange-300')"
-                        class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border">
-                    {{ loan.status === 'overdue' ? '⚠️ FUERA DE PLAZO' : (loan.status === 'returned' ? 'DEVUELTO' : 'EN PRÉSTAMO') }}
+                        class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border inline-flex items-center gap-1.5">
+                    <span [class]="loan.status === 'overdue' ? 'w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse' : (loan.status === 'returned' ? 'w-1.5 h-1.5 rounded-full bg-emerald-500' : 'w-1.5 h-1.5 rounded-full bg-orange-500')"></span>
+                    {{ loan.status === 'overdue' ? 'FUERA DE PLAZO' : (loan.status === 'returned' ? 'DEVUELTO' : 'EN PRÉSTAMO') }}
                   </span>
                   <span class="text-xs font-bold text-gray-500">
                     Cant: <b class="text-gray-900">{{ loan.quantity }} unid.</b>
@@ -811,7 +815,7 @@ export type WarehouseSubTab = 'dashboard' | 'inventario' | 'prestamos' | 'bodega
 
               <div class="pt-2 flex items-center justify-between text-xs">
                 <a *ngIf="sup.phone" [href]="'tel:' + sup.phone" class="text-blue-600 font-bold hover:underline">
-                  📞 {{ sup.phone }}
+                  Tel: {{ sup.phone }}
                 </a>
                 <button (click)="eliminarProveedor(sup.id)" class="text-red-500 hover:text-red-700 text-[11px]">
                   Eliminar

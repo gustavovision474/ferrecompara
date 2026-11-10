@@ -114,7 +114,7 @@ export class ChatService {
             filter: `chat_id=eq.${chatId}`
           },
           (payload: any) => {
-            console.log('📬 Nuevo mensaje recibido en realtime:', payload.new);
+            console.log('[Realtime] Nuevo mensaje recibido:', payload.new);
             const newMsg = payload.new as ChatMessage;
             // Solo añadir si no existe ya en la memoria local (evita duplicar el propio mensaje enviado)
             this.messages.update(prev => {
@@ -189,7 +189,7 @@ export class ChatService {
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'mensajes' },
           () => {
-            console.log('🔄 ¡Mensaje detectado en vivo! Refrescando bandeja de entrada...');
+            console.log('[Realtime] Mensaje detectado en vivo. Refrescando bandeja de entrada...');
             this.reloadConversationsQuietly(tiendaId);
           }
         )

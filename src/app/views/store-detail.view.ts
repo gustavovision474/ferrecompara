@@ -13,13 +13,13 @@ import { SupabaseService } from '../supabase.service';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ProductCardComponent],
   template: `
-    <div *ngIf="storeService.selectedStore() as store" class="bg-white min-h-screen pb-32 animate-in slide-in-from-right duration-500">
+    <div *ngIf="storeService.selectedStore() as store" class="bg-[#07080b] text-zinc-100 min-h-screen pb-32 animate-in slide-in-from-right duration-500 max-w-4xl mx-auto">
       <!-- Sticky Top Bar -->
-      <div class="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-100 px-4 h-16 flex items-center justify-between">
-        <button (click)="storeService.selectStore(null)" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
-          <lucide-icon [name]="BackIcon" size="24"></lucide-icon>
+      <div class="sticky top-0 z-40 bg-[#07080b]/85 backdrop-blur-2xl border-b border-white/[0.08] px-4 h-16 flex items-center justify-between">
+        <button (click)="storeService.selectStore(null)" class="p-2 hover:bg-white/[0.05] rounded-full transition-colors text-zinc-400 hover:text-white">
+          <lucide-icon [name]="BackIcon" size="20"></lucide-icon>
         </button>
-        <span class="text-lg font-black text-gray-900 tracking-tight truncate px-2">{{ store.name }}</span>
+        <span class="text-base font-bold text-white tracking-tight truncate px-2 font-mono">{{ store.name }}</span>
         <div class="w-10"></div>
       </div>
 
@@ -308,7 +308,7 @@ export class StoreDetailViewComponent {
   async abrirChatInterno(store: any) {
     const p = this.authService.profile();
     if (!p || !p.id) {
-      alert('🔒 Para chatear en vivo con las ferreterías y que reciban tus mensajes en tiempo real, por favor inicia sesión o regístrate como Cliente.');
+      alert('Para chatear en vivo con las ferreterías y recibir mensajes en tiempo real, por favor inicia sesión o regístrate como Cliente.');
       return;
     }
 
@@ -321,12 +321,12 @@ export class StoreDetailViewComponent {
       if (this.currentChatId) {
         await this.chatService.loadMessagesAndSubscribe(this.currentChatId);
       } else {
-        alert('❌ No se pudo enlazar el chat con la tienda. Verifica la base de datos.');
+        alert('No se pudo enlazar el chat con la tienda. Intenta nuevamente.');
         this.chatAbierto.set(false);
       }
     } catch (e) {
       console.error('Error abriendo chat remoto:', e);
-      alert('❌ Falló la conexión con Supabase en tiempo real.');
+      alert('Falló la conexión en tiempo real.');
       this.chatAbierto.set(false);
     }
   }
@@ -384,7 +384,7 @@ export class StoreDetailViewComponent {
     try {
       const tiendaId = Number(this.storeParaCredito.id) || 1;
       await this.supabaseService.solicitarCredito(tiendaId, this.solicitudForm.monto, this.solicitudForm.plazo, this.solicitudForm.ingresos);
-      alert('✅ Tu solicitud de crédito ha sido enviada a la ferretería. Se pondrán en contacto contigo.');
+      alert('Tu solicitud de crédito ha sido enviada a la ferretería. Se pondrán en contacto contigo.');
       this.modalCreditoAbierto.set(false);
     } catch (e) {
       console.error(e);

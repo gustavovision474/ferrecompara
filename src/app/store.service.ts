@@ -6,7 +6,7 @@ import { SupabaseService, TiendaUI } from './supabase.service';
   providedIn: 'root'
 })
 export class StoreService {
-  // 🔌 Inyectar Servicios
+  // Inyectar Servicios
   private supabase = inject(SupabaseService);
 
   // State

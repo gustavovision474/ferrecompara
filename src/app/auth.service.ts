@@ -144,7 +144,7 @@ export class AuthService {
 
     // Escuchar cambios de sesión (login, logout en otra pestaña, etc.)
     this.client.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔐 Auth event:', event);
+      console.log('[Auth] Event:', event);
       if (session?.user) {
         await this.cargarProfile(session.user.id);
         this._user.set(session.user);
@@ -185,17 +185,17 @@ export class AuthService {
       if (data.rol === 'tienda') {
         return {
           ok: true,
-          mensaje: '✅ Registro recibido. Tu ferretería está pendiente de aprobación. Te avisaremos por email.'
+          mensaje: 'Registro recibido. Tu ferretería está pendiente de aprobación. Te avisaremos por email.'
         };
       }
 
       return {
         ok: true,
-        mensaje: '✅ ¡Bienvenido a FerreExpress!'
+        mensaje: 'Bienvenido a FerreExpress'
       };
 
     } catch (err: any) {
-      console.error('❌ Error al registrar:', err);
+      console.error('[Auth] Error al registrar:', err);
       const mensaje = this.traducirError(err.message);
       this._error.set(mensaje);
       return { ok: false, mensaje };
@@ -225,10 +225,10 @@ export class AuthService {
         await this.cargarProfile(data.user.id);
       }
 
-      return { ok: true, mensaje: '✅ Bienvenido de vuelta' };
+      return { ok: true, mensaje: 'Bienvenido de vuelta' };
 
     } catch (err: any) {
-      console.error('❌ Error al iniciar sesión:', err);
+      console.error('[Auth] Error al iniciar sesión:', err);
       const mensaje = this.traducirError(err.message);
       this._error.set(mensaje);
       return { ok: false, mensaje };
@@ -262,7 +262,7 @@ export class AuthService {
   // ============================================
   private async cargarProfile(userId: string) {
     try {
-      console.log('⏳ Cargando perfil para:', userId);
+      console.log('[Auth] Cargando perfil para:', userId);
       const { data, error } = await this.client
         .from('profiles')
         .select('*')
@@ -273,14 +273,14 @@ export class AuthService {
 
       if (data) {
         this._profile.set(data as Profile);
-        console.log('👤 Profile cargado:', data);
+        console.log('[Auth] Profile cargado:', data);
       } else {
-        console.warn('❓ No se encontró perfil, usando datos básicos');
+        console.warn('[Auth] No se encontró perfil, usando datos básicos');
         const basicProfile: Profile = { id: userId, email: this._user()?.email || '', rol: 'cliente', estado: 'activo' };
         this._profile.set(basicProfile);
       }
     } catch (err: any) {
-      console.error('❌ Error al cargar profile:', err);
+      console.error('[Auth] Error al cargar profile:', err);
       this._profile.set(null);
     }
   }

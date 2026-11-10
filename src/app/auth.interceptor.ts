@@ -29,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (token) {
         const cleanToken = token.replace(/['"]+/g, '').trim();
         
-        console.log('📡 Enviando petición con Token Fresco (inicia con):', cleanToken.substring(0, 10) + '...');
+        console.log('[AuthInterceptor] Enviando petición con Token Fresco (inicia con):', cleanToken.substring(0, 10) + '...');
         
         const authReq = baseReq.clone({
           headers: baseReq.headers.set('Authorization', `Bearer ${cleanToken}`)
@@ -38,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return next(authReq);
       }
 
-      console.warn('⚠️ No se encontró token activo en la sesión para:', req.url);
+      console.warn('[AuthInterceptor] No se encontró token activo en la sesión para:', req.url);
       return next(baseReq);
     })
   );

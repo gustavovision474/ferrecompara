@@ -26,12 +26,12 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
     }
   `],
   template: `
-    <div class="min-h-screen bg-gray-50 block relative" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
+    <div class="min-h-screen bg-[#07080b] text-zinc-100 block relative" [class.pb-24]="activeTab() !== 'mensajes' || !chatActual()">
       
 
 
       <!-- HEADER GLOBAL -->
-      <header class="bg-white px-6 py-5 flex items-center justify-between border-b border-gray-100 sticky top-0 z-20 shadow-sm">
+      <header class="bg-[#07080b]/90 backdrop-blur-2xl px-6 py-4 flex items-center justify-between border-b border-white/[0.08] sticky top-0 z-20 shadow-xl">
         <!-- Barra de progreso sutil para operaciones de escritura -->
         <div *ngIf="cargandoGlobal()" class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#E8541C]/30">
           <div class="h-full bg-[#E8541C] w-1/2 animate-pulse rounded-full"></div>
@@ -128,7 +128,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               <p class="text-base sm:text-lg font-black text-white mt-0.5">
                 {{ warehouseService.stats().consumables.total_distinct }}
                 <span *ngIf="warehouseService.stats().consumables.low_stock_count > 0" class="text-[10px] font-bold text-amber-400 ml-1">
-                  (⚠️ {{ warehouseService.stats().consumables.low_stock_count }})
+                  ({{ warehouseService.stats().consumables.low_stock_count }} alerta)
                 </span>
               </p>
             </div>
@@ -807,7 +807,10 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               </div>
 
               <div *ngIf="resultadoCarga()" class="w-full bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4 text-left">
-                <p class="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">✅ Archivo procesado: {{ resultadoCarga()!.rowCount }} productos detectados</p>
+                <p class="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Archivo procesado: {{ resultadoCarga()!.rowCount }} productos detectados
+                </p>
                 <div class="space-y-1 mb-3">
                   <div *ngFor="let entry of resultadoCarga()!.suggestedMapping | keyvalue" class="flex items-center gap-2">
                     <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">{{ entry.key }}</span>
@@ -947,7 +950,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                 <div class="block">
                   <h3 class="text-sm font-black text-gray-900">{{ pedido.profiles?.nombre_completo || 'Cliente' }}</h3>
                   <div class="flex items-center gap-1 mt-1">
-                    <span class="text-[10px] text-gray-500">📞 {{ pedido.profiles?.telefono || 'Sin teléfono' }}</span>
+                    <span class="text-[10px] text-gray-500">Tel: {{ pedido.profiles?.telefono || 'Sin teléfono' }}</span>
                   </div>
                   <div class="text-[10px] text-gray-400 mt-1">{{ pedido.fecha_pedido | date:'short' }}</div>
                   
@@ -2101,7 +2104,7 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
       this.mostrarToast(`"${prod.name}" eliminado`);
       await this.cargarMisProductos();
     } catch (e) {
-      alert('❌ Error al eliminar');
+      alert('Error al eliminar');
       console.error(e);
     }
   }
@@ -2118,10 +2121,10 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
       }
 
       this.showConfirmModalVaciar.set(false);
-      this.mostrarToast('✅ Catálogo vaciado completamente');
+      this.mostrarToast('Catálogo vaciado completamente');
       await this.cargarMisProductos();
     } catch (e) {
-      alert('❌ Error al vaciar catálogo');
+      alert('Error al vaciar catálogo');
       console.error(e);
     } finally {
       this.vaciandoCatalogo.set(false);
@@ -2263,11 +2266,11 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
 
       await this.auth.inicializar();
       await this.abrirPerfil();
-      this.mostrarToast('✅ Perfil guardado con éxito');
+      this.mostrarToast('Perfil guardado con éxito');
       this.activeTab.set('dashboard');
     } catch (e: any) {
       const serverError = e?.error ? JSON.stringify(e.error) : e?.message;
-      alert(`❌ Error del backend al guardar:\n\n${serverError}\n\nRevisa la consola de tu terminal donde corre la API .NET para ver la excepción exacta.`);
+      alert(`Error del backend al guardar:\n\n${serverError}\n\nRevisa la consola de tu terminal donde corre la API .NET para ver la excepción exacta.`);
       console.error('Error detallado guardando perfil:', e);
     } finally {
       this.guardandoPerfil.set(false);
@@ -2296,10 +2299,10 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
 
       if (this.modoEdicion()) {
         await this.supabase.actualizarProducto(this.productForm.id, payload);
-        this.mostrarToast('✅ Producto actualizado');
+        this.mostrarToast('Producto actualizado');
       } else {
         await firstValueFrom(this.http.post(`${environment.apiUrl}/Products`, payload));
-        this.mostrarToast('✅ Producto publicado');
+        this.mostrarToast('Producto publicado');
       }
 
       this.productImagePreview = '';
@@ -2314,7 +2317,7 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
       }, 800);
 
     } catch (e) {
-      alert('❌ Error al procesar producto');
+      alert('Error al procesar producto');
       console.error(e);
     } finally {
       this.estaGuardando.set(false);
@@ -2433,13 +2436,13 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
       const insertados = result.insertedInventory ?? 0;
       const actualizados = result.updatedInventory ?? 0;
       const creados = result.createdProducts ?? 0;
-      this.mostrarToast(`✅ ${insertados + actualizados + creados} productos aplicados al inventario`);
+      this.mostrarToast(`${insertados + actualizados + creados} productos aplicados al inventario`);
       this.previewCatalogo.set(null);
       this.uploadIdActual.set(null);
       this.activeTab.set('catalogo');
       await this.cargarMisProductos();
     } catch (e: any) {
-      this.mostrarToast('❌ Error al aplicar el inventario: ' + (e?.message ?? 'Inténtalo de nuevo'));
+      this.mostrarToast('Error al aplicar el inventario: ' + (e?.message ?? 'Inténtalo de nuevo'));
     } finally {
       this.aplicandoInventario.set(false);
     }
@@ -2578,7 +2581,7 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
         <div class="section-title">Cliente</div>
         <div class="client-box">
           <div class="client-name">${this.cotizacion.nombreCliente}</div>
-          ${this.cotizacion.telefonoCliente ? `<div class="client-detail">📞 ${this.cotizacion.telefonoCliente}</div>` : ''}
+          ${this.cotizacion.telefonoCliente ? `<div class="client-detail">Tel: ${this.cotizacion.telefonoCliente}</div>` : ''}
           ${this.cotizacion.proyectoCliente ? `<div class="client-detail" style="margin-top:6px;font-style:italic;">"${this.cotizacion.proyectoCliente}"</div>` : ''}
         </div>
 
@@ -2693,7 +2696,7 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
         return p;
       }));
       
-      this.mostrarToast(`✅ Pedido ${estado}`);
+      this.mostrarToast(`Pedido ${estado}`);
     } catch (e) {
       console.error(e);
       alert('Error al actualizar el estado. Por favor, recarga la página y vuelve a intentarlo.');

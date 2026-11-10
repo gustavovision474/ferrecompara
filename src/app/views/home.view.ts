@@ -15,44 +15,67 @@ import { StoreService } from '../store.service';
     }
   `],
   template: `
-    <div class="pb-12 animate-in fade-in duration-500 relative">
-      <!-- GLOBAL FULLSCREEN LOADER (Solo si aún no hay productos) -->
-      <div *ngIf="store.cargando() && store.products().length === 0" class="fixed inset-0 z-[999] bg-gray-50 flex flex-col items-center justify-center">
-        <div class="w-16 h-16 border-4 border-[#E8541C] border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm font-black text-gray-400 mt-4 tracking-widest uppercase animate-pulse">Cargando...</p>
+    <div class="pb-24 animate-in fade-in duration-500 relative max-w-7xl mx-auto">
+      <!-- GLOBAL FULLSCREEN LOADER -->
+      <div *ngIf="store.cargando() && store.products().length === 0" class="fixed inset-0 z-[999] bg-[#07080b] flex flex-col items-center justify-center">
+        <div class="w-14 h-14 border-2 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
+        <p class="text-xs font-mono font-bold text-zinc-400 mt-4 tracking-widest uppercase animate-pulse">Sincronizando red de precios...</p>
       </div>
-      <!-- Banner (Only show when not searching) -->
+
+      <!-- Hero Banner (Vessa / Code and Chill style) -->
       @if (!store.searchQuery()) {
         <section class="px-4 pt-6">
-          <div class="relative overflow-hidden rounded-2xl bg-[#E8541C] text-white p-6 shadow-xl min-h-[160px] flex flex-col justify-center">
-            <div class="relative z-10">
-              <span class="bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-md mb-2 inline-block">Cerca de ti</span>
-              <h2 class="text-2xl font-black leading-tight mb-1">
-                {{ store.ferreterias().length }} ferreterías<br/>conectadas en tu zona
-              </h2>
-              <p class="text-sm text-white/90 font-medium">Compara precios en tiempo real y ahorra hoy.</p>
+          <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#121520] via-[#0d1017] to-[#07080b] border border-white/10 p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+            <!-- macOS Window Dots & Badge -->
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.06]">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-500/80"></span>
+                <span class="w-2 h-2 rounded-full bg-amber-500/80"></span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500/80"></span>
+                <span class="text-[10px] font-mono text-zinc-500 ml-2">ferrecompara.terminal/live</span>
+              </div>
+              <span class="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+                En Tiempo Real
+              </span>
             </div>
-            <div class="absolute right-[-20px] top-[-20px] opacity-10 pointer-events-none rotate-12">
-              <lucide-icon [name]="ConstructionIcon" size="200"></lucide-icon>
+
+            <div class="relative z-10 max-w-xl">
+              <h2 class="text-2xl sm:text-3xl font-black leading-tight text-white tracking-tight">
+                {{ store.ferreterias().length }} ferreterías locales<br/>conectadas en tu sector
+              </h2>
+              <p class="text-xs sm:text-sm text-zinc-400 font-medium mt-2">
+                Consulta y cotiza materiales al mejor precio entre depósitos y distribuidores verificados.
+              </p>
+            </div>
+
+            <div class="absolute right-[-20px] top-[-20px] opacity-5 pointer-events-none rotate-12 text-white">
+              <lucide-icon [name]="ConstructionIcon" size="220"></lucide-icon>
             </div>
           </div>
         </section>
       }
 
-      <!-- Categories & Filters (Always show) -->
-      <section class="pt-8">
-        <div class="flex overflow-x-auto gap-3 px-4 hide-scrollbar">
+      <!-- Categories & Filters -->
+      <section class="pt-6">
+        <div class="flex overflow-x-auto gap-2 px-4 hide-scrollbar">
           <button 
             (click)="store.setSearchQuery('Cemento')"
-            [class]="'flex-shrink-0 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all ' + (store.searchQuery() === 'Cemento' ? 'bg-[#E8541C] text-white shadow-lg shadow-orange-100' : 'bg-white border border-gray-200 text-on-surface hover:bg-gray-50')"
+            [class]="'flex-shrink-0 px-4 py-2 rounded-full font-mono text-xs flex items-center gap-2 transition-all ' + 
+              (store.searchQuery() === 'Cemento' 
+                ? 'bg-orange-500/15 border border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.25)]' 
+                : 'bg-zinc-900/80 border border-white/10 text-zinc-300 hover:text-white hover:border-white/20')"
           >
-            <lucide-icon [name]="ConstructionIcon" size="18"></lucide-icon>
+            <lucide-icon [name]="ConstructionIcon" size="14"></lucide-icon>
             Cemento
           </button>
           @for (cat of ['Hierro', 'Pinturas', 'Herramientas', 'Eléctrico', 'Plomería']; track cat) {
             <button 
               (click)="store.setSearchQuery(cat)"
-              [class]="'flex-shrink-0 px-5 py-2.5 rounded-full font-bold text-sm transition-all ' + (store.searchQuery() === cat ? 'bg-[#E8541C] text-white shadow-lg shadow-orange-100' : 'bg-white border border-gray-200 text-on-surface hover:bg-gray-50')"
+              [class]="'flex-shrink-0 px-4 py-2 rounded-full font-mono text-xs transition-all ' + 
+                (store.searchQuery() === cat 
+                  ? 'bg-orange-500/15 border border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.25)]' 
+                  : 'bg-zinc-900/80 border border-white/10 text-zinc-300 hover:text-white hover:border-white/20')"
             >
               {{ cat }}
             </button>
@@ -60,18 +83,16 @@ import { StoreService } from '../store.service';
         </div>
       </section>
 
-
-
       <!-- Popular Brands Filters -->
       <section class="px-4 mt-6">
-        <div class="flex items-center justify-between mb-3 px-1">
-          <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Marcas Populares</h3>
+        <div class="flex items-center justify-between mb-2.5 px-1">
+          <h3 class="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest">Marcas Homologadas</h3>
         </div>
         <div class="flex gap-2 overflow-x-auto hide-scrollbar">
           @for (brand of ['Holcim', 'Stanley', 'DeWalt', 'Plastigama', 'Ideal', 'Sika']; track brand) {
             <button 
               (click)="store.setSearchQuery(brand)"
-              class="flex-shrink-0 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 text-[11px] font-bold text-gray-500 active:bg-gray-200 transition-colors"
+              class="flex-shrink-0 bg-zinc-900/60 border border-white/[0.06] hover:border-white/20 rounded-xl px-3 py-1.5 text-[11px] font-mono font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
             >
               {{ brand }}
             </button>
@@ -83,13 +104,16 @@ import { StoreService } from '../store.service';
       <section class="px-4 mt-8">
         @if (store.searchQuery()) {
           <!-- Results Mode -->
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center justify-between mb-5">
             <div>
-              <h3 class="text-lg font-black text-on-surface">
-                {{ store.searchQuery() ? 'Resultados para "' + store.searchQuery() + '"' : 'Productos filtrados' }}
+              <h3 class="text-lg font-bold text-white tracking-tight">
+                {{ 'Resultados para "' + store.searchQuery() + '"' }}
               </h3>
-              <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">{{ store.filteredProducts().length }} productos encontrados</p>
+              <p class="text-xs text-zinc-400 font-mono">{{ store.filteredProducts().length }} productos indexados</p>
             </div>
+            <button (click)="store.clearFilters()" class="text-orange-400 hover:text-orange-300 font-mono text-xs uppercase underline">
+              Restablecer
+            </button>
           </div>
 
           @if (store.filteredProducts().length > 0) {
@@ -99,25 +123,25 @@ import { StoreService } from '../store.service';
               }
             </div>
           } @else {
-            <div class="py-12 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
-              <lucide-icon [name]="FilterIcon" size="48" class="text-gray-200 mx-auto mb-4"></lucide-icon>
-              <p class="text-gray-400 font-bold">No se encontraron productos con estos filtros.</p>
-              <button (click)="store.clearFilters()" class="mt-4 text-[#E8541C] font-black text-xs uppercase underline">Limpiar filtros</button>
+            <div class="py-14 text-center bg-[#0e1118]/60 rounded-3xl border border-white/[0.06]">
+              <lucide-icon [name]="FilterIcon" size="36" class="text-zinc-600 mx-auto mb-3"></lucide-icon>
+              <p class="text-zinc-400 text-sm font-medium">No se encontraron productos con estos términos.</p>
+              <button (click)="store.clearFilters()" class="mt-3 text-orange-400 font-mono text-xs uppercase underline">Limpiar filtros</button>
             </div>
           }
         } @else {
           <!-- Home Mode (Default Most Searched) -->
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-black text-on-surface">Productos más buscados</h3>
-            <button class="text-[#E8541C] font-bold text-sm flex items-center gap-1 group">
-              Ver todo <lucide-icon [name]="ChevronIcon" size="16" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
+            <h3 class="text-lg font-bold text-white tracking-tight">Catálogo Destacado</h3>
+            <button class="text-orange-400 font-mono text-xs flex items-center gap-1 hover:text-orange-300 transition-colors">
+              Ver todo <lucide-icon [name]="ChevronIcon" size="14"></lucide-icon>
             </button>
           </div>
           
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             @if (store.filteredProducts().length === 0) {
-              <div class="col-span-4 py-12 text-center text-gray-400">
-                <p class="font-black text-xs uppercase tracking-widest">No se encontraron productos</p>
+              <div class="col-span-4 py-12 text-center text-zinc-500">
+                <p class="font-mono text-xs uppercase tracking-widest">No hay productos en esta selección</p>
               </div>
             } @else {
               @for (product of store.filteredProducts(); track product.id) {
@@ -128,17 +152,17 @@ import { StoreService } from '../store.service';
         }
       </section>
 
-      <!-- Trust Bento Grid (Only show when not searching) -->
+      <!-- Trust Bento Grid -->
       @if (!store.searchQuery()) {
-        <section class="px-4 mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section class="px-4 mt-12 grid grid-cols-1 md:grid-cols-3 gap-3">
           @for (item of trustItems; track item.title) {
-            <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100 flex items-start gap-4">
-              <div class="bg-orange-100 text-[#E8541C] p-3 rounded-xl">
-                <lucide-icon [name]="item.icon" size="24"></lucide-icon>
+            <div class="bg-[#0e1118]/80 backdrop-blur-xl p-5 rounded-2xl border border-white/[0.08] hover:border-white/20 transition-all flex items-start gap-4 shadow-sm">
+              <div class="bg-orange-500/10 border border-orange-500/20 text-orange-400 p-2.5 rounded-xl shrink-0">
+                <lucide-icon [name]="item.icon" size="20"></lucide-icon>
               </div>
               <div>
-                <h5 class="font-bold text-sm">{{ item.title }}</h5>
-                <p class="text-xs text-gray-500 mt-1">{{ item.desc }}</p>
+                <h5 class="font-bold text-sm text-zinc-100">{{ item.title }}</h5>
+                <p class="text-xs text-zinc-400 mt-1 leading-relaxed">{{ item.desc }}</p>
               </div>
             </div>
           }

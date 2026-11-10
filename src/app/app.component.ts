@@ -43,23 +43,26 @@ type AuthScreen = 'welcome' | 'auth';
     </div>
 
     <!-- BANNER MODO DEMO -->
-    <div *ngIf="auth.isLoggedIn() && auth.isDemo()" class="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-gray-950 px-4 py-1.5 text-xs font-black flex items-center justify-between sticky top-0 z-[150] shadow-md">
-      <div class="flex items-center gap-2">
-        <span class="bg-gray-950 text-amber-300 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-black">⚡ MODO DEMO</span>
-        <span class="text-xs font-bold text-gray-900">
-          Vista de <b>{{ auth.currentRol() === 'tienda' ? 'Ferretería (Panel Administrativo)' : 'Cliente (Comparador & Tiendas)' }}</b>
+    <div *ngIf="auth.isLoggedIn() && auth.isDemo()" class="bg-gradient-to-r from-zinc-900 via-zinc-950 to-black border-b border-orange-500/30 text-zinc-100 px-4 py-2 text-xs font-semibold flex items-center justify-between sticky top-0 z-[150] shadow-2xl backdrop-blur-xl">
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-mono font-bold">
+          <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+          MODO DEMO
+        </span>
+        <span class="text-xs text-zinc-300">
+          Vista: <b class="text-white">{{ auth.currentRol() === 'tienda' ? 'Ferretería (Panel Administrativo)' : 'Cliente (Comparador & Tiendas)' }}</b>
         </span>
       </div>
       <button 
         type="button"
         (click)="auth.signOut()" 
-        class="bg-gray-900 hover:bg-black text-white px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm"
+        class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/80 text-zinc-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 shadow-sm"
       >
-        Salir del Demo ✕
+        Salir del Demo
       </button>
     </div>
 
-    <div class="min-h-screen bg-white">
+    <div class="min-h-screen bg-[#08090b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
       @if (auth.isLoggedIn()) {
         @if (auth.currentRol() === 'tienda') {
           <app-tienda-dashboard></app-tienda-dashboard>
@@ -154,7 +157,7 @@ export class AppComponent implements OnInit {
   }
 
   onLoginExitoso() {
-    console.log('✅ Login exitoso');
+    console.log('[Auth] Login exitoso');
     const userCity = this.auth.profile()?.ciudad;
     if (userCity) {
       this.store.setUserCity(userCity);

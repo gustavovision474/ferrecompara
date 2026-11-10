@@ -91,7 +91,7 @@ export class SupabaseService {
     // Inicializar inmediatamente con datos disponibles para render instantáneo
     this.tiendas.set(this.obtenerTiendasDemo());
     this.productos.set(this.obtenerProductosDemo());
-    console.log('✅ Supabase conectado & catálogo demo listo');
+    console.log('[Supabase] Conectado & catálogo demo listo');
   }
 
   getClient(): SupabaseClient {
@@ -122,7 +122,7 @@ export class SupabaseService {
         await this.cargarTiendasFallback();
       }
     } catch (err: any) {
-      console.warn('⚠️ Cargando tiendas fallback...');
+      console.warn('[Supabase] Cargando tiendas fallback...');
       await this.cargarTiendasFallback();
     } finally {
       this.cargando.set(false);
@@ -139,7 +139,7 @@ export class SupabaseService {
       return;
     }
 
-    console.log('🚀 Iniciando carga de productos...', query || 'sin query', city || 'sin ciudad');
+    console.log('[Products] Iniciando carga...', query || 'sin query', city || 'sin ciudad');
     this.cargando.set(true);
     this.error.set(null);
     try {
@@ -149,22 +149,22 @@ export class SupabaseService {
       params = params.set('_t', Date.now().toString());
       
       const url = `${environment.apiUrl}/Products`;
-      console.log('🔗 Petición a:', url);
+      console.log('[Products] Petición a:', url);
       
       const productos = await firstValueFrom(this.http.get<Product[]>(url, { params }).pipe(timeout(3500)));
-      console.log('✅ Productos recibidos:', productos?.length || 0);
+      console.log('[Products] Productos recibidos:', productos?.length || 0);
       if (productos && productos.length > 0) {
         this.productos.set(productos);
       } else {
         await this.cargarProductosFallback();
       }
     } catch (err: any) {
-      console.error('❌ Error cargando productos API:', err);
-      console.warn('⚠️ Cargando productos fallback...');
+      console.error('[Products] Error cargando productos API:', err);
+      console.warn('[Products] Cargando productos fallback...');
       await this.cargarProductosFallback();
     } finally {
       this.cargando.set(false);
-      console.log('🏁 Carga finalizada. Total productos en signal:', this.productos().length);
+      console.log('[Products] Carga finalizada. Total en signal:', this.productos().length);
     }
   }
 

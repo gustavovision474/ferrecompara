@@ -1835,7 +1835,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
         </div>
       </div>
-
+      </main>
 
       <!-- MODAL APROBAR CRÉDITO -->
       <div *ngIf="modalAprobarCreditoData" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">

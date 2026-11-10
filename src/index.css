@@ -38,6 +38,13 @@
 }
 
 @layer components {
+  .bg-vessa-emerald {
+    background-color: #0e3b2e !important;
+  }
+  .text-vessa-emerald {
+    color: #0e3b2e !important;
+  }
+  
   .price-display {
     @apply text-[22px] font-bold leading-none tracking-tight font-mono;
   }

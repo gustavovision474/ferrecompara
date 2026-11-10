@@ -48,7 +48,7 @@ type AuthScreen = 'welcome' | 'auth';
       <button 
         type="button"
         (click)="auth.iniciarDemo('tienda')"
-        [class.bg-[#0e3b2e]]="auth.currentRol() === 'tienda'"
+        [class.bg-vessa-emerald]="auth.currentRol() === 'tienda'"
         [class.text-white]="auth.currentRol() === 'tienda'"
         [class.text-zinc-400]="auth.currentRol() !== 'tienda'"
         class="px-2.5 py-1 rounded-full font-bold transition-all hover:text-white"
@@ -59,8 +59,8 @@ type AuthScreen = 'welcome' | 'auth';
       <button 
         type="button"
         (click)="auth.iniciarDemo('cliente')"
-        [class.bg-orange-500/20]="auth.currentRol() === 'cliente'"
-        [class.text-orange-400]="auth.currentRol() === 'cliente'"
+        [class.bg-orange-600]="auth.currentRol() === 'cliente'"
+        [class.text-white]="auth.currentRol() === 'cliente'"
         [class.text-zinc-400]="auth.currentRol() !== 'cliente'"
         class="px-2.5 py-1 rounded-full font-bold transition-all hover:text-white"
       >

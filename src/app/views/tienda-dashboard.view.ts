@@ -50,7 +50,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
             <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-white]="!vessaDarkMode()" [class.shadow-sm]="!vessaDarkMode()" [class.text-amber-500]="!vessaDarkMode()" [class.text-zinc-500]="vessaDarkMode()">
               <lucide-icon [name]="SunIcon" size="13"></lucide-icon>
             </button>
-            <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-[#0e3b2e]]="vessaDarkMode()" [class.text-emerald-300]="vessaDarkMode()" [class.text-zinc-400]="!vessaDarkMode()">
+            <button class="w-6 h-6 rounded-full flex items-center justify-center transition-all" [class.bg-vessa-emerald]="vessaDarkMode()" [class.text-emerald-300]="vessaDarkMode()" [class.text-zinc-400]="!vessaDarkMode()">
               <lucide-icon [name]="MoonIcon" size="13"></lucide-icon>
             </button>
           </div>
@@ -61,7 +61,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Overview -->
           <button 
             (click)="activeTab.set('dashboard')" 
-            [class.bg-[#0e3b2e]]="activeTab() === 'dashboard'" 
+            [class.bg-vessa-emerald]="activeTab() === 'dashboard'" 
             [class.text-white]="activeTab() === 'dashboard'" 
             [class.shadow-lg]="activeTab() === 'dashboard'" 
             [ngClass]="activeTab() === 'dashboard' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
@@ -74,7 +74,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Inventory / Stock -->
           <button 
             (click)="abrirCatalogo()" 
-            [class.bg-[#0e3b2e]]="activeTab() === 'catalogo'" 
+            [class.bg-vessa-emerald]="activeTab() === 'catalogo'" 
             [class.text-white]="activeTab() === 'catalogo'" 
             [ngClass]="activeTab() === 'catalogo' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
@@ -86,7 +86,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Orders -->
           <button 
             (click)="abrirPedidos()" 
-            [class.bg-[#0e3b2e]]="activeTab() === 'pedidos'" 
+            [class.bg-vessa-emerald]="activeTab() === 'pedidos'" 
             [class.text-white]="activeTab() === 'pedidos'" 
             [ngClass]="activeTab() === 'pedidos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
@@ -98,7 +98,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Sales / Cart -->
           <button 
             (click)="abrirCotizacion()" 
-            [class.bg-[#0e3b2e]]="activeTab() === 'cotizacion'" 
+            [class.bg-vessa-emerald]="activeTab() === 'cotizacion'" 
             [class.text-white]="activeTab() === 'cotizacion'" 
             [ngClass]="activeTab() === 'cotizacion' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
@@ -110,7 +110,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- WMS Warehouses -->
           <button 
             (click)="abrirAlmacen('dashboard')" 
-            [class.bg-[#0e3b2e]]="activeTab() === 'almacen-wms'" 
+            [class.bg-vessa-emerald]="activeTab() === 'almacen-wms'" 
             [class.text-white]="activeTab() === 'almacen-wms'" 
             [ngClass]="activeTab() === 'almacen-wms' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 
@@ -132,7 +132,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
           <!-- Experts / Team -->
           <button 
             (click)="abrirExpertos()" 
-            [class.bg-[#0e3b2e]]="activeTab() === 'expertos'" 
+            [class.bg-vessa-emerald]="activeTab() === 'expertos'" 
             [class.text-white]="activeTab() === 'expertos'" 
             [ngClass]="activeTab() === 'expertos' ? '' : (vessaDarkMode() ? 'text-zinc-400 hover:text-white hover:bg-white/5' : 'text-[#50665c] hover:text-[#0e3b2e] hover:bg-emerald-500/10')"
             class="w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative group" 

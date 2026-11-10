@@ -42,7 +42,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
         <div class="flex flex-col items-center gap-3 w-full">
           <!-- Vessa Logo Emblem -->
           <div (click)="activeTab.set('dashboard')" class="w-10 h-10 rounded-2xl bg-[#E8541C] hover:bg-[#c2410c] text-orange-200 flex items-center justify-center cursor-pointer transition-all shadow-md shadow-[#E8541C]/30 active:scale-95 group" title="Vessa / FerreCompara Dashboard">
-            <lucide-icon [name]="PackageIcon" size="20" class="text-orange-500 group-hover:scale-110 transition-transform"></lucide-icon>
+            <lucide-icon [name]="PackageIcon" size="20" class="text-white group-hover:scale-110 transition-transform"></lucide-icon>
           </div>
 
           <!-- Sun / Moon Theme Toggle Pill -->
@@ -174,7 +174,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 font-bold uppercase">Stockroom</span>
               </h1>
               <p [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#71867c]'" class="text-[11px] font-medium leading-none mt-0.5">
-                {{ nombreTiendaActual() || 'FerreExpress · Bodega Central' }}
+                {{ nombreTiendaLimpio() }} · Bodega Central
               </p>
             </div>
           </div>
@@ -239,17 +239,8 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
               <span>New</span>
             </button>
 
-            <!-- Profile Badge & Client Switcher -->
+            <!-- Profile Avatar Badge -->
             <div class="flex items-center gap-2 pl-1 border-l border-zinc-300/60 dark:border-white/10">
-              <button 
-                (click)="auth.iniciarDemo('cliente')" 
-                class="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border border-orange-500/20 transition-all"
-                title="Cambiar a vista de cliente / comparador"
-              >
-                <lucide-icon [name]="ShoppingBagIcon" size="12"></lucide-icon>
-                <span>Ver Tienda</span>
-              </button>
-
               <div (click)="abrirPerfil()" class="flex items-center gap-2 cursor-pointer group" title="Mi Perfil">
                 <div class="w-8 h-8 rounded-full bg-[#0f172a] text-white flex items-center justify-center text-xs font-bold border-2 border-white/80 dark:border-white/20 shadow-sm group-hover:scale-105 transition-transform">
                   {{ nombreTiendaActual() ? nombreTiendaActual().charAt(0) : 'I' }}
@@ -278,7 +269,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
 
                 <!-- Main Greeting (Dinámico con datos reales de sesión) -->
                 <h2 [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-3">
-                  ¡Hola,<br class="hidden sm:inline"/> {{ auth.profile()?.nombre_completo || auth.profile()?.nombre_tienda || 'Ferretería Central' }}!
+                  ¡Hola,<br class="hidden sm:inline"/> {{ nombreTiendaLimpio() }}!
                 </h2>
                 <p [ngClass]="vessaDarkMode() ? 'text-zinc-400' : 'text-[#5a7166]'" class="text-xs sm:text-sm mt-2 leading-relaxed max-w-sm">
                   Movimiento de hoy: {{ pedidosPendientes().length }} pedidos por despachar y {{ warehouseService.stats().urgentLoans.length || 2 }} entregas de material en curso.
@@ -300,7 +291,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                   class="border px-5 py-2.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
                 >
                   <lucide-icon [name]="PlusIcon" size="14"></lucide-icon>
-                  <span>+ Agregar Producto</span>
+                  <span>Agregar Producto</span>
                 </button>
               </div>
 
@@ -325,7 +316,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                     <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-black tracking-tight">{{ totalUnitsOnHand().toLocaleString() }}</span>
                     <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-600 border border-orange-500/20">
                       <lucide-icon [name]="ArrowUpRightIcon" size="11"></lucide-icon>
-                      <span>+4.8%</span>
+                      <span>4.8%</span>
                     </span>
                   </div>
                   <p [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-medium mt-1">{{ totalSkusCount() }} SKUs · {{ totalSitesCount() }} bodegas conectadas</p>
@@ -354,7 +345,7 @@ type Tab = 'dashboard' | 'nuevo-producto' | 'catalogo' | 'perfil' | 'mensajes' |
                     <span [ngClass]="vessaDarkMode() ? 'text-white' : 'text-[#0f172a]'" class="text-2xl sm:text-3xl font-black tracking-tight">{{ totalStockValue() | currency:'USD':'symbol':'1.0-0' }}</span>
                     <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-[#E8541C] border border-orange-500/20">
                       <lucide-icon [name]="ArrowUpRightIcon" size="11"></lucide-icon>
-                      <span>+5.2%</span>
+                      <span>5.2%</span>
                     </span>
                   </div>
                   <p [ngClass]="vessaDarkMode() ? 'text-zinc-500' : 'text-[#788e84]'" class="text-[11px] font-medium mt-1">Valuación total activa</p>
@@ -2229,6 +2220,11 @@ export class TiendaDashboardView implements OnInit, OnDestroy {
         ]
       }
     ];
+  }
+
+  nombreTiendaLimpio(): string {
+    const raw = this.auth.profile()?.nombre_tienda || this.auth.profile()?.nombre_completo || 'Ferretería Zambrano';
+    return raw.replace(/\s*\(Demo\)\s*/gi, '').trim();
   }
 
   nombreTiendaActual(): string {

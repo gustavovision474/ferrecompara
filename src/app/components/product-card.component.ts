@@ -46,7 +46,7 @@ import { StoreService } from '../store.service';
         <div class="flex items-end justify-between mt-2">
           <div class="flex flex-col">
             <p class="text-[18px] font-black text-[#E8541C] leading-none tracking-tight">
-              \${{ product.minPrice.toFixed(2) }} - \${{ product.maxPrice.toFixed(2) }}
+              \${{ product.minPrice.toFixed(2) }}<span *ngIf="product.maxPrice && product.maxPrice > product.minPrice" class="text-xs font-semibold text-gray-400"> - \${{ product.maxPrice.toFixed(2) }}</span>
             </p>
           </div>
           <button class="bg-[#E8541C] text-white w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-all shadow-lg shadow-orange-100">

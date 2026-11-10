@@ -42,73 +42,55 @@ type AuthScreen = 'welcome' | 'auth';
       <button (click)="globalError.set(null)" class="mt-2 bg-black/30 px-3 py-1 rounded">Cerrar</button>
     </div>
 
-    <!-- BANNER MODO DEMO -->
-    <div *ngIf="auth.isLoggedIn() && auth.isDemo()" class="bg-gradient-to-r from-zinc-900 via-zinc-950 to-black border-b border-orange-500/30 text-zinc-100 px-4 py-2 text-xs font-semibold flex items-center justify-between sticky top-0 z-[150] shadow-2xl backdrop-blur-xl">
-      <div class="flex items-center gap-2.5">
-        <span class="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-mono font-bold">
-          <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
-          MODO DEMO
-        </span>
-        <span class="text-xs text-zinc-300">
-          Vista: <b class="text-white">{{ auth.currentRol() === 'tienda' ? 'Ferretería (Panel Administrativo)' : 'Cliente (Comparador & Tiendas)' }}</b>
-        </span>
-      </div>
+    <!-- FLOATING DEMO PILL (Discreet Luxury Dock) -->
+    <div *ngIf="auth.isLoggedIn() && auth.isDemo()" class="fixed top-3 right-4 z-[150] hidden sm:flex items-center gap-2 bg-[#0c0e14]/90 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-full shadow-2xl text-[11px] font-mono">
+      <span class="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+      <span class="text-zinc-400">DEMO:</span>
       <button 
-        type="button"
-        (click)="auth.signOut()" 
-        class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/80 text-zinc-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 shadow-sm"
+        (click)="auth.iniciarDemo(auth.currentRol() === 'tienda' ? 'cliente' : 'tienda')"
+        class="text-orange-400 hover:text-orange-300 font-bold underline transition-colors"
       >
-        Salir del Demo
+        {{ auth.currentRol() === 'tienda' ? 'Ferretería' : 'Cliente' }}
+      </button>
+      <span class="text-zinc-600">|</span>
+      <button 
+        (click)="auth.signOut()" 
+        class="text-zinc-400 hover:text-white transition-colors"
+      >
+        Salir
       </button>
     </div>
 
-    <div class="min-h-screen bg-[#08090b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
-      @if (auth.isLoggedIn()) {
-        @if (auth.currentRol() === 'tienda') {
-          <app-tienda-dashboard></app-tienda-dashboard>
-        } @else {
-          <!-- VISTA DE CLIENTE -->
-          @if (store.selectedProduct()) {
-            <!-- Vista de detalle de producto -->
-            <app-product-detail-view></app-product-detail-view>
-          } @else if (store.selectedStore()) {
-            <!-- Vista de detalle de tienda -->
-            <app-store-detail-view></app-store-detail-view>
-          } @else {
-            <app-header></app-header>
-            <div class="pb-[80px]">
-              @if (store.activeTab() === 'home') {
-                <app-home-view></app-home-view>
-              } @else if (store.activeTab() === 'stores') {
-                <app-stores-view></app-stores-view>
-              } @else if (store.activeTab() === 'experts') {
-                <app-experts-view></app-experts-view>
-              } @else if (store.activeTab() === 'profile') {
-                <app-dashboard-view></app-dashboard-view>
-              } @else if (store.activeTab() === 'cart') {
-                <app-cart-view></app-cart-view>
-              } @else {
-                <!-- Fallback for favorites/search -->
-                <app-home-view></app-home-view>
-              }
-            </div>
-            <app-bottom-nav></app-bottom-nav>
-          }
-        }
+    <div class="min-h-screen bg-[#07080b] text-zinc-100 selection:bg-orange-500/30 selection:text-orange-200">
+      @if (auth.currentRol() === 'tienda') {
+        <app-tienda-dashboard></app-tienda-dashboard>
       } @else {
-        @if (authScreen() === 'welcome') {
-          <app-welcome-view
-            (rolElegido)="onRolElegido($event)"
-            (iniciarSesion)="onIniciarSesion()"
-            (demoElegida)="onEntrarDemo($event)"
-          ></app-welcome-view>
+        <!-- VISTA DE CLIENTE (POR DEFECTO PARA CUALQUIER VISITANTE) -->
+        @if (store.selectedProduct()) {
+          <app-product-detail-view></app-product-detail-view>
+        } @else if (store.selectedStore()) {
+          <app-store-detail-view></app-store-detail-view>
         } @else {
-          <app-auth-view
-            [rol]="rolSeleccionado()!"
-            [modoInicial]="modoAuth()"
-            (atras)="volverAWelcome()"
-            (exitoso)="onLoginExitoso()"
-          ></app-auth-view>
+          <!-- Header visible only on secondary tabs (Stores, Experts, Dashboard, Cart) -->
+          @if (store.activeTab() !== 'home') {
+            <app-header></app-header>
+          }
+          <div class="pb-[80px]">
+            @if (store.activeTab() === 'home') {
+              <app-home-view></app-home-view>
+            } @else if (store.activeTab() === 'stores') {
+              <app-stores-view></app-stores-view>
+            } @else if (store.activeTab() === 'experts') {
+              <app-experts-view></app-experts-view>
+            } @else if (store.activeTab() === 'profile') {
+              <app-dashboard-view></app-dashboard-view>
+            } @else if (store.activeTab() === 'cart') {
+              <app-cart-view></app-cart-view>
+            } @else {
+              <app-home-view></app-home-view>
+            }
+          </div>
+          <app-bottom-nav></app-bottom-nav>
         }
       }
     </div>

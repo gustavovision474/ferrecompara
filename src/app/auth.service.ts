@@ -43,10 +43,29 @@ export class AuthService {
   }
 
   // ============================================
-  // STATE (Signals)
+  // STATE (Signals) - Inicializado por defecto en Demo Cliente
   // ============================================
-  private _user = signal<User | null>(null);
-  private _profile = signal<Profile | null>(null);
+  private _user = signal<User | null>({
+    id: 'demo-cliente-001',
+    email: 'cliente.demo@ferrecompara.com',
+    app_metadata: { provider: 'demo' },
+    user_metadata: { rol: 'cliente' },
+    aud: 'authenticated',
+    created_at: new Date().toISOString()
+  } as any);
+
+  private _profile = signal<Profile | null>({
+    id: 'demo-cliente-001',
+    email: 'cliente.demo@ferrecompara.com',
+    rol: 'cliente',
+    nombre: 'Gustavo Vélez (Demo)',
+    telefono: '+593 99 123 4567',
+    ciudad: 'Quito',
+    direccion: 'Av. Amazonas y Naciones Unidas',
+    estado: 'aprobado',
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop'
+  });
+
   private _loading = signal<boolean>(false);
   private _error = signal<string | null>(null);
 
@@ -140,9 +159,12 @@ export class AuthService {
     if (session?.user) {
       await this.cargarProfile(session.user.id);
       this._user.set(session.user);
+      return;
     }
 
-    // Escuchar cambios de sesión (login, logout en otra pestaña, etc.)
+    // Por defecto, inicializar en modo Demo Cliente para ver la interfaz de inmediato
+    this.iniciarDemo('cliente');
+
     this.client.auth.onAuthStateChange(async (event, session) => {
       console.log('[Auth] Event:', event);
       if (session?.user) {
